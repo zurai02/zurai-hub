@@ -5,7 +5,6 @@ end)
 
 if not success or not result then
     warn("[Zurai Hub] Failed to load Rayfield. Using fallback.")
-    -- Fallback: create a simple UI if Rayfield fails
     return
 end
 
