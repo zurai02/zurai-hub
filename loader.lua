@@ -75,8 +75,6 @@
 ]]
 
 local StarterGui = game:GetService("StarterGui") 
-local HttpService = game:GetService("HttpService")
-
 local PlaceId = tostring(game.PlaceId)
 local GameId = tostring(game.GameId) 
 
@@ -95,8 +93,8 @@ local function notify(title, text)
     end)
 end
 
-local function fetchScript(id)
-    local url = string.format("https://raw.githubusercontent.com/%s/%s/%s/%s/%s.lua", Username, Repo, Branch, Folder, id) 
+local function fetchScript(fileName)
+    local url = string.format("https://raw.githubusercontent.com/%s/%s/%s/%s/%s", Username, Repo, Branch, Folder, fileName) 
     local success, content = pcall(game.HttpGet, game, url, true)
     if success and content and content ~= "404: Not Found" and not content:find("404: Not Found") then
         return content
@@ -104,13 +102,23 @@ local function fetchScript(id)
     return nil
 end
 
-local scriptContent = fetchScript(PlaceId) or fetchScript(GameId)
+local scriptContent = fetchScript(PlaceId .. ".lua") or fetchScript(GameId .. ".lua")
+local isUniversal = false
+
+if not scriptContent then
+    scriptContent = fetchScript("universal.lua")
+    isUniversal = true
+end
 
 if scriptContent then 
     local loadedFunc, err = loadstring(scriptContent) 
     
     if loadedFunc then 
-        notify("Zurai Hub", "Script loaded successfully!")
+        if isUniversal then
+            notify("Zurai Hub", "Game not supported. Loaded Universal Script!")
+        else
+            notify("Zurai Hub", "Script loaded successfully!")
+        end
         
         local execSuccess, execErr = pcall(loadedFunc) 
         if not execSuccess then 
@@ -120,6 +128,6 @@ if scriptContent then
         warn("[Zurai Hub] Syntax Error: " .. tostring(err)) 
     end 
 else 
-    notify("Zurai Hub", "Place/Game ID not supported.")
-    warn("[Zurai Hub] Game/Place ID is not supported or script not found.") 
+    notify("Zurai Hub", "Failed to load script or universal backup.")
+    warn("[Zurai Hub] Game ID is not supported and universal.lua was not found.") 
 end
