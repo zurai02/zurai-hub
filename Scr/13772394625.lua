@@ -217,7 +217,7 @@ local function fireParry()
     end
     local viewport=cam.ViewportSize
     local curveCF=getCurveCFrame()
-    pcall(function() ParryRemote:FireServer(Hash1, Hash2, Hash3(), 0.025, urveCF, event_data, {viewport.X/2,viewport.Y/2}, false) end)
+    pcall(function() ParryRemote:FireServer(Hash1, Hash2, Hash3(), 0.025, curveCF, event_data, {viewport.X/2,viewport.Y/2}, false) end)
 end
 
 System.animation = {}
