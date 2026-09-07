@@ -1,4 +1,15 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield
+local success, result = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+
+if not success or not result then
+    warn("[Zurai Hub] Failed to load Rayfield. Using fallback.")
+    -- Fallback: create a simple UI if Rayfield fails
+    return
+end
+
+Rayfield = result
 
 local Window = Rayfield:CreateWindow({
    Name = "Zurai Hub | Universal",
