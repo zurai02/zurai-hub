@@ -74,14 +74,33 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 ]]
 
+local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui") 
-local PlaceId = tostring(game.PlaceId)
-local GameId = tostring(game.GameId) 
 
 local Username = "zurai02" 
 local Repo = "zurai-hub" 
 local Branch = "main" 
 local Folder = "Scr" 
+
+local PlaceId = tostring(game.PlaceId)
+
+local function getGameId()
+    local success, response = pcall(function()
+        return game:HttpGet("https://apis.roproxy.com/universes/v1/places/" .. PlaceId .. "/universe-id")
+    end)
+    
+    if success and response then
+        local decodeSuccess, data = pcall(function()
+            return HttpService:JSONDecode(response)
+        end)
+        if decodeSuccess and data and data.universeId then
+            return tostring(data.universeId)
+        end
+    end
+    return tostring(game.GameId)
+end
+
+local GameId = getGameId()
 
 local function notify(title, text)
     pcall(function() 
