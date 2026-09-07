@@ -1,6 +1,6 @@
 local localPlayer = game:GetService('Players').LocalPlayer;
 local localCharacter = localPlayer.Character;
-local Character:FindFirstChildOfClass('Humanoid').Health = 0;
+localCharacter:FindFirstChildOfClass('Humanoid').Health = 0;
 local newCharacter = localPlayer.CharacterAdded:Wait();
 local spoofFolder = Instance.new('Folder');
 spoofFolder.Name = 'FULLY_LOADED_CHAR';
