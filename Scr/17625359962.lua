@@ -31,7 +31,7 @@ local FullSettings = {
             Enable = true,
             Toggle = true,
             HitPart = "HitboxHead",
-			HitPartList = {"Head", "LeftFoot", "LeftHand", "LeftLowerArm", "LeftLowerLeg", "LeftUpperArm", "LowerTorso", "RightFoot", "RightHand", "RightLowerArm", "RightLowerLeg", "RightUpperArm", "RightUpperLeg", "UpperTorso", "HitboxBody", "FakeMass", "HitboxBodySmall", "HumanoidRootPart"},
+			HitPartList = {"Head", "LeftFoot", "LeftHand", "LeftLowerArm", "LeftLowerLeg", "LeftUpperArm", "LowerTorso", "RightFoot", "RightHand", "RightLowerArm", "RightLowerLeg", "RightUpperArm", "RightUpperLeg", "UpperTorso"},
             TriggerKey = Enum.UserInputType.MouseButton2,
         }
     },
@@ -40,14 +40,14 @@ local FullSettings = {
             TeamCheck = true,
             WallCheck = false,
             AliveCheck = true
-        },
+         },
 		Values = {
 			Enabled = true,
 			FillColor = Color3.fromRGB(255, 255, 255),
 			FillTransparency = 0.5,
 			OutlineColor = Color3.fromRGB(200, 200, 200),
 			OutlineTransparency = 0
-        }
+         }
 	}
 }
 
@@ -118,7 +118,7 @@ do -- Aimbot
 					end
 
 
-					if Target and Target.Character and Target.Character:FindFirstChild(FullSettings.AimBot.Values.HitPart) and lock and camera:WorldToViewportPoint(Target.Character[FullSettings.AimBot.Values.HitPart].Position).Z > 0 then
+					if Target and Target.Character and Target.Character:FindFirstChild(FullSettings.AimBot.Values.HitPart) and lock and camera:WorldToViewportPoint(Target.Character[FullSettings.AimBot.Values.HitPart]).Z > 0 then
 						if not FullSettings.AimBot.Values.Toggle and FullSettings.AimBot.Values.TriggerKey and not UIS:IsMouseButtonPressed(FullSettings.AimBot.Values.TriggerKey) then continue end
 						camera.CFrame = CFrame.new(camera.CFrame.Position + (Target.Character[FullSettings.AimBot.Values.HitPart].Position - camera.CFrame.Position).Unit * 0.5, Target.Character[FullSettings.AimBot.Values.HitPart].Position)
 						
