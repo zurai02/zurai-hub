@@ -74,79 +74,76 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 ]]
 
+-- Configuration
+local repoOwner = "zurai02"
+local repoName = "zurai-hub"
+local branch = "main"
+local folder = "Scr"
+
 local HttpService = game:GetService("HttpService")
-local StarterGui = game:GetService("StarterGui") 
-
-local Username = "zurai02" 
-local Repo = "zurai-hub" 
-local Branch = "main" 
-local Folder = "Scr" 
-
-local PlaceId = tostring(game.PlaceId)
-
-local function getGameId()
-    local success, response = pcall(function()
-        return game:HttpGet("https://apis.roproxy.com/universes/v1/places/" .. PlaceId .. "/universe-id")
-    end)
-    
-    if success and response then
-        local decodeSuccess, data = pcall(function()
-            return HttpService:JSONDecode(response)
-        end)
-        if decodeSuccess and data and data.universeId then
-            return tostring(data.universeId)
-        end
-    end
-    return tostring(game.GameId)
-end
-
-local GameId = getGameId()
+local StarterGui = game:GetService("StarterGui")
 
 local function notify(title, text)
-    pcall(function() 
-        StarterGui:SetCore("SendNotification", { 
-            Title = title, 
-            Text = text, 
-            Duration = 5 
-        }) 
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = 5
+        })
     end)
 end
 
 local function fetchScript(fileName)
-    local url = string.format("https://raw.githubusercontent.com/%s/%s/%s/%s/%s", Username, Repo, Branch, Folder, fileName) 
-    local success, content = pcall(game.HttpGet, game, url, true)
-    if success and content and content ~= "404: Not Found" and not content:find("404: Not Found") then
-        return content
+    local url = string.format("https://raw.githubusercontent.com/%s/%s/%s/%s/%s", repoOwner, repoName, branch, folder, fileName)
+    print("[Zurai Hub] Fetching: " .. url)
+    
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success and result and not result:find("404: Not Found") and #result > 0 then
+        return result
     end
     return nil
 end
 
-local scriptContent = fetchScript(PlaceId .. ".lua") or fetchScript(GameId .. ".lua")
-local isUniversal = false
+-- Get Game / Place Identifiers
+local placeId = tostring(game.PlaceId)
+local gameId = tostring(game.GameId)
 
-if not scriptContent then
-    scriptContent = fetchScript("universal.lua")
-    isUniversal = true
+print("[Zurai Hub] Checking Place ID: " .. placeId)
+print("[Zurai Hub] Checking Game ID: " .. gameId)
+
+-- Attempt Fetching Sequence
+local code = fetchScript(placeId .. ".lua") or fetchScript(gameId .. ".lua")
+local loadedType = "Game-Specific"
+
+if not code then
+    print("[Zurai Hub] Specific script not found. Attempting universal.lua...")
+    code = fetchScript("universal.lua")
+    loadedType = "Universal"
 end
 
-if scriptContent then 
-    local loadedFunc, err = loadstring(scriptContent) 
-    
-    if loadedFunc then 
-        if isUniversal then
-            notify("Zurai Hub", "Game not supported. Loaded Universal Script!")
-        else
-            notify("Zurai Hub", "Script loaded successfully!")
-        end
-        
-        local execSuccess, execErr = pcall(loadedFunc) 
-        if not execSuccess then 
-            warn("[Zurai Hub] Execution Error: " .. tostring(execErr)) 
-        end 
-    else 
-        warn("[Zurai Hub] Syntax Error: " .. tostring(err)) 
-    end 
-else 
-    notify("Zurai Hub", "Failed to load script or universal backup.")
+if not code then
+    warn("[Zurai Hub] Error: Could not find " .. placeId .. ".lua, " .. gameId .. ".lua, or universal.lua on GitHub!")
+    notify("Zurai Hub", "Script not found on GitHub.")
+    return
+end
+
+-- Execute Code
+local loadedFunc, syntaxErr = loadstring(code)
+if not loadedFunc then
+    warn("[Zurai Hub] Syntax Error in target script: " .. tostring(syntaxErr))
+    notify("Zurai Hub", "Syntax error in script!")
+    return
+end
+
+local execSuccess, execErr = pcall(loadedFunc)
+if execSuccess then
+    notify("Zurai Hub", loadedType .. " Script Loaded!")
+else
+    warn("[Zurai Hub] Runtime Execution Error: " .. tostring(execErr))
+    notify("Zurai Hub", "Execution error! Check F9 Console.")
+end
     warn("[Zurai Hub] Game ID is not supported and universal.lua was not found.") 
 end
