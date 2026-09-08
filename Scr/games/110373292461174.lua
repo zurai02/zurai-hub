@@ -1,0 +1,138 @@
+local Yield = task.wait
+local plr = game:GetService("Players").LocalPlayer
+local repStorage = game:GetService("ReplicatedStorage")
+local env = getgenv()
+
+env.Farming = false
+env.Strength = false
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "zurai02",
+   LoadingTitle = "Loading Script...",
+   LoadingSubtitle = "by zurai02",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "BrainrotPolice",
+      FileName = "PaperPlaneForBrainrotConfig"
+   }
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+
+MainTab:CreateSection("Farming Options")
+
+MainTab:CreateToggle({
+   Name = "Farm Brainrots",
+   CurrentValue = false,
+   Flag = "FarmBrainrotsToggle",
+   Callback = function(v)
+      env.Farming = v
+      if not v then return end
+
+      task.spawn(function()
+         while env.Farming do
+            pcall(function()
+               local network = repStorage:FindFirstChild("SharedModules") and repStorage.SharedModules:FindFirstChild("Network")
+               
+               if network and network:FindFirstChild("RequestPendingFlight") then
+                  network.RequestPendingFlight:FireServer()
+               end
+
+               Yield(1)
+               if not env.Farming then return end
+
+               local gameCoreExists, GameCore = pcall(function() return require(repStorage:FindFirstChild("GameCore")) end)
+               local utilCoreExists, UtilityCore = pcall(function() return require(repStorage:FindFirstChild("UtilityCore")) end)
+
+               if gameCoreExists and utilCoreExists and network and network:FindFirstChild("RequestActiveFlight") then
+                  local vsp = Vector3.new(-347.2116394043, 89.037544250488, 25.892095565796)
+                  
+                  local results = network.RequestActiveFlight:InvokeServer({
+                      plotIndex = 3,
+                      intensity = 1,
+                      player = plr,
+                      flightUID = UtilityCore.StringUtility.GenerateUID(),
+                      serverFloors = 10000000,
+                      visualStartPos = vsp,
+                      startTime = GameCore.GetSycnedTime(),
+                      startPos = Vector3.new(-347.2116394043, 85.050003051758, 25.892095565796),
+                      serverStrength = 10000000
+                  })
+
+                  if results and results.spawnedBrainrots and results.spawnedBrainrots[1] then
+                     local chosenBrainrot = results.spawnedBrainrots[1]
+                     Yield((results.timeInAir or 0) + 0.5)
+
+                     if env.Farming and network:FindFirstChild("ClaimFlight") then
+                        network.ClaimFlight:InvokeServer(chosenBrainrot.uid)
+                     end
+                  end
+               end
+            end)
+            Yield(1)
+         end
+      end)
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Farm Strength",
+   CurrentValue = false,
+   Flag = "FarmStrengthToggle",
+   Callback = function(v)
+      env.Strength = v
+      if not v then return end
+
+      task.spawn(function()
+         while env.Strength do
+            pcall(function()
+               local network = repStorage:FindFirstChild("SharedModules") and repStorage.SharedModules:FindFirstChild("Network")
+               
+               if network then
+                  local reqStrength = network:FindFirstChild("RequestStrength")
+                  local reqDoubleStrength = network:FindFirstChild("RequestDoubleStrength")
+
+                  if reqStrength then reqStrength:InvokeServer() end
+                  if reqDoubleStrength then reqDoubleStrength:InvokeServer() end
+               end
+            end)
+            Yield(0.1)
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateSection("Player Tweaks")
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 250},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "SpeedSlider",
+   Callback = function(val)
+      if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+         plr.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+      end
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 300},
+   Increment = 5,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "JumpSlider",
+   Callback = function(val)
+      if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+         local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+         hum.UseJumpPower = true
+         hum.JumpPower = val
+      end
+   end,
+})
