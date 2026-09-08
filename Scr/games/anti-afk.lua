@@ -78,11 +78,21 @@
 local Players = game:GetService("Players")
 local VirtualUser = game:GetService("VirtualUser")
 local localPlayer = Players.LocalPlayer
+local yield = task.wait
 
 if getgenv().AntiAfkLoaded then return end
 getgenv().AntiAfkLoaded = true
 
 localPlayer.Idled:Connect(function()
     VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
+    VirtualUser:ClickButton2(Vector2.zero)
+end)
+
+task.spawn(function()
+    while yield(900) do
+        pcall(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.zero)
+        end)
+    end
 end)
