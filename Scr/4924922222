@@ -7,14 +7,6 @@ local Window = Libary:MakeWindow({
     LoadText = "Loading zurai Hub",
     Flags = "zuraiHub_Broookhaven"
 
-local InfoTab = Window:MakeTab({ Title = "Info", Icon = "rbxassetid://15309138473" })
-
-
-
-InfoTab:AddSection({ "Script Information" })
-InfoTab:AddParagraph({ "Owner / Developer:", "Luscaa and venom." })
-InfoTab:AddParagraph({ "Collaborations:", "Blue, sukuna, Magekko, Darkness, Star, Toddy" })
-InfoTab:AddParagraph({ "You are using:", "Chaos Hub Brookhaven " })
 InfoTab:AddParagraph({"Your executor:", executor})
 
 InfoTab:AddSection({ "Rejoin" })
