@@ -1,0 +1,69 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Brainrot Script",
+   LoadingTitle = "Loading...",
+   LoadingSubtitle = "by Assistant",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "BrainrotPolice",
+      FileName = "Config"
+   }
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+local Section = Tab:CreateSection("Farming")
+
+local Yield = task.wait
+local plr = game:GetService("Players").LocalPlayer
+getgenv().FarmRots = false
+
+local Toggle = Tab:CreateToggle({
+   Name = "Farm Brainrots",
+   CurrentValue = false,
+   Flag = "FarmRotsToggle",
+   Callback = function(v)
+      getgenv().FarmRots = v
+
+      if v then
+         task.spawn(function()
+            while getgenv().FarmRots do
+               local entities = workspace:FindFirstChild("EntitiesFolder")
+               if entities then
+                  for _, br in pairs(entities:GetChildren()) do
+                     if not getgenv().FarmRots then break end
+
+                     if br:GetAttribute("SpawnZone") ~= 22 then
+                        continue
+                     end
+
+                     if not br.PrimaryPart then
+                        continue
+                     end
+
+                     if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        plr.Character:MoveTo(Vector3.new(-2494, 4, -726))
+                        Yield(0.5)
+
+                        plr.Character:MoveTo(br.PrimaryPart.Position)
+                        Yield()
+
+                        local prompt = br.PrimaryPart:FindFirstChild("TakeBrainrotPrompt")
+                        if prompt and typeof(fireproximityprompt) == "function" then
+                           repeat
+                              fireproximityprompt(prompt)
+                              Yield()
+                           until not br.PrimaryPart or br.PrimaryPart:FindFirstChild("Attachment") or not getgenv().FarmRots
+                        end
+
+                        plr.Character:MoveTo(Vector3.new(77, 4, -729))
+                        Yield(1)
+                     end
+                  end
+               end
+               Yield()
+            end
+         end)
+      end
+   end,
+})
