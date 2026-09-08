@@ -82,6 +82,7 @@ local RunService        = game:GetService("RunService")
 local plr  = Players.LocalPlayer
 local char = plr.Character or plr.CharacterAdded:Wait()
 local cam  = workspace.CurrentCamera
+local yield = task.wait
 
 local dmgEvent = ReplicatedStorage:FindFirstChild("RemoteEvents") and ReplicatedStorage.RemoteEvents:FindFirstChild("DamagePlayer")
 if dmgEvent then
@@ -91,7 +92,7 @@ else
     warn("You Haven't loaded in!")
 end
 
-task.wait(1)
+yield(1)
 
 local NovaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/zurai02/zurai-hub/main/UI.lua"))()
 
@@ -332,14 +333,14 @@ FarmTab:CreateToggle({
                                             toolDamage:InvokeServer(tree, axe, "1_8264699301", tree.Trunk.CFrame)
                                         end
                                     end)
-                                    task.wait(0.8)
+                                    yield(0.8)
                                 end
                             end
                         end
                     end
                     task.wait(0.5)
                 end
-                task.wait(2)
+                yield(2)
             end
         end)
     end
@@ -369,7 +370,7 @@ FarmTab:CreateToggle({
                         end)
                     end
                 end
-                task.wait(0.5)
+                yield(0.5)
             end
         end)
     end
@@ -423,7 +424,7 @@ EspTab:CreateToggle({
                         makeEsp(player.Character, Color3.new(0, 1, 0), player.Name)
                     end
                 end
-                task.wait(1)
+                yield(1)
             end
             for _, player in pairs(Players:GetPlayers()) do
                 if player.Character then removeEsp(player.Character) end
@@ -444,7 +445,7 @@ EspTab:CreateToggle({
                         makeEsp(item, Color3.new(1, 1, 0), item.Name)
                     end
                 end
-                task.wait(2)
+                Yield(2)
             end
             for _, item in pairs(workspace.Items:GetChildren()) do removeEsp(item) end
         end)
@@ -534,6 +535,3 @@ MiscTab:CreateButton({
 task.spawn(function()
     while true do updateHitboxes(); task.wait(1) end
 end)
-
-notify("Script", "loaded successfully")
-print("script loaded - have fun!")
