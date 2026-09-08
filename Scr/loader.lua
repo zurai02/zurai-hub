@@ -1,25 +1,23 @@
-local repoOwner, repoName, branch, folder = "zurai02", "zurai-hub", "main", "Scr/games"
+local CFG = {o="zurai02",r="zurai-hub",b="main",f="Scr/games",rt=3,rd=1.5}
 
-local function fetchScript(fileName)
-    local url = string.format("https://raw.githubusercontent.com/%s/%s/%s/%s/%s", repoOwner, repoName, branch, folder, fileName)
-    local ok, res = pcall(game.HttpGet, game, url)
-    if ok and res ~= "" and not res:find("404: Not Found") then return res end
+local function get(u)
+	for i=1,CFG.rt do
+		local ok,res=pcall(function()return game:HttpGet(u,true)end)
+		if ok and res and res~=""and not res:find("404")then return res end
+		if i<CFG.rt then task.wait(CFG.rd)end
+	end
 end
 
-local placeId, gameId = tostring(game.PlaceId), tostring(game.GameId)
-local code = fetchScript(placeId .. ".lua") or fetchScript(gameId .. ".lua") or fetchScript("universal.lua")
-
-if code then
-    local fn = loadstring(code)
-    if fn then 
-        task.spawn(pcall, fn)
-    end
+local function fetch(n)
+	return get(("https://raw.githubusercontent.com/%s/%s/%s/%s/%s"):format(CFG.o,CFG.r,CFG.b,CFG.f,n))
 end
 
-local antiAfkCode = fetchScript("anti-afk.lua")
-if antiAfkCode then
-    local antiAfkFn = loadstring(antiAfkCode)
-    if antiAfkFn then
-        task.spawn(pcall, antiAfkFn)
-    end
+local function exec(src)
+	if not src then return end
+	local fn,e=loadstring(src)
+	if fn then task.spawn(function()pcall(fn)end)end
 end
+
+local pid,gid=tostring(game.PlaceId),tostring(game.GameId)
+exec(fetch(pid..".lua")or fetch(gid..".lua")or fetch("universal.lua"))
+exec(fetch("anti-afk.lua"))
