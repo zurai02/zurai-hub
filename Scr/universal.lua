@@ -74,160 +74,187 @@
 ⣽⢸⢧⡻⣝⠾⣼⣛⣮⢿⣽⣳⢿⣻⣿⢿⣽⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⢿⣾⣻⢾⡽⣯⢟⣶⢻⡝⣮⢭⡳⢥⡛⡴⣋⡜⣣⠇⡞⢤⢣⡙⣌⠓⠬⠱⠜⡲⣑⢎⠳⡌⣷⡩⢆⡝⣢⢃⡞⣤⠳⡜⠦⢛⢠⠻⣝⠲⣌⠳⣌⢻⣜⡳⣝⢾⡹⣧⣟⢾⣳⣟⡾⣿⣻⣽⣿⣻⣽⣿⣿⣿⣿⣿⣿⣿⣿⣯⣷⣿⢿⣽⣾⣳⢿⣹⣞
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
-local NovaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/zurai02/zurai-hub/main/UI.lua"))()
+local Rayfield
+local success, result = pcall(function()
+    return loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+end)
 
-local Window = NovaUI:CreateWindow({
-    Title    = "Zurai Hub | Universal",
-    Subtitle = "by zurai02",
-    Theme    = "Dark",
-    Size     = UDim2.fromOffset(560, 380),
+if not success or not result then
+    warn("[Zurai Hub] Failed to load Rayfield. Using fallback.")
+    return
+end
+
+Rayfield = result
+
+local Window = Rayfield:CreateWindow({
+    Name = "Zurai Hub | Universal",
+    Icon = 0,
+    LoadingTitle = "Zurai Hub Loading...",
+    LoadingSubtitle = "by zurai02",
+    Theme = "Default",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = "ZuraiHub"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
+    },
+    KeySystem = false
 })
 
-local Players          = game:GetService("Players")
-local RunService       = game:GetService("RunService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer      = Players.LocalPlayer
+local LocalPlayer = Players.LocalPlayer
 
 local WalkSpeedValue = 16
 local JumpPowerValue = 50
 local InfJumpEnabled = false
-local NoclipEnabled  = false
-local ESPEnabled     = false
+local NoclipEnabled = false
+local ESPEnabled = false
+
+local function getCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
 
 local function getHumanoid()
     local char = LocalPlayer.Character
-    return char and char:FindFirstChildOfClass("Humanoid")
-end
-
-UserInputService.JumpRequest:Connect(function()
-    if not InfJumpEnabled then return end
-    local hum = getHumanoid()
-    if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-end)
-
-RunService.Stepped:Connect(function()
-    if not NoclipEnabled then return end
+   RunService.Stepped:Connect(function()
     local char = LocalPlayer.Character
     if not char then return end
     for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then part.CanCollide = false end
+        if part:IsA("BasePart") then
+            part.CanCollide = false
+        end
     end
 end)
 
 local function setupESP(player, char)
     if not char then return end
+
     if not char:FindFirstChild("ZuraiESP_Highlight") then
         local highlight = Instance.new("Highlight")
-        highlight.Name                = "ZuraiESP_Highlight"
-        highlight.FillColor           = Color3.fromRGB(255, 0, 0)
-        highlight.OutlineColor        = Color3.fromRGB(255, 255, 255)
-        highlight.FillTransparency    = 0.5
+        highlight.Name = "ZuraiESP_Highlight"
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.FillTransparency = 0.5
         highlight.OutlineTransparency = 0
-        highlight.Adornee             = char
-        highlight.Parent              = char
+        highlight.Adornee = char
+        highlight.Parent = char
     end
+
     local head = char:WaitForChild("Head", 5)
     if head and not head:FindFirstChild("ZuraiESP_Tag") then
         local billboard = Instance.new("BillboardGui")
-        billboard.Name         = "ZuraiESP_Tag"
-        billboard.Adornee      = head
-        billboard.Size         = UDim2.new(0, 100, 0, 50)
-        billboard.StudsOffset  = Vector3.new(0, 2, 0)
-        billboard.AlwaysOnTop  = true
+        billboard.Name = "ZuraiESP_Tag"
+        billboard.Adornee = head
+        billboard.Size = UDim2.new(0, 100, 0, 50)
+        billboard.StudsOffset = Vector3.new(0, 2, 0)
+        billboard.AlwaysOnTop = true
+
         local label = Instance.new("TextLabel")
-        label.Size                = UDim2.new(1, 0, 1, 0)
+        label.Size = UDim2.new(1, 0, 1, 0)
         label.BackgroundTransparency = 1
-        label.Text                = player.Name
-        label.TextColor3          = Color3.fromRGB(255, 255, 255)
-        label.TextScaled          = true
-        label.Font                = Enum.Font.SourceSansBold
-        label.Parent              = billboard
-        billboard.Parent          = head
+        label.Text = player.Name
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextScaled = true
+        label.Font = Enum.Font.SourceSansBold
+        label.Parent = billboard
+
+        billboard.Parent = head
     end
 end
 
-local function applyESP(player)
-    if player == LocalPlayer then return end
-    if player.Character then setupESP(player, player.Character) end
-    player.CharacterAdded:Connect(function(char) setupESP(player, char) end)
+@@ -188,16 +153,11 @@ local function applyESP(player)
 end
 
 local function removeESP(player)
-    local char = player.Character; if not char then return end
-    local h = char:FindFirstChild("ZuraiESP_Highlight"); if h then h:Destroy() end
+    local char = player.Character
+    if not char then return end
+
+    local highlight = char:FindFirstChild("ZuraiESP_Highlight")
+    if highlight then highlight:Destroy() end
+
     local head = char:FindFirstChild("Head")
     if head then
-        local tag = head:FindFirstChild("ZuraiESP_Tag"); if tag then tag:Destroy() end
+        local tag = head:FindFirstChild("ZuraiESP_Tag")
+        if tag then tag:Destroy() end
     end
 end
 
-local function toggleESP(state)
-    ESPEnabled = state
-    for _, player in ipairs(Players:GetPlayers()) do
-        if ESPEnabled then applyESP(player) else removeESP(player) end
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
+@@ -212,70 +172,62 @@ Players.PlayerAdded:Connect(function(player)
     if ESPEnabled then applyESP(player) end
 end)
 
-local PlayerTab  = Window:CreateTab("Player",  "")
-local VisualsTab = Window:CreateTab("Visuals", "")
+local MainTab    = Window:CreateTab("Player",  4483362458)
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
 
-PlayerTab:CreateSlider({
-    Name         = "WalkSpeed",
-    Range        = { 16, 250 },
-    Increment    = 1,
+MainTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 250},
+    Increment = 1,
+    Suffix = "Speed",
     CurrentValue = 16,
-    Flag         = "WalkSpeed",
-    Callback     = function(val)
+    Flag = "WalkSpeedSlider",
+    Callback = function(val)
         WalkSpeedValue = val
         local hum = getHumanoid()
         if hum then hum.WalkSpeed = val end
     end
 })
 
-PlayerTab:CreateSlider({
-    Name         = "JumpPower",
-    Range        = { 50, 300 },
-    Increment    = 1,
+MainTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 300},
+    Increment = 1,
+    Suffix = "Power",
     CurrentValue = 50,
-    Flag         = "JumpPower",
-    Callback     = function(val)
+    Flag = "JumpPowerSlider",
+    Callback = function(val)
         JumpPowerValue = val
         local hum = getHumanoid()
         if hum then
             hum.UseJumpPower = true
-            hum.JumpPower    = val
+            hum.JumpPower = val
         end
     end
 })
 
-PlayerTab:CreateToggle({
-    Name         = "Infinite Jump",
+MainTab:CreateToggle({
+    Name = "Infinite Jump",
     CurrentValue = false,
-    Flag         = "InfJump",
-    Callback     = function(val) InfJumpEnabled = val end
+    Flag = "InfJumpToggle",
+    Callback = function(val)
+        InfJumpEnabled = val
+    end
 })
 
-PlayerTab:CreateToggle({
-    Name         = "Noclip",
+MainTab:CreateToggle({
+    Name = "Noclip",
     CurrentValue = false,
-    Flag         = "Noclip",
-    Callback     = function(val) NoclipEnabled = val end
+    Flag = "NoclipToggle",
+    Callback = function(val)
+        NoclipEnabled = val
+    end
 })
 
 VisualsTab:CreateToggle({
-    Name         = "Player ESP",
+    Name = "Player ESP",
     CurrentValue = false,
-    Flag         = "PlayerESP",
-    Callback     = function(val) toggleESP(val) end
+    Flag = "ESPToggle",
+    Callback = function(val)
+        toggleESP(val)
+    end
 })
 
 LocalPlayer.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
-    hum.WalkSpeed    = WalkSpeedValue
+    hum.WalkSpeed = WalkSpeedValue
     hum.UseJumpPower = true
-    hum.JumpPower    = JumpPowerValue
+    hum.JumpPower = JumpPowerValue
 end)
