@@ -571,13 +571,15 @@ function NovaUI:CreateWindow(config)
 			Create("UIPadding", { PaddingLeft = UDim.new(0, hasIcon and 34 or 14) }),
 		})
 
-		-- Accent indicator that grows in on the left edge of the selected tab
+		-- Accent indicator: anchored center-left, grows out from its own
+		-- midpoint (Rayfield-style "unfurl" rather than a top-down grow)
 		local indicator = Create("Frame", {
 			Name = "Indicator",
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.new(0, 0, 0.5, 0),
 			Size = UDim2.new(0, 3, 0, 0),
 			BackgroundColor3 = theme.Accent,
+			BackgroundTransparency = 0.15,
 			BorderSizePixel = 0,
 			Parent = TabButton,
 		}, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
@@ -601,12 +603,22 @@ function NovaUI:CreateWindow(config)
 				t.Selected = false
 				Tween(t.Button, { BackgroundTransparency = 1, TextColor3 = theme.SubText }, 0.15)
 				local ind = t.Button:FindFirstChild("Indicator")
-				if ind then Tween(ind, { Size = UDim2.new(0, 3, 0, 0) }, 0.15) end
+				-- shrinks back to its own center rather than collapsing to
+				-- the left edge, matching the center-out growth on select
+				if ind then Tween(ind, { Size = UDim2.new(0, 3, 0, 0) }, 0.15, Enum.EasingStyle.Quad) end
 			end
 			Page.Visible = true
 			Tab.Selected = true
+			-- small settle-in slide so switching tabs doesn't feel like a hard cut
+			local originalPos = Page.Position
+			Page.Position = originalPos + UDim2.fromOffset(0, 8)
+			Tween(Page, { Position = originalPos }, 0.2, Enum.EasingStyle.Quint)
 			Tween(TabButton, { BackgroundTransparency = 0.4, BackgroundColor3 = theme.Elevated, TextColor3 = theme.Text }, 0.15)
-			Tween(indicator, { Size = UDim2.new(0, 3, 0, 18) }, 0.18)
+			-- slight overshoot on the grow-out gives it a springy "unfurl" feel
+			Tween(indicator, { Size = UDim2.new(0, 3, 0, 20) }, 0.24, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+			-- brief glow pulse on the accent indicator itself
+			Tween(indicator, { BackgroundTransparency = 0 }, 0.12)
+			task.delay(0.12, function() Tween(indicator, { BackgroundTransparency = 0.15 }, 0.3) end)
 		end
 
 		TabButton.MouseButton1Click:Connect(selectTab)
@@ -1469,24 +1481,37 @@ function NovaUI:Notify(opts)
 	elseif opts.Type == "Danger" or opts.Type == "Error" then accentColor = theme.Danger
 	elseif opts.Type == "Warning" then accentColor = theme.Accent end
 
+	local duration = opts.Duration or 4
+
+	-- Outer clip wrapper: holds the card at a fixed width so the slide-in
+	-- reads as the card entering from off-screen, not just fading in place.
+	local wrapper = Create("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		ClipsDescendants = true,
+		Parent = holder,
+	})
+
 	local card = Create("Frame", {
 		BackgroundColor3 = theme.Secondary,
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
+		Position = UDim2.new(1, 40, 0, 0), -- starts off-screen to the right
 		BackgroundTransparency = 1,
 		ClipsDescendants = true,
-		Parent = holder,
+		Parent = wrapper,
 	}, {
 		Create("UICorner", { CornerRadius = UDim.new(0, 12) }),
 		Create("UIStroke", { Color = theme.Stroke, Thickness = 1, Transparency = 1 }),
 		Create("UIPadding", {
 			PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 12),
-			PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10),
+			PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 14),
 		}),
 		Create("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder }),
 	})
 
-	Create("Frame", {
+	local accentBar = Create("Frame", {
 		Name = "AccentBar",
 		Size = UDim2.new(0, 3, 1, 0),
 		BackgroundColor3 = accentColor,
@@ -1521,42 +1546,62 @@ function NovaUI:Notify(opts)
 		Parent = card,
 	})
 
+	-- Countdown progress bar along the bottom edge, drains over `duration`
+	local progressTrack = Create("Frame", {
+		Name = "ProgressTrack",
+		Size = UDim2.new(1, 0, 0, 3),
+		BackgroundColor3 = theme.Stroke,
+		BackgroundTransparency = 0.3,
+		BorderSizePixel = 0,
+		ZIndex = 2,
+		Parent = card,
+	}, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+	local progressFill = Create("Frame", {
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = accentColor,
+		BorderSizePixel = 0,
+		ZIndex = 3,
+		Parent = progressTrack,
+	}, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+
 	local clickCatcher = Create("TextButton", {
 		Text = "",
 		AutoButtonColor = false,
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
-		ZIndex = 3,
+		ZIndex = 4,
 		Parent = card,
 	})
 
-	card.BackgroundTransparency = 1
-	for _, d in ipairs(card:GetDescendants()) do
-		if d:IsA("TextLabel") then d.TextTransparency = 1 end
-		if d.Name == "AccentBar" then d.BackgroundTransparency = 1 end
-	end
-	Tween(card, { BackgroundTransparency = 0 }, 0.2)
-	for _, d in ipairs(card:GetDescendants()) do
-		if d:IsA("TextLabel") then Tween(d, { TextTransparency = 0 }, 0.2) end
-		if d:IsA("UIStroke") then Tween(d, { Transparency = 0 }, 0.2) end
-		if d.Name == "AccentBar" then Tween(d, { BackgroundTransparency = 0 }, 0.2) end
-	end
+	local cardStroke = card:FindFirstChildOfClass("UIStroke")
+
+	-- Slide in from the right with a touch of overshoot, then drain the bar
+	Tween(card, { Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0 }, 0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	Tween(accentBar, { BackgroundTransparency = 0 }, 0.28)
+	if cardStroke then Tween(cardStroke, { Transparency = 0 }, 0.28) end
+	Tween(progressFill, { Size = UDim2.new(0, 0, 1, 0) }, duration, Enum.EasingStyle.Linear)
 
 	local dismissed = false
 	local function dismiss()
 		if dismissed then return end
 		dismissed = true
-		Tween(card, { BackgroundTransparency = 1 }, 0.2)
-		for _, d in ipairs(card:GetDescendants()) do
-			if d:IsA("TextLabel") then Tween(d, { TextTransparency = 1 }, 0.2) end
-			if d.Name == "AccentBar" then Tween(d, { BackgroundTransparency = 1 }, 0.2) end
-		end
-		task.wait(0.2)
-		card:Destroy()
+		-- slide back out to the right and collapse the wrapper so the stack
+		-- below it slides up smoothly to fill the gap
+		Tween(card, { Position = UDim2.new(1, 40, 0, 0), BackgroundTransparency = 1 }, 0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+		Tween(accentBar, { BackgroundTransparency = 1 }, 0.18)
+		if cardStroke then Tween(cardStroke, { Transparency = 1 }, 0.18) end
+		task.wait(0.18)
+		-- freeze the wrapper's auto-computed height into an explicit value so
+		-- we can tween it down to 0 (AutomaticSize and a Size tween fight otherwise)
+		wrapper.AutomaticSize = Enum.AutomaticSize.None
+		wrapper.Size = UDim2.new(1, 0, 0, wrapper.AbsoluteSize.Y)
+		Tween(wrapper, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
+		task.wait(0.18)
+		wrapper:Destroy()
 	end
 
 	clickCatcher.MouseButton1Click:Connect(function() task.spawn(dismiss) end)
-	task.delay(opts.Duration or 4, function() task.spawn(dismiss) end)
+	task.delay(duration, function() task.spawn(dismiss) end)
 end
 
 return NovaUI
