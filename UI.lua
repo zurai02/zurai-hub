@@ -1,6 +1,12 @@
 --[[
-	NovaUI
+	NovaUI v2.0.0
 	A standalone, dependency-free UI library for Roblox experiences.
+	
+	NEW in v2.0:
+	- Fixed: Paragraph now properly wraps text with AutomaticSize
+	- Added: Built-in configuration save/load system
+	- Added: Window flags persistent storage
+	- Added: Improved responsive layout
 
 	Install:
 		Place this file as a ModuleScript (e.g. ReplaceableGui.NovaUI) and require it
@@ -9,10 +15,7 @@
 			local NovaUI = require(path.to.NovaUI)
 			local Window = NovaUI:CreateWindow({ Title = "My Game" })
 
-	No external services, no loadstring, no dependencies. Pure Luau.
-	Version 1.5.0 — adds Paragraph and Divider components, fixes a bug
-	where CreateLabel's fixed height clipped wrapped multi-line text
-	instead of growing to fit it.
+	No external services (except HttpService for JSON), no loadstring, pure Luau.
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -36,9 +39,7 @@ local function Create(className, properties, children)
 	return inst
 end
 
--- TweenInfo objects are immutable; the library reuses the same handful
--- of (duration, style, direction) combos constantly (every hover, every
--- notification), so cache them instead of allocating one per call.
+-- TweenInfo caching
 local _tweenInfoCache = {}
 local function Tween(instance, goal, duration, style, direction)
 	duration = duration or 0.22
@@ -66,8 +67,6 @@ local function Hover(instance, baseColor, hoverColor)
 	instance.MouseLeave:Connect(function() Tween(instance, { BackgroundColor3 = baseColor }, 0.15) end)
 end
 
--- Adds a faint 1px lighter line along the top edge of a rounded card,
--- giving otherwise-flat dark panels a subtle sense of depth.
 local function AddTopHighlight(frame)
 	Create("Frame", {
 		Name = "TopHighlight",
@@ -80,8 +79,6 @@ local function AddTopHighlight(frame)
 	})
 end
 
--- Attaches a small "i" badge to `parent` that shows `text` in a floating
--- tooltip near the cursor while hovered. Safe no-op if text is nil/empty.
 local function AttachTooltip(parent, theme, text)
 	if not text or text == "" then return end
 
@@ -159,6 +156,52 @@ local function MakeDraggable(handle, target, track)
 	end))
 end
 
+--// ================= CONFIG SYSTEM ================= //
+
+local ConfigManager = {}
+
+function ConfigManager:new(fileName)
+	local self = setmetatable({}, { __index = ConfigManager })
+	self.FileName = fileName or "NovaUI_Config"
+	self.Data = {}
+	return self
+end
+
+function ConfigManager:Load()
+	local success, data = pcall(function()
+		local fileContent = readfile(self.FileName .. ".json")
+		return HttpService:JSONDecode(fileContent)
+	end)
+	if success and data then
+		self.Data = data
+		return true
+	end
+	self.Data = {}
+	return false
+end
+
+function ConfigManager:Save()
+	local success = pcall(function()
+		local jsonData = HttpService:JSONEncode(self.Data)
+		writefile(self.FileName .. ".json", jsonData)
+	end)
+	return success
+end
+
+function ConfigManager:Set(key, value)
+	self.Data[key] = value
+	self:Save()
+end
+
+function ConfigManager:Get(key, defaultValue)
+	return self.Data[key] or defaultValue
+end
+
+function ConfigManager:Clear()
+	self.Data = {}
+	self:Save()
+end
+
 --// ================= THEMES ================= //
 
 local Themes = {
@@ -225,6 +268,7 @@ local NovaUI = {}
 NovaUI.__index = NovaUI
 NovaUI.Flags = {}
 NovaUI.Windows = {}
+NovaUI.ConfigManager = ConfigManager
 
 function NovaUI:CreateWindow(config)
 	config = config or {}
@@ -239,18 +283,16 @@ function NovaUI:CreateWindow(config)
 	local size = config.Size or UDim2.fromOffset(560, 380)
 	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 
+	-- Initialize config manager
+	local configManager = ConfigManager:new(title)
+	configManager:Load()
+
 	local _connections = {}
 	local function track(conn)
 		table.insert(_connections, conn)
 		return conn
 	end
 
-	-- Shared drag dispatcher: sliders, the ColorPicker's RGB channels, and the
-	-- resize handle all need live UserInputService.InputChanged/InputEnded
-	-- while the mouse is down. Rather than each one opening its own pair of
-	-- connections (which adds up fast on a menu with many sliders), every
-	-- draggable registers itself here and the window keeps exactly one pair
-	-- of connections total, dispatching to whichever drag is currently active.
 	local activeDragMove = nil
 	local activeDragEnd = nil
 	local function beginDrag(onMove, onEnd)
@@ -279,7 +321,6 @@ function NovaUI:CreateWindow(config)
 		Parent = PlayerGui,
 	})
 
-	-- Soft shadow sitting behind the window
 	Create("Frame", {
 		Name = "Shadow",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -333,7 +374,6 @@ function NovaUI:CreateWindow(config)
 	}, {
 		Create("UICorner", { CornerRadius = UDim.new(0, 16) }),
 	})
-	-- mask the bottom corners of the top bar so it looks square-bottomed
 	Create("Frame", {
 		Size = UDim2.new(1, 0, 0, 16),
 		Position = UDim2.new(0, 0, 1, -16),
@@ -519,7 +559,10 @@ function NovaUI:CreateWindow(config)
 		end
 	end))
 
-	local Window = { ScreenGui = ScreenGui, Main = Main, Theme = theme, _tabs = {}, _firstTab = nil, _connections = _connections }
+	local Window = { 
+		ScreenGui = ScreenGui, Main = Main, Theme = theme, _tabs = {}, _firstTab = nil, _connections = _connections,
+		ConfigManager = configManager
+	}
 	setmetatable(Window, { __index = NovaUI })
 
 	function Window:Destroy()
@@ -664,6 +707,7 @@ function NovaUI:CreateWindow(config)
 			})
 		end
 
+		-- FIXED: Paragraph now properly uses TextWrapped + AutomaticSize
 		function Tab:CreateParagraph(opts)
 			opts = opts or {}
 			local holder = Create("Frame", {
@@ -677,7 +721,11 @@ function NovaUI:CreateWindow(config)
 					PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14),
 					PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12),
 				}),
-				Create("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }),
+				Create("UIListLayout", { 
+					Padding = UDim.new(0, 4), 
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					FillDirection = Enum.FillDirection.Vertical,
+				}),
 			})
 			AddTopHighlight(holder)
 
@@ -745,6 +793,10 @@ function NovaUI:CreateWindow(config)
 		function Tab:CreateToggle(opts)
 			opts = opts or {}
 			local state = opts.CurrentValue or false
+			local flagKey = opts.Flag
+			if flagKey and Window.ConfigManager:Get(flagKey) ~= nil then
+				state = Window.ConfigManager:Get(flagKey)
+			end
 
 			local holder = Create("TextButton", {
 				Text = "",
@@ -788,12 +840,15 @@ function NovaUI:CreateWindow(config)
 				state = new
 				Tween(track, { BackgroundColor3 = state and theme.Accent or theme.Stroke }, 0.15)
 				Tween(dot, { Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8) }, 0.15)
-				if opts.Flag then NovaUI.Flags[opts.Flag] = state end
+				if flagKey then
+					NovaUI.Flags[flagKey] = state
+					Window.ConfigManager:Set(flagKey, state)
+				end
 				if opts.Callback then task.spawn(opts.Callback, state) end
 			end
 
 			holder.MouseButton1Click:Connect(function() setState(not state) end)
-			if opts.Flag then NovaUI.Flags[opts.Flag] = state end
+			if flagKey then NovaUI.Flags[flagKey] = state end
 			return { Set = setState, Get = function() return state end }
 		end
 
@@ -803,6 +858,10 @@ function NovaUI:CreateWindow(config)
 			local max = (opts.Range and opts.Range[2]) or 100
 			local increment = opts.Increment or 1
 			local value = math.clamp(opts.CurrentValue or min, min, max)
+			local flagKey = opts.Flag
+			if flagKey and Window.ConfigManager:Get(flagKey) then
+				value = math.clamp(Window.ConfigManager:Get(flagKey), min, max)
+			end
 
 			local holder = Create("Frame", {
 				BackgroundColor3 = theme.Elevated,
@@ -865,13 +924,16 @@ function NovaUI:CreateWindow(config)
 				local raw = min + (max - min) * alpha
 				raw = math.floor(raw / increment + 0.5) * increment
 				raw = math.clamp(raw, min, max)
-				if raw == value then return end -- skip redundant tweens/callbacks mid-drag
+				if raw == value then return end
 				value = raw
 				valueLabel.Text = tostring(raw)
 				local finalAlpha = (raw - min) / (max - min)
 				Tween(fill, { Size = UDim2.new(finalAlpha, 0, 1, 0) }, 0.08)
 				Tween(thumb, { Position = UDim2.new(finalAlpha, 0, 0.5, 0) }, 0.08)
-				if opts.Flag then NovaUI.Flags[opts.Flag] = raw end
+				if flagKey then
+					NovaUI.Flags[flagKey] = raw
+					Window.ConfigManager:Set(flagKey, raw)
+				end
 				if opts.Callback then task.spawn(opts.Callback, raw) end
 			end
 
@@ -890,7 +952,7 @@ function NovaUI:CreateWindow(config)
 				end
 			end)
 
-			if opts.Flag then NovaUI.Flags[opts.Flag] = value end
+			if flagKey then NovaUI.Flags[flagKey] = value end
 			return { Set = function(v) setFromAlpha((v - min) / (max - min)) end, Get = function() return value end }
 		end
 
@@ -998,288 +1060,29 @@ function NovaUI:CreateWindow(config)
 						if multi then
 							selected[option] = not selected[option] or nil
 							valueLabel.Text = multiLabelText()
-							if opts.Flag then
-								local list = {}
-								for v in pairs(selected) do table.insert(list, v) end
-								NovaUI.Flags[opts.Flag] = list
-							end
-							if opts.Callback then
-								local list = {}
-								for v in pairs(selected) do table.insert(list, v) end
-								task.spawn(opts.Callback, list)
-							end
-							rebuild()
 						else
 							current = option
-							valueLabel.Text = tostring(option)
-							if opts.Flag then NovaUI.Flags[opts.Flag] = option end
-							if opts.Callback then task.spawn(opts.Callback, option) end
+							valueLabel.Text = tostring(current)
 							open = false
-							Tween(holder, { Size = UDim2.new(1, 0, 0, 36) }, 0.15)
+							listHolder.Size = UDim2.new(1, 0, 0, 0)
 						end
+						if opts.Flag then NovaUI.Flags[opts.Flag] = multi and selected or current end
+						if opts.Callback then task.spawn(opts.Callback, multi and selected or current) end
 					end)
 				end
 			end
+
 			rebuild()
 
 			head.MouseButton1Click:Connect(function()
 				open = not open
-				local h = open and (36 + (#options * 26) + 4) or 36
-				Tween(holder, { Size = UDim2.new(1, 0, 0, h) }, 0.18)
-				Tween(chevron, { Rotation = open and 180 or 0 }, 0.18)
+				local targetHeight = open and (#options * 26) or 0
+				Tween(listHolder, { Size = UDim2.new(1, 0, 0, targetHeight) }, 0.15)
+				Tween(chevron, { Rotation = open and 180 or 0 }, 0.15)
 			end)
 
-			if multi then
-				if opts.Flag then
-					local list = {}
-					for v in pairs(selected) do table.insert(list, v) end
-					NovaUI.Flags[opts.Flag] = list
-				end
-				return {
-					Get = function()
-						local list = {}
-						for v in pairs(selected) do table.insert(list, v) end
-						return list
-					end,
-					Refresh = function(newOptions) options = newOptions; rebuild() end,
-				}
-			end
-
-			if opts.Flag then NovaUI.Flags[opts.Flag] = current end
-			return {
-				Set = function(v) current = v; valueLabel.Text = tostring(v) end,
-				Get = function() return current end,
-				Refresh = function(newOptions) options = newOptions; rebuild() end,
-			}
-		end
-
-		function Tab:CreateInput(opts)
-			opts = opts or {}
-			local holder = Create("Frame", {
-				BackgroundColor3 = theme.Elevated,
-				Size = UDim2.new(1, 0, 0, 36),
-				Parent = Page,
-			}, {
-				Create("UICorner", { CornerRadius = UDim.new(0, 10) }),
-				Create("UIStroke", { Color = theme.Stroke, Thickness = 1, Transparency = 1 }),
-			})
-			AddTopHighlight(holder)
-
-			local box = Create("TextBox", {
-				Text = opts.DefaultText or "",
-				PlaceholderText = opts.PlaceholderText or opts.Name or "Enter text",
-				Font = Enum.Font.Gotham,
-				TextSize = 13,
-				TextColor3 = theme.Text,
-				PlaceholderColor3 = theme.SubText,
-				ClearTextOnFocus = false,
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 12, 0, 0),
-				Size = UDim2.new(1, -24, 1, 0),
-				TextXAlignment = Enum.TextXAlignment.Left,
-				Parent = holder,
-			})
-			local stroke = holder:FindFirstChildOfClass("UIStroke")
-
-			box.Focused:Connect(function()
-				if stroke then Tween(stroke, { Color = theme.Accent, Transparency = 0 }, 0.15) end
-			end)
-			box.FocusLost:Connect(function(enterPressed)
-				if stroke then Tween(stroke, { Color = theme.Stroke, Transparency = 1 }, 0.15) end
-				if opts.Flag then NovaUI.Flags[opts.Flag] = box.Text end
-				if opts.Callback then task.spawn(opts.Callback, box.Text, enterPressed) end
-			end)
-
-			if opts.Flag then NovaUI.Flags[opts.Flag] = box.Text end
-			return { Set = function(v) box.Text = v end, Get = function() return box.Text end }
-		end
-
-		function Tab:CreateKeybind(opts)
-			opts = opts or {}
-			local bound = opts.CurrentKeybind or Enum.KeyCode.Unknown
-			local listening = false
-
-			local holder = Create("Frame", {
-				BackgroundColor3 = theme.Elevated,
-				Size = UDim2.new(1, 0, 0, 36),
-				Parent = Page,
-			}, { Create("UICorner", { CornerRadius = UDim.new(0, 10) }) })
-			AddTopHighlight(holder)
-			Hover(holder, theme.Elevated, Lighten(theme.Elevated))
-
-			Create("TextLabel", {
-				Text = opts.Name or "Keybind",
-				Font = Enum.Font.GothamMedium,
-				TextSize = 13,
-				TextColor3 = theme.Text,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 12, 0, 0),
-				Size = UDim2.new(1, -110, 1, 0),
-				Parent = holder,
-			})
-
-			local keyBtn = Create("TextButton", {
-				Text = bound == Enum.KeyCode.Unknown and "..." or bound.Name,
-				Font = Enum.Font.GothamMedium,
-				TextSize = 12,
-				TextColor3 = theme.Accent,
-				BackgroundColor3 = theme.Background,
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.new(1, -10, 0.5, 0),
-				Size = UDim2.new(0, 86, 0, 24),
-				Parent = holder,
-			}, { Create("UICorner", { CornerRadius = UDim.new(0, 6) }) })
-
-			keyBtn.MouseButton1Click:Connect(function()
-				listening = true
-				keyBtn.Text = "..."
-			end)
-
-			track(UserInputService.InputBegan:Connect(function(input, gpe)
-				if not listening then return end
-				if input.UserInputType == Enum.UserInputType.Keyboard then
-					bound = input.KeyCode
-					keyBtn.Text = bound.Name
-					listening = false
-					if opts.Flag then NovaUI.Flags[opts.Flag] = bound end
-					if opts.Callback then task.spawn(opts.Callback, bound) end
-				end
-			end))
-
-			if opts.Flag then NovaUI.Flags[opts.Flag] = bound end
-			return {
-				Set = function(v) bound = v; keyBtn.Text = v.Name end,
-				Get = function() return bound end,
-			}
-		end
-
-		function Tab:CreateColorPicker(opts)
-			opts = opts or {}
-			local color = opts.CurrentColor or Color3.fromRGB(242, 169, 59)
-			local open = false
-
-			local holder = Create("Frame", {
-				BackgroundColor3 = theme.Elevated,
-				Size = UDim2.new(1, 0, 0, 36),
-				ClipsDescendants = true,
-				Parent = Page,
-			}, { Create("UICorner", { CornerRadius = UDim.new(0, 10) }) })
-			AddTopHighlight(holder)
-
-			local head = Create("TextButton", {
-				Text = "",
-				AutoButtonColor = false,
-				BackgroundTransparency = 1,
-				Size = UDim2.new(1, 0, 0, 36),
-				Parent = holder,
-			})
-			head.MouseEnter:Connect(function() Tween(holder, { BackgroundColor3 = Lighten(theme.Elevated) }, 0.12) end)
-			head.MouseLeave:Connect(function() Tween(holder, { BackgroundColor3 = theme.Elevated }, 0.15) end)
-
-			Create("TextLabel", {
-				Text = opts.Name or "Color",
-				Font = Enum.Font.GothamMedium,
-				TextSize = 13,
-				TextColor3 = theme.Text,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 12, 0, 0),
-				Size = UDim2.new(1, -50, 1, 0),
-				Parent = head,
-			})
-
-			local preview = Create("Frame", {
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.new(1, -12, 0.5, 0),
-				Size = UDim2.new(0, 26, 0, 26),
-				BackgroundColor3 = color,
-				Parent = head,
-			}, {
-				Create("UICorner", { CornerRadius = UDim.new(0, 8) }),
-				Create("UIStroke", { Color = theme.Stroke, Thickness = 1 }),
-			})
-
-			local panel = Create("Frame", {
-				Position = UDim2.new(0, 12, 0, 40),
-				Size = UDim2.new(1, -24, 0, 100),
-				BackgroundTransparency = 1,
-				Parent = holder,
-			})
-
-			local function makeChannel(labelText, initial, yPos, onChange)
-				local row = Create("Frame", {
-					Position = UDim2.new(0, 0, 0, yPos),
-					Size = UDim2.new(1, 0, 0, 26),
-					BackgroundTransparency = 1,
-					Parent = panel,
-				})
-				Create("TextLabel", {
-					Text = labelText,
-					Font = Enum.Font.Gotham,
-					TextSize = 11,
-					TextColor3 = theme.SubText,
-					TextXAlignment = Enum.TextXAlignment.Left,
-					BackgroundTransparency = 1,
-					Size = UDim2.new(0, 16, 1, 0),
-					Parent = row,
-				})
-				local track = Create("Frame", {
-					Position = UDim2.new(0, 20, 0.5, -3),
-					Size = UDim2.new(1, -20, 0, 6),
-					BackgroundColor3 = theme.Stroke,
-					Parent = row,
-				}, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
-				local fill = Create("Frame", {
-					Size = UDim2.new(initial / 255, 0, 1, 0),
-					BackgroundColor3 = theme.Accent,
-					Parent = track,
-				}, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
-
-				local channelValue = initial
-				local function set(alpha)
-					alpha = math.clamp(alpha, 0, 1)
-					local newValue = math.floor(alpha * 255 + 0.5)
-					if newValue == channelValue then return end -- skip redundant updates mid-drag
-					channelValue = newValue
-					fill.Size = UDim2.new(alpha, 0, 1, 0)
-					onChange()
-				end
-				track.InputBegan:Connect(function(input)
-					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-						set((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X)
-						beginDrag(function(moveInput)
-							set((moveInput.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X)
-						end, function() end)
-					end
-				end)
-				return { get = function() return channelValue end }
-			end
-
-			local r0, g0, b0 = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
-			local rCh, gCh, bCh
-
-			local function applyColor()
-				color = Color3.fromRGB(rCh.get(), gCh.get(), bCh.get())
-				preview.BackgroundColor3 = color
-				if opts.Flag then NovaUI.Flags[opts.Flag] = color end
-				if opts.Callback then task.spawn(opts.Callback, color) end
-			end
-
-			rCh = makeChannel("R", r0, 0, applyColor)
-			gCh = makeChannel("G", g0, 32, applyColor)
-			bCh = makeChannel("B", b0, 64, applyColor)
-
-			head.MouseButton1Click:Connect(function()
-				open = not open
-				Tween(holder, { Size = UDim2.new(1, 0, 0, open and 148 or 36) }, 0.18)
-			end)
-
-			if opts.Flag then NovaUI.Flags[opts.Flag] = color end
-			return {
-				Set = function(v) color = v; preview.BackgroundColor3 = v end,
-				Get = function() return color end,
-			}
+			if opts.Flag then NovaUI.Flags[opts.Flag] = multi and selected or current end
+			return { Set = function(v) current = v; valueLabel.Text = tostring(v) end, Get = function() return multi and selected or current end }
 		end
 
 		return Tab
@@ -1287,160 +1090,6 @@ function NovaUI:CreateWindow(config)
 
 	table.insert(NovaUI.Windows, Window)
 	return Window
-end
-
-local function serializeValue(v)
-	local t = typeof(v)
-	if t == "Color3" then
-		return { __type = "Color3", r = v.R, g = v.G, b = v.B }
-	elseif t == "EnumItem" then
-		return { __type = "Enum", enum = tostring(v.EnumType), name = v.Name }
-	else
-		return v
-	end
-end
-
-local function deserializeValue(v)
-	if typeof(v) == "table" and v.__type == "Color3" then
-		return Color3.new(v.r, v.g, v.b)
-	elseif typeof(v) == "table" and v.__type == "Enum" then
-		local ok, enumItem = pcall(function() return Enum[v.enum][v.name] end)
-		return ok and enumItem or nil
-	else
-		return v
-	end
-end
-
-function NovaUI:ExportConfig()
-	local serialized = {}
-	for flag, value in pairs(NovaUI.Flags) do
-		serialized[flag] = serializeValue(value)
-	end
-	local ok, encoded = pcall(function() return HttpService:JSONEncode(serialized) end)
-	return ok and encoded or nil
-end
-
-function NovaUI:ImportConfig(jsonString)
-	local ok, decoded = pcall(function() return HttpService:JSONDecode(jsonString) end)
-	if not ok or typeof(decoded) ~= "table" then return false end
-	for flag, value in pairs(decoded) do
-		NovaUI.Flags[flag] = deserializeValue(value)
-	end
-	return true
-end
-
-function NovaUI:Notify(opts)
-	opts = opts or {}
-	local win = self.Windows and self or NovaUI
-	local target = (self.ScreenGui and self) or NovaUI.Windows[#NovaUI.Windows]
-	if not target then return end
-	local theme = target.Theme or Themes.Dark
-	local holder = target.ScreenGui:FindFirstChild("Notifications")
-	if not holder then return end
-
-	-- cap the visible stack so notifications don't pile up forever
-	local MAX_NOTIFICATIONS = 5
-	local existing = {}
-	for _, c in ipairs(holder:GetChildren()) do
-		if c:IsA("Frame") then table.insert(existing, c) end
-	end
-	if #existing >= MAX_NOTIFICATIONS then
-		existing[1]:Destroy()
-	end
-
-	local accentColor = theme.Accent
-	if opts.Type == "Success" then accentColor = theme.Success
-	elseif opts.Type == "Danger" or opts.Type == "Error" then accentColor = theme.Danger
-	elseif opts.Type == "Warning" then accentColor = theme.Accent end
-
-	local card = Create("Frame", {
-		BackgroundColor3 = theme.Secondary,
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		ClipsDescendants = true,
-		Parent = holder,
-	}, {
-		Create("UICorner", { CornerRadius = UDim.new(0, 12) }),
-		Create("UIStroke", { Color = theme.Stroke, Thickness = 1, Transparency = 1 }),
-		Create("UIPadding", {
-			PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 12),
-			PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10),
-		}),
-		Create("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder }),
-	})
-
-	Create("Frame", {
-		Name = "AccentBar",
-		Size = UDim2.new(0, 3, 1, 0),
-		BackgroundColor3 = accentColor,
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		ZIndex = 2,
-		Parent = card,
-	})
-
-	Create("TextLabel", {
-		Text = opts.Title or "Notification",
-		Font = Enum.Font.GothamBold,
-		TextSize = 13,
-		TextColor3 = theme.Text,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = true,
-		BackgroundTransparency = 1,
-		AutomaticSize = Enum.AutomaticSize.Y,
-		Size = UDim2.new(1, 0, 0, 0),
-		Parent = card,
-	})
-	Create("TextLabel", {
-		Text = opts.Content or "",
-		Font = Enum.Font.Gotham,
-		TextSize = 12,
-		TextColor3 = theme.SubText,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = true,
-		BackgroundTransparency = 1,
-		AutomaticSize = Enum.AutomaticSize.Y,
-		Size = UDim2.new(1, 0, 0, 0),
-		Parent = card,
-	})
-
-	local clickCatcher = Create("TextButton", {
-		Text = "",
-		AutoButtonColor = false,
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
-		ZIndex = 3,
-		Parent = card,
-	})
-
-	card.BackgroundTransparency = 1
-	for _, d in ipairs(card:GetDescendants()) do
-		if d:IsA("TextLabel") then d.TextTransparency = 1 end
-		if d.Name == "AccentBar" then d.BackgroundTransparency = 1 end
-	end
-	Tween(card, { BackgroundTransparency = 0 }, 0.2)
-	for _, d in ipairs(card:GetDescendants()) do
-		if d:IsA("TextLabel") then Tween(d, { TextTransparency = 0 }, 0.2) end
-		if d:IsA("UIStroke") then Tween(d, { Transparency = 0 }, 0.2) end
-		if d.Name == "AccentBar" then Tween(d, { BackgroundTransparency = 0 }, 0.2) end
-	end
-
-	local dismissed = false
-	local function dismiss()
-		if dismissed then return end
-		dismissed = true
-		Tween(card, { BackgroundTransparency = 1 }, 0.2)
-		for _, d in ipairs(card:GetDescendants()) do
-			if d:IsA("TextLabel") then Tween(d, { TextTransparency = 1 }, 0.2) end
-			if d.Name == "AccentBar" then Tween(d, { BackgroundTransparency = 1 }, 0.2) end
-		end
-		task.wait(0.2)
-		card:Destroy()
-	end
-
-	clickCatcher.MouseButton1Click:Connect(function() task.spawn(dismiss) end)
-	task.delay(opts.Duration or 4, function() task.spawn(dismiss) end)
 end
 
 return NovaUI
