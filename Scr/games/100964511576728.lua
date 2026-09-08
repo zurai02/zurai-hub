@@ -1,0 +1,101 @@
+return function(section, data)
+    local HttpService = game:GetService("HttpService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    local yield = task.wait
+
+    local plr = Players.LocalPlayer
+    local visualCrates = workspace:WaitForChild("Crates", 5)
+    local serverCrates = workspace:WaitForChild("ServerInfo", 5)
+
+    local state = {
+        Farming = false,
+        CrateRarity = "common"
+    }
+
+    data = data or {}
+    local placeId = tostring(game.PlaceId)
+    local setdata = data[placeId] or { farming = false, CrateRarity = "common" }
+    data[placeId] = setdata
+
+    local function saveConfig(key, value)
+        setdata[key] = value
+        if writefile then
+            pcall(function()
+                writefile("BrainrotPolice/Config.json", HttpService:JSONEncode(data))
+            end)
+        end
+    end
+
+    elements:Textbox("Crate Rarity", section, setdata.CrateRarity, function(str)
+        local val = str:lower()
+        state.CrateRarity = val
+        saveConfig("CrateRarity", val)
+    end)
+
+    elements:Toggle("Farm Brainrots", section, setdata.farming, function(v)
+        state.Farming = v
+        saveConfig("farming", v)
+        if not v or not visualCrates or not serverCrates then return end
+
+        task.spawn(function()
+            local event = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("HammerActivated")
+
+            while state.Farming do
+                pcall(function()
+                    for _, v in ipairs(visualCrates:GetChildren()) do
+                        if not state.Farming then break end
+
+                        local rarityAttr = v:GetAttribute("Rarity")
+                        if rarityAttr and rarityAttr:lower() == state.CrateRarity then
+                            local char = plr.Character
+                            if char and char:FindFirstChild("PrimaryPart") and v.PrimaryPart then
+                                char:MoveTo(v.PrimaryPart.Position + Vector3.new(0, 4, 0))
+
+                                local crateServer = serverCrates:FindFirstChild("1") and serverCrates["1"].Crates:FindFirstChild(v.Name)
+                                if crateServer then
+                                    local backpack = plr:FindFirstChild("Backpack")
+                                    local humanoid = char:FindFirstChildOfClass("Humanoid")
+
+                                    if backpack and humanoid then
+                                        for _, tool in ipairs(backpack:GetChildren()) do
+                                            if tool:GetAttribute("Cooldown") ~= nil then
+                                                humanoid:EquipTool(tool)
+                                            end
+                                        end
+                                    end
+
+                                    yield()
+
+                                    if event then
+                                        repeat
+                                            event:FireServer(crateServer)
+                                            yield()
+                                        until not state.Farming or not v or v.Parent ~= visualCrates
+                                    end
+
+                                    yield(0.5)
+
+                                    local enterSpawn = workspace:FindFirstChild("Scripted") and workspace.Scripted:FindFirstChild("EnterSpawnTouch")
+                                    if enterSpawn and firetouchinterest and char:FindFirstChild("Head") then
+                                        firetouchinterest(char.Head, enterSpawn, true)
+                                        yield()
+                                        firetouchinterest(char.Head, enterSpawn, false)
+                                    end
+
+                                    yield(1)
+
+                                    if humanoid then
+                                        humanoid:UnequipTools()
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+
+                yield(0.1)
+            end
+        end)
+    end)
+end
