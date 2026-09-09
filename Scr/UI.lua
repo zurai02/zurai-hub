@@ -81,6 +81,36 @@ local function AddTopHighlight(frame)
 	})
 end
 
+-- Lays a very soft top-lit gradient sheen over a card so flat fills stop
+-- reading as gray rectangles. Purely cosmetic, non-interactive (ignores
+-- GuiInset/clicks by being a plain gradient on the base frame).
+local function AddSheen(frame, topTransparency, bottomTransparency)
+	Create("UIGradient", {
+		Name = "Sheen",
+		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1)),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, topTransparency or 0.9),
+			NumberSequenceKeypoint.new(1, bottomTransparency or 1),
+		}),
+		Rotation = 90,
+		Parent = frame,
+	})
+end
+
+-- Quick "press" feedback: squashes the element slightly then springs back.
+-- Makes buttons/toggles feel clickable instead of just recoloring.
+local function AddPressFeedback(button)
+	local scale = Create("UIScale", { Scale = 1, Parent = button })
+	button.MouseButton1Down:Connect(function()
+		Tween(scale, { Scale = 0.97 }, 0.08, Enum.EasingStyle.Quad)
+	end)
+	local function release()
+		Tween(scale, { Scale = 1 }, 0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	end
+	button.MouseButton1Up:Connect(release)
+	button.MouseLeave:Connect(release)
+end
+
 -- Attaches a small "i" badge to `parent` that shows `text` in a floating
 -- tooltip near the cursor while hovered. Safe no-op if text is nil/empty.
 local function AttachTooltip(parent, theme, text)
@@ -235,6 +265,10 @@ function NovaUI:CreateWindow(config)
 	else
 		theme = Themes[config.Theme] or Themes.Dark
 	end
+	-- Derive a couple of extra shades so gradients/glows have something to
+	-- work with, without forcing every custom theme table to define them.
+	theme.AccentLight = theme.AccentLight or Lighten(theme.Accent, 0.14)
+	theme.AccentDark = theme.AccentDark or Lighten(theme.Accent, -0.10)
 	local title = config.Title or "NovaUI"
 	local subtitle = config.Subtitle or ""
 	local size = config.Size or UDim2.fromOffset(560, 380)
@@ -280,18 +314,54 @@ function NovaUI:CreateWindow(config)
 		Parent = PlayerGui,
 	})
 
-	-- Soft shadow sitting behind the window
-	Create("Frame", {
+	-- Soft shadow sitting behind the window. Two stacked, wider + fainter
+	-- frames read as a softer falloff than a single flat-transparency frame.
+	local ShadowHolder = Create("Frame", {
 		Name = "Shadow",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, 6),
 		Size = UDim2.new(0, size.X.Offset + 24, 0, size.Y.Offset + 24),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.55,
-		BorderSizePixel = 0,
+		BackgroundTransparency = 1,
 		ZIndex = 0,
 		Parent = ScreenGui,
-	}, { Create("UICorner", { CornerRadius = UDim.new(0, 24) }) })
+	}, {
+		Create("Frame", {
+			Name = "Outer",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.5, 0, 0.5, 4),
+			Size = UDim2.new(1, 20, 1, 20),
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BackgroundTransparency = 0.78,
+			BorderSizePixel = 0,
+		}, { Create("UICorner", { CornerRadius = UDim.new(0, 30) }) }),
+		Create("Frame", {
+			Name = "Inner",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BackgroundTransparency = 0.55,
+			BorderSizePixel = 0,
+		}, { Create("UICorner", { CornerRadius = UDim.new(0, 24) }) }),
+	})
+	local Shadow = ShadowHolder
+	local ShadowOuter = Shadow:FindFirstChild("Outer")
+	local ShadowInner = Shadow:FindFirstChild("Inner")
+	local SHADOW_OUTER_TRANSPARENCY, SHADOW_INNER_TRANSPARENCY = 0.78, 0.55
+	-- Fades both shadow layers together at `alpha` (0 = fully visible shadow,
+	-- 1 = invisible), preserving their relative softness.
+	local function fadeShadow(alpha, duration)
+		if not (ShadowOuter and ShadowInner) then return end
+		local outerGoal = 1 - (1 - SHADOW_OUTER_TRANSPARENCY) * (1 - alpha)
+		local innerGoal = 1 - (1 - SHADOW_INNER_TRANSPARENCY) * (1 - alpha)
+		Tween(ShadowOuter, { BackgroundTransparency = outerGoal }, duration)
+		Tween(ShadowInner, { BackgroundTransparency = innerGoal }, duration)
+	end
+	local function setShadowInstant(alpha)
+		if not (ShadowOuter and ShadowInner) then return end
+		ShadowOuter.BackgroundTransparency = 1 - (1 - SHADOW_OUTER_TRANSPARENCY) * (1 - alpha)
+		ShadowInner.BackgroundTransparency = 1 - (1 - SHADOW_INNER_TRANSPARENCY) * (1 - alpha)
+	end
 
 	local Main = Create("Frame", {
 		Name = "Main",
@@ -303,22 +373,36 @@ function NovaUI:CreateWindow(config)
 		ZIndex = 1,
 		Parent = ScreenGui,
 	}, {
-		Create("UICorner", { CornerRadius = UDim.new(0, 16) }),
+		Create("UICorner", { CornerRadius = UDim.new(0, 18) }),
 		Create("UIStroke", { Color = theme.Stroke, Thickness = 1 }),
+	})
+
+	-- Thin accent strip along the very top edge — a small splash of color
+	-- so the window reads as "themed" even before anything else loads.
+	Create("Frame", {
+		Name = "AccentStrip",
+		Size = UDim2.new(1, 0, 0, 3),
+		BackgroundColor3 = theme.Accent,
+		BorderSizePixel = 0,
+		ZIndex = 3,
+		Parent = Main,
+	}, {
+		Create("UIGradient", {
+			Color = ColorSequence.new(theme.AccentDark, theme.AccentLight),
+		}),
 	})
 
 	-- Entrance animation
 	do
 		local finalSize = size
 		Main.Size = UDim2.new(0, finalSize.X.Offset * 0.92, 0, finalSize.Y.Offset * 0.92)
-		local shadow = ScreenGui:FindFirstChild("Shadow")
 		Main.BackgroundTransparency = 1
 		for _, s in ipairs(Main:GetChildren()) do
 			if s:IsA("UIStroke") then s.Transparency = 1 end
 		end
-		if shadow then shadow.BackgroundTransparency = 1 end
+		setShadowInstant(1)
 		Tween(Main, { Size = finalSize, BackgroundTransparency = 0 }, 0.28)
-		if shadow then Tween(shadow, { BackgroundTransparency = 0.55 }, 0.35) end
+		fadeShadow(0, 0.35)
 		for _, s in ipairs(Main:GetChildren()) do
 			if s:IsA("UIStroke") then Tween(s, { Transparency = 0 }, 0.3) end
 		end
