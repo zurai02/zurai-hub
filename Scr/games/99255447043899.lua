@@ -90,7 +90,7 @@ local Window = Rayfield:CreateWindow({
    LoadingSubtitle = "by zurai02",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "BrainrotPolice",
+      FolderName = "zurai-hub",
       FileName = "BecomeABrainrotConfig"
    }
 })
