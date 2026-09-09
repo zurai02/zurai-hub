@@ -1,0 +1,119 @@
+local Yield = task.wait
+local plr = game:GetService("Players").LocalPlayer
+local repStorage = game:GetService("ReplicatedStorage")
+local env = getgenv()
+
+env.Farming = false
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "zurai02",
+   LoadingTitle = "Loading Script...",
+   LoadingSubtitle = "by zurai02",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "zurai-hub",
+      FileName = "SwingObbyConfig"
+   }
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+
+MainTab:CreateSection("Swing Obby Autofarm")
+
+MainTab:CreateToggle({
+   Name = "Autofarm",
+   CurrentValue = false,
+   Flag = "SwingObbyFarmToggle",
+   Callback = function(v)
+      env.Farming = v
+      if not v then return end
+
+      task.spawn(function()
+         pcall(function()
+            local packages = repStorage:FindFirstChild("Packages")
+            local knit = packages and packages:FindFirstChild("Knit")
+            local services = knit and knit:FindFirstChild("Services")
+            local gameplayService = services and services:FindFirstChild("GameplayService")
+            local rf = gameplayService and gameplayService:FindFirstChild("RF")
+            local returnToPlot = rf and rf:FindFirstChild("ReturnToPlot")
+
+            if returnToPlot then
+               returnToPlot:InvokeServer()
+            end
+         end)
+
+         Yield()
+
+         while env.Farming do
+            pcall(function()
+               local activeFolder = workspace:FindFirstChild("ActiveBrainrots")
+               if activeFolder then
+                  for _, v in pairs(activeFolder:GetChildren()) do
+                     if not env.Farming then break end
+
+                     local zone = v:GetAttribute("Zone")
+                     if zone == 14 or zone == 13 then
+                        if plr.Character then
+                           local targetCFrame = v:IsA("BasePart") and v.CFrame or (v:IsA("Model") and v:GetPivot())
+                           if targetCFrame then
+                              plr.Character:PivotTo(targetCFrame)
+                           end
+                        end
+
+                        local attachment = v:FindFirstChild("Attachment")
+                        local prompt = attachment and attachment:FindFirstChildOfClass("ProximityPrompt")
+
+                        if prompt then
+                           repeat
+                              if typeof(fireproximityprompt) == "function" then
+                                 fireproximityprompt(prompt)
+                              end
+                              Yield()
+                           until not v or v.Parent ~= activeFolder or not env.Farming
+                        end
+
+                        Yield()
+                     end
+                  end
+               end
+            end)
+            Yield(1)
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateSection("Player Tweaks")
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 250},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "SpeedSlider",
+   Callback = function(val)
+      if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+         plr.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+      end
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 300},
+   Increment = 5,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "JumpSlider",
+   Callback = function(val)
+      if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+         local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+         hum.UseJumpPower = true
+         hum.JumpPower = val
+      end
+   end,
+})
