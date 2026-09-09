@@ -1,0 +1,115 @@
+  local Yield = task.wait
+local plr = game:GetService("Players").LocalPlayer
+local env = getgenv()
+
+env.Farming = false
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "zurai02",
+   LoadingTitle = "Loading Script...",
+   LoadingSubtitle = "by zurai02",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "BrainrotPolice",
+      FileName = "HealthForBrainrotConfig"
+   }
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+
+MainTab:CreateSection("Farming Options")
+
+MainTab:CreateToggle({
+   Name = "Farm Brainrots",
+   CurrentValue = false,
+   Flag = "HealthFarmToggle",
+   Callback = function(v)
+      env.Farming = v
+      if not v then return end
+
+      task.spawn(function()
+         while env.Farming do
+            pcall(function()
+               local spawnedFolder = workspace:FindFirstChild("SpawnedBrainrots")
+               if spawnedFolder then
+                  local topRot = nil
+                  local bestAmt = -1
+
+                  for _, br in pairs(spawnedFolder:GetChildren()) do
+                     local cashAttr = br:GetAttribute("CashPerSec") or 0
+                     if cashAttr >= bestAmt then
+                        bestAmt = cashAttr
+                        topRot = br
+                     end
+                  end
+
+                  if topRot and topRot.PrimaryPart then
+                     if plr.Character then
+                        plr.Character:MoveTo(topRot.PrimaryPart.Position)
+                     end
+
+                     local pickupHitbox = topRot:FindFirstChild("PickupHitbox")
+                     local prompt = pickupHitbox and pickupHitbox:FindFirstChildOfClass("ProximityPrompt")
+
+                     if prompt then
+                        repeat
+                           if typeof(fireproximityprompt) == "function" then
+                              fireproximityprompt(prompt)
+                           end
+                           Yield()
+                        until not topRot or topRot.Parent ~= spawnedFolder or not env.Farming
+                     end
+
+                     local map = workspace:FindFirstChild("Map")
+                     local collectionPart = map and map:FindFirstChild("BrainrotCollectionPart")
+
+                     if collectionPart and plr.Character and plr.Character:FindFirstChild("Head") then
+                        if typeof(firetouchinterest) == "function" then
+                           firetouchinterest(plr.Character.Head, collectionPart, 0)
+                           Yield()
+                           firetouchinterest(plr.Character.Head, collectionPart, 1)
+                        end
+                     end
+                  end
+               end
+            end)
+            Yield(0.5)
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateSection("Player Tweaks")
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 250},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "SpeedSlider",
+   Callback = function(val)
+      if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+         plr.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+      end
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 300},
+   Increment = 5,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "JumpSlider",
+   Callback = function(val)
+      if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+         local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+         hum.UseJumpPower = true
+         hum.JumpPower = val
+      end
+   end,
+})
