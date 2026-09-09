@@ -1,0 +1,1 @@
+return function(section, data) local b = loadstring(game:HttpGet(getgitpath( games ) .. 96033388567901.lua ))() b(section, data) end
