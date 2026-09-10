@@ -79,6 +79,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local yield = task.wait
 
 local configPath = "BrainrotPolice/Config.json"
 local data = {}
