@@ -1,0 +1,125 @@
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local yield = task.wait
+
+local configPath = "zurai-hub/Config.json"
+local data = {}
+if pcall(function() return readfile(configPath) end) then
+    local success, decoded = pcall(function() return HttpService:JSONDecode(readfile(configPath)) end)
+    if success then data = decoded end
+end
+
+local placeIdKey = tostring(game.PlaceId)
+data[placeIdKey] = data[placeIdKey] or {}
+data[placeIdKey].farmwin = data[placeIdKey].farmwin or false
+data[placeIdKey].farmevolve = data[placeIdKey].farmevolve or false
+data[placeIdKey].farmspeed = data[placeIdKey].farmspeed or false
+writefile(configPath, HttpService:JSONEncode(data))
+
+local env = getgenv()
+env.FarmWins = false
+env.FarmEvolve = false
+env.AutoSpeed = false
+
+local winsFold = workspace:WaitForChild("Wins")
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "+1 Speed Evolve",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Interface",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "zurai-hub",
+        FileName = "Config"
+    }
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+
+Tab:CreateToggle({
+    Name = "Auto Speed",
+    CurrentValue = data[placeIdKey].farmspeed,
+    Flag = "AutoSpeed",
+    Callback = function(v)
+        data[placeIdKey].farmspeed = v
+        writefile(configPath, HttpService:JSONEncode(data))
+        env.AutoSpeed = v
+        if v then
+            task.spawn(function()
+                while env.AutoSpeed do
+                    local remote = ReplicatedStorage:WaitForChild("Modules", 5)
+                        and ReplicatedStorage.Modules:WaitForChild("Shared", 5)
+                        and ReplicatedStorage.Modules.Shared:WaitForChild("RemoteEventService", 5)
+                        and ReplicatedStorage.Modules.Shared.RemoteEventService:WaitForChild("AddSpeedRemoteEvent", 5)
+                    if remote then
+                        remote:FireServer()
+                    end
+                    yield()
+                end
+            end)
+        end
+    end,
+})
+
+Tab:CreateToggle({
+    Name = "Auto Win",
+    CurrentValue = data[placeIdKey].farmwin,
+    Flag = "AutoWin",
+    Callback = function(v)
+        data[placeIdKey].farmwin = v
+        writefile(configPath, HttpService:JSONEncode(data))
+        env.FarmWins = v
+        if v then
+            task.spawn(function()
+                while env.FarmWins do
+                    for _, child in pairs(winsFold:GetChildren()) do
+                        if not env.FarmWins then break end
+                        local char = LocalPlayer.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            pcall(function()
+                                char:PivotTo(child:GetPivot())
+                            end)
+                        end
+                        yield(1)
+                    end
+                    yield(0.25)
+                end
+            end)
+        end
+    end,
+})
+
+Tab:CreateToggle({
+    Name = "Auto Evolve",
+    CurrentValue = data[placeIdKey].farmevolve,
+    Flag = "AutoEvolve",
+    Callback = function(v)
+        data[placeIdKey].farmevolve = v
+        writefile(configPath, HttpService:JSONEncode(data))
+        env.FarmEvolve = v
+        if v then
+            task.spawn(function()
+                while env.FarmEvolve do
+                    local remote = ReplicatedStorage:WaitForChild("Modules", 5)
+                        and ReplicatedStorage.Modules:WaitForChild("Shared", 5)
+                        and ReplicatedStorage.Modules.Shared:WaitForChild("RemoteEventService", 5)
+                        and ReplicatedStorage.Modules.Shared.RemoteEventService:WaitForChild("EvolutionRemoteEvent", 5)
+                    if remote then
+                        remote:FireServer({
+                            {
+                                Action = "Evolve"
+                            }
+                        })
+                    end
+                    yield(1)
+                end
+            end)
+        end
+    end,
+})
+
+Rayfield:LoadConfiguration()
