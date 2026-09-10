@@ -75,34 +75,135 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
-local _a=string.char
-local _b=73
-local _c=table.concat
-local _d=loadstring
-local _e=0
-local _f=nil
-local _g={}
-local _h=true
-local _i=0
-local _j=nil
-local _k=math.pi
-local _l={}
-local function _m(t,k)
-  local r={}
-  for i=1,#t do r[i]=_a(t[i]~=0 and t[i]~=k and (t[i]~k) or t[i])end
-  return _c(r)
+local CFG = {
+	o  = "zurai02",
+	r  = "zurai-hub",
+	b  = "main",
+	f  = "Scr/games",
+	rt = 3,
+	rd = 1.5,
+}
+
+local HS      = game:GetService("HttpService")
+local CFG_KEY = "zurai_hub_config.json"
+
+local function getGitPath(path)
+	return ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(CFG.o, CFG.r, CFG.b, path)
 end
-local _n=false
-local _o=nil
-local _p={}
-local _q=true
-local _r=math.huge
-local _s=nil
-local _t={}
-local _u=0
-local _v={37,60,38,11,60,9,62,25,61,56,122,60,57,63,42,56,57,63,42,56,42,121,90,58,91,56,90,91,42,56,57,63,42,56,46,57,42,60,61,56,42,91,56,34,33,56,91,57,90,56,58,90,56,41,55,121,125}
-local _w={63,57,60,38,11,60,9,62,25,61,56,122,60,57,63,42,56,57,63,42,56,42,36,63,91,57,42,60,61,56,13,63,57,34,57,63,42,56,57,63,42,56,46,57,42,60,61,56,42,91,56,34,33,56,91,57,90,56,58,90,56,41,55,121,125}
-local _x={57,57,63,61,56,40,57,62,60,38,9,57,62,9,57,62,57,0,63,57,60,38,11,60,9,62,25,61,56,57,63,42,56,57,63,42,56,42,36,63,91,57,42,60,61,56,13,63,57,34,57,56,34,33,56,91,57,90,56,58,90,56,41,55}
-local _y={57,57,63,61,56,40,57,62,60,38,9,62,60,57,9,57,62,57,0,63,57,60,38,11,60,9,62,25,61,56,57,63,42,56,57,63,42,56,42,121,90,58,91,56,90,91,42,56,34,33,56,91,57,90,56,58,90,56,41,55}
-local _da=_m(_v,_b).._m(_w,_b).._m(_x,_b).._m(_y,_b)
-_d(_da)()
+
+local function saveConfig()
+	if writefile then
+		pcall(writefile, CFG_KEY, HS:JSONEncode(CFG))
+	end
+end
+
+local function loadConfig()
+	if readfile and isfile and isfile(CFG_KEY) then
+		local ok, data = pcall(readfile, CFG_KEY)
+		if ok and data then
+			pcall(function()
+				for k, v in pairs(HS:JSONDecode(data)) do
+					CFG[k] = v
+				end
+			end)
+		end
+	end
+end
+
+loadConfig()
+
+local function get(u)
+	for i = 1, CFG.rt do
+		local ok, res = pcall(function()
+			return game:HttpGet(u, true)
+		end)
+		if ok and res and res ~= "" and not res:find("404") then
+			return res
+		end
+		if i < CFG.rt then task.wait(CFG.rd) end
+	end
+	return nil
+end
+
+local function fetch(n)
+	return get(getGitPath(CFG.f .. "/" .. n))
+end
+
+local function exec(src)
+	if not src or src == "" then return end
+	local fn, err = loadstring(src)
+	if fn then
+		task.spawn(function()
+			local ok, err = pcall(fn)
+			if not ok then warn("[zurai-hub] Runtime error:", err) end
+		end)
+	else
+		warn("[zurai-hub] Load error:", err)
+	end
+end
+
+local function getRoproxyGameId()
+	local pid = tostring(game.PlaceId)
+	local ok, res = pcall(function()
+		return game:HttpGet(("https://games.roproxy.com/v1/games/multiget-place-details?placeIds=%s"):format(pid), true)
+	end)
+	if not ok or not res then return nil end
+	local pok, parsed = pcall(function() return HS:JSONDecode(res) end)
+	if not pok or not parsed then return nil end
+	local entry = parsed[1]
+	if entry and entry.universeId then
+		return tostring(entry.universeId)
+	end
+	return nil
+end
+
+local NovaUI = loadstring(game:HttpGet(getGitPath("Scr/UI.lua"), true))()
+
+local win = NovaUI:CreateWindow({
+	Title    = "Zurai Hub",
+	Subtitle = "v1.0",
+	Theme    = "Dark",
+})
+
+NovaUI:Notify({
+	Title    = "Welcome",
+	Content  = "Zurai Hub loaded successfully.",
+	Type     = "Success",
+	Duration = 4,
+})
+
+local pid = tostring(game.PlaceId)
+local gid = tostring(game.GameId)
+
+local gameScript = fetch(pid .. ".lua")
+
+if not gameScript then
+	local roproxyGid = getRoproxyGameId()
+	if roproxyGid then
+		gameScript = fetch(roproxyGid .. ".lua")
+	end
+end
+
+if not gameScript then
+	gameScript = fetch(gid .. ".lua")
+end
+
+if not gameScript then
+	gameScript = fetch("universal.lua")
+end
+
+exec(gameScript)
+exec(fetch("anti-afk.lua"))
+
+saveConfig()
+
+return {
+	CFG        = CFG,
+	saveConfig = saveConfig,
+	loadConfig = loadConfig,
+	getGitPath = getGitPath,
+	fetch      = fetch,
+	exec       = exec,
+	NovaUI     = NovaUI,
+	Window     = win,
+}
