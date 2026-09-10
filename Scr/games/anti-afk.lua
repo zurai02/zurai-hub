@@ -75,35 +75,33 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
-if getgenv().AntiAfkLoaded then return end
+if getgenv().AntiAfkLoaded then return end 
 getgenv().AntiAfkLoaded = true
 
-local vu = game:GetService("VirtualUser")
-local ts = game:GetService("TeleportService")
-local cg = game:GetService("CoreGui")
-local lp = game:GetService("Players").LocalPlayer
+local players = game:GetService("Players")
+local teleportService = game:GetService("TeleportService")
+local coreGui = game:GetService("CoreGui")
+local localPlayer = players.LocalPlayer
 
-local yield = task.wait
-local pid, jid = game.PlaceId, game.JobId
-local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
-
-local function anti()
-    vu:CaptureController()
-    vu:ClickButton2(Vector2.zero)
+for _, connection in ipairs(getconnections(localPlayer.Idled)) do
+    if connection.Disable then connection:Disable() 
+    elseif connection.Disconnect then connection:Disconnect() end
 end
 
-lp.Idled:Connect(anti)
-
-task.spawn(function()
-    while yield(600) do 
-        pcall(anti) 
+local function safeTeleport()
+    local placeId, jobId = game.PlaceId, game.JobId
+    if jobId and jobId ~= "" then
+        for attempt = 1, 3 do 
+            if pcall(function() teleportService:TeleportToPlaceInstance(placeId, jobId, localPlayer) end) then return end
+            task.wait(2 * attempt)
+        end
     end
-end)
+    pcall(function() teleportService:Teleport(placeId, localPlayer) end)
+end
 
 task.spawn(function()
-    local promptGui = cg:WaitForChild("RobloxPromptGui", 15)
-    local promptOverlay = promptGui and promptGui:WaitForChild("promptOverlay", 15)
-
+    local promptGui = coreGui:WaitForChild("RobloxPromptGui", 10)
+    local promptOverlay = promptGui and promptGui:WaitForChild("promptOverlay", 10)
     if not promptOverlay then return end
 
     local connection
@@ -111,27 +109,13 @@ task.spawn(function()
         if child.Name == "ErrorPrompt" then
             local messageArea = child:FindFirstChild("MessageArea", true)
             local errorMsg = messageArea and messageArea:FindFirstChild("ErrorTextBox", true)
-            
-            if errorMsg and (string.find(errorMsg.Text, "277") or string.find(errorMsg.Text, "273") or string.find(errorMsg.Text, "kick")) then
-                connection:Disconnect()
-                
-                if qot then
-                    pcall(function()
-                        qot(string.char(108,111,97,100,115,116,114,105,110,103,40,103,97,109,101,58,72,116,116,112,71,101,116,40,34,104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,122,117,114,97,105,48,50,47,122,117,114,97,105,45,104,117,98,47,109,97,105,110,47,83,99,114,47,108,111,97,100,101,114,46,108,117,97,34,41,41,40,41))
-                    end)
+            if errorMsg and (string.find(errorMsg.Text, string.char(50, 55, 55)) or string.find(errorMsg.Text, string.char(50, 55, 51)) or string.find(errorMsg.Text, "kick")) then
+                connection:Disconnect() 
+                local queueOnTeleport = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
+                if queueOnTeleport then
+                    pcall(queueOnTeleport, string.char(108,111,97,100,115,116,114,105,110,103,40,103,97,109,101,58,72,116,116,112,71,101,116,40,34,104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,122,117,114,97,105,48,50,47,122,117,114,97,105,45,104,117,98,47,109,97,105,110,47,83,99,114,47,108,111,97,100,101,114,46,108,117,97,34,41,41,40,41))
                 end
-                
-                for attempt = 1, 5 do
-                    local success = pcall(function()
-                        if jid and jid ~= "" then
-                            ts:TeleportToPlaceInstance(pid, jid, lp)
-                        else
-                            ts:Teleport(pid, lp)
-                        end
-                    end)
-                    if success then break end
-                    yield(2 * attempt)
-                end
+                safeTeleport()
             end
         end
     end)
