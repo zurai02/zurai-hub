@@ -1,5 +1,5 @@
 {
-    "timestamp": 1789395095,
+    "timestamp": 1789395197,
     "games": {
         "71213902019049": {
             "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
@@ -82,11 +82,11 @@
             "path": "Scr/games/4924922222.lua"
         },
         "136255418982514": {
-            "name": "[\u26a1] Escape Maze For Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/136255418982514.lua"
         },
         "108207853263201": {
-            "name": "[TITLE UNAVAILABLE]",
+            "name": "Universal",
             "path": "Scr/games/108207853263201.lua"
         },
         "13772394625": {
