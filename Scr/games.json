@@ -1,12 +1,12 @@
 {
-    "timestamp": 1789395662,
+    "timestamp": 1789395702,
     "games": {
         "71213902019049": {
-            "name": "Universal",
+            "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
             "path": "Scr/games/71213902019049.lua"
         },
         "2788229376": {
-            "name": "Universal",
+            "name": "[UPD] Da Hood",
             "path": "Scr/games/2788229376.lua"
         },
         "2753915549": {
@@ -14,15 +14,15 @@
             "path": "Scr/games/2753915549.lua"
         },
         "85411355002110": {
-            "name": "Universal",
+            "name": "[FUSING!] +1 Dash for Brainrots",
             "path": "Scr/games/85411355002110.lua"
         },
         "105215477731035": {
-            "name": "Universal",
+            "name": "[UPD] Pole Obby for Brainrots!",
             "path": "Scr/games/105215477731035.luau"
         },
         "109908567838703": {
-            "name": "Universal",
+            "name": "[\ud83c\udf4d] Nuke for Brainrot",
             "path": "Scr/games/109908567838703.lua"
         },
         "107778070777162": {
@@ -66,7 +66,7 @@
             "path": "Scr/games/103259126755429.luau"
         },
         "96033388567901": {
-            "name": "[\ud83d\udc8e] +1 Loot Evo \ud83d\udc32",
+            "name": "Universal",
             "path": "Scr/games/96033388567901.lua"
         },
         "135882949571046": {
@@ -94,7 +94,7 @@
             "path": "Scr/games/136255418982514.lua"
         },
         "108207853263201": {
-            "name": "[TITLE UNAVAILABLE]",
+            "name": "Universal",
             "path": "Scr/games/108207853263201.lua"
         },
         "13772394625": {
