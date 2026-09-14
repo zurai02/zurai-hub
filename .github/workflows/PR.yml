@@ -1,0 +1,72 @@
+name: Pull Request Verification & Analysis
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [ opened, synchronize, reopened ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Scan Code for Security Violations
+        run: |
+          python3 -c '
+          import os, re, sys
+
+          violations = []
+          for root, dirs, files in os.walk("."):
+              for file in files:
+                  if file.endswith((".lua", ".luau")):
+                      path = os.path.join(root, file)
+                      with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                          content = f.read()
+                          if re.search(r"https?://(?!raw\.githubusercontent\.com/zurai02/zurai-hub)", content) and "HttpService" in content:
+                              if "roproxy.com" not in content and "api" not in content:
+                                  violations.append(f"Unsafe external URL in {path}")
+                          if "os.execute" in content or "io.popen" in content:
+                              violations.append(f"Forbidden system execution in {path}")
+
+          if violations:
+              print("[Security Check Failed]:")
+              for v in violations:
+                  print(f" - {v}")
+              sys.exit(1)
+          else:
+              print("[Security Check Passed]: No unsafe patterns found.")
+          '
+
+  luau-analysis:
+    needs: security-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download and Setup Luau CLI
+        run: |
+          LUAU_VERSION="0.600"
+          curl -L -o luau-ubuntu.zip "https://github.com/luau-lang/luau/releases/download/${LUAU_VERSION}/luau-ubuntu.zip"
+          unzip luau-ubuntu.zip
+          chmod +x luau luau-analyze
+          sudo mv luau luau-analyze /usr/local/bin/
+
+      - name: Run Luau Type Checking
+        run: |
+          echo "Running static type analysis..."
+          find Scr/ -name "*.luau" -o -name "*.lua" | while read file; do
+              echo "Analyzing: $file"
+              luau-analyze "$file"
+          done
