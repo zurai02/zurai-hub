@@ -66,10 +66,25 @@ jobs:
               json.dump(output, f, indent=4)
           '
 
-      - name: Commit and Push
+      - name: Commit and Push with Retry
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main --rebase --autostash
-          git add Scr/games.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update Scr/games.json manifest [skip ci]" && git push origin main)
+          
+          for i in {1..5}; do
+              git pull origin main --rebase --autostash || true
+              git add Scr/games.json
+              if git diff --cached --quiet; then
+                  echo "No changes to manifest."
+                  exit 0
+              fi
+              git commit -m "chore: update Scr/games.json manifest [skip ci]" || true
+              if git push origin main; then
+                  echo "Successfully pushed!"
+                  exit 0
+              fi
+              echo "Push rejected due to concurrent update, retrying ($i/5)..."
+              git reset HEAD^
+              sleep 3
+          done
+          exit 1
