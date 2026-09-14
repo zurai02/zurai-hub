@@ -1,8 +1,12 @@
 {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "timestamp": 1789394436,
 =======
     "timestamp": 1789394449,
+>>>>>>> Stashed changes
+=======
+    "timestamp": 1789394470,
 >>>>>>> Stashed changes
     "games": {
         "71213902019049": {
@@ -110,11 +114,11 @@
             "path": "Scr/games/Conter-brainrot-police.lua"
         },
         "94780005879799": {
-            "name": "SCREAM for Brainrot!",
+            "name": "Universal",
             "path": "Scr/games/94780005879799.lua"
         },
         "99435399946069": {
-            "name": "\ud83c\udfa3Reel a Brainrot! [NOW!]",
+            "name": "Universal",
             "path": "Scr/games/99435399946069.lua"
         },
         "86614757217732": {
@@ -158,7 +162,7 @@
             "path": "Scr/games/17625359962.lua"
         },
         "112500097711893": {
-            "name": "Lick a Brainrot \ud83d\ude1b",
+            "name": "Universal",
             "path": "Scr/games/112500097711893.lua"
         },
         "universal": {
@@ -170,11 +174,11 @@
             "path": "Scr/games/110373292461174.lua"
         },
         "84332574190497": {
-            "name": "+1 Wings for Brainrots ",
+            "name": "Universal",
             "path": "Scr/games/84332574190497.lua"
         },
         "105215477731035": {
-            "name": "[UPD] Pole Obby for Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/105215477731035.lua"
         },
         "83312952548612": {
@@ -186,7 +190,7 @@
             "path": "Scr/games/89046742932569.lua"
         },
         "78515283254292": {
-            "name": "Animal Hospital (Anomaly) \ud83e\uddea",
+            "name": "Universal",
             "path": "Scr/games/78515283254292.lua"
         },
         "121326136128491": {
