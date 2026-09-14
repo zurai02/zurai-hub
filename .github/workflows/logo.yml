@@ -13,6 +13,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Configure Git Credentials
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Find and Process Luau/Lua Files
         shell: bash
         run: |
@@ -107,6 +112,10 @@ jobs:
               cat "$file" >> "$temp_file"
               mv "$temp_file" "$file"
             fi
-          done < <(find . -type f)
-          
-          echo "Processed $found_files files."
+          done < <(git diff --name-only HEAD~1 HEAD)
+
+          if [ $found_files -gt 0 ]; then
+            git add .
+            git commit -m "chore: inject header banner into modified scripts [skip ci]" || echo "No changes to commit"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
