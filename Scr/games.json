@@ -1,13 +1,5 @@
 {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    "timestamp": 1789394735,
-=======
-    "timestamp": 1789394739,
->>>>>>> Stashed changes
-=======
-    "timestamp": 1789394750,
->>>>>>> Stashed changes
+    "timestamp": 1789394908,
     "games": {
         "71213902019049": {
             "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
@@ -34,11 +26,11 @@
             "path": "Scr/games/107778070777162.lua"
         },
         "99255447043899": {
-            "name": "[WORLD 3] Become a Brainrot",
+            "name": "Universal",
             "path": "Scr/games/99255447043899.lua"
         },
         "100964511576728": {
-            "name": "Smash Crate For Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/100964511576728.luau"
         },
         "133743722520024": {
@@ -46,7 +38,7 @@
             "path": "Scr/games/133743722520024.lua"
         },
         "137069154816703": {
-            "name": "Hack Vault for Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/137069154816703.lua"
         },
         "128736949265057": {
@@ -54,7 +46,7 @@
             "path": "Scr/games/128736949265057.lua"
         },
         "114640202062357": {
-            "name": "Swing Obby for Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/114640202062357.lua"
         },
         "97508801613157": {
@@ -82,11 +74,11 @@
             "path": "Scr/games/83569851223739.lua"
         },
         "118296732158153": {
-            "name": "Universal",
+            "name": "[\ud83d\udc8e] +1 Loot Evo \ud83d\udc32",
             "path": "Scr/games/118296732158153.lua"
         },
         "4924922222": {
-            "name": "Brookhaven \ud83c\udfe1RP",
+            "name": "Universal",
             "path": "Scr/games/4924922222.lua"
         },
         "136255418982514": {
@@ -94,11 +86,11 @@
             "path": "Scr/games/136255418982514.lua"
         },
         "108207853263201": {
-            "name": "[TITLE UNAVAILABLE]",
+            "name": "Universal",
             "path": "Scr/games/108207853263201.lua"
         },
         "13772394625": {
-            "name": "Blade Ball",
+            "name": "Universal",
             "path": "Scr/games/13772394625.lua"
         },
         "7449423635": {
@@ -114,7 +106,7 @@
             "path": "Scr/games/Conter-brainrot-police.lua"
         },
         "94780005879799": {
-            "name": "Universal",
+            "name": "SCREAM for Brainrot!",
             "path": "Scr/games/94780005879799.lua"
         },
         "99435399946069": {
@@ -130,15 +122,15 @@
             "path": "Scr/games/98868317791094.lua"
         },
         "4442272183": {
-            "name": "Universal",
+            "name": "[\ud83e\uddf2] Blox Fruits",
             "path": "Scr/games/4442272183.lua"
         },
         "103259126755429": {
-            "name": "[NOW] Survive FLOODS For Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/103259126755429.lua"
         },
         "80234914611737": {
-            "name": "+1 Jetpack for Brainrots",
+            "name": "Universal",
             "path": "Scr/games/80234914611737.lua"
         },
         "anti-afk": {
@@ -154,7 +146,7 @@
             "path": "Scr/games/137233438285284.lua"
         },
         "77862067599263": {
-            "name": "Universal",
+            "name": "Obby As a Brainrot!",
             "path": "Scr/games/77862067599263.lua"
         },
         "17625359962": {
@@ -162,7 +154,7 @@
             "path": "Scr/games/17625359962.lua"
         },
         "112500097711893": {
-            "name": "Universal",
+            "name": "Lick a Brainrot \ud83d\ude1b",
             "path": "Scr/games/112500097711893.lua"
         },
         "universal": {
@@ -178,7 +170,7 @@
             "path": "Scr/games/84332574190497.lua"
         },
         "105215477731035": {
-            "name": "Universal",
+            "name": "[UPD] Pole Obby for Brainrots!",
             "path": "Scr/games/105215477731035.lua"
         },
         "83312952548612": {
@@ -186,7 +178,7 @@
             "path": "Scr/games/83312952548612.lua"
         },
         "89046742932569": {
-            "name": "Universal",
+            "name": "Sail For Brainrots!",
             "path": "Scr/games/89046742932569.lua"
         },
         "78515283254292": {
@@ -194,7 +186,7 @@
             "path": "Scr/games/78515283254292.lua"
         },
         "121326136128491": {
-            "name": "Universal",
+            "name": "Math for Brainrots!",
             "path": "Scr/games/121326136128491.lua"
         }
     }
