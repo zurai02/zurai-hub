@@ -61,7 +61,8 @@ jobs:
               "games": games_map
           }
 
-          with open("games.json", "w", encoding="utf-8") as f:
+          os.makedirs("Scr", exist_ok=True)
+          with open("Scr/games.json", "w", encoding="utf-8") as f:
               json.dump(output, f, indent=4)
           '
 
@@ -70,5 +71,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git pull origin main --rebase --autostash
-          git add games.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update games.json manifest [skip ci]" && git push origin main)
+          git add Scr/games.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update Scr/games.json manifest [skip ci]" && git push origin main)
