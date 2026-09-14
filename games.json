@@ -1,5 +1,5 @@
 {
-    "timestamp": 1789394309,
+    "timestamp": 1789394436,
     "games": {
         "71213902019049": {
             "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
@@ -170,7 +170,7 @@
             "path": "Scr/games/84332574190497.lua"
         },
         "105215477731035": {
-            "name": "Universal",
+            "name": "[UPD] Pole Obby for Brainrots!",
             "path": "Scr/games/105215477731035.lua"
         },
         "83312952548612": {
@@ -178,7 +178,7 @@
             "path": "Scr/games/83312952548612.lua"
         },
         "89046742932569": {
-            "name": "Universal",
+            "name": "Sail For Brainrots!",
             "path": "Scr/games/89046742932569.lua"
         },
         "78515283254292": {
