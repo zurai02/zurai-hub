@@ -16,13 +16,16 @@ jobs:
     concurrency:
       group: update-games-registry
       cancel-in-progress: false
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -32,14 +35,14 @@ jobs:
       - name: Commit and Push with Robust Rebase Retry
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
           for i in {1..5}; do
-              git fetch origin main
-              git reset --mixed origin/main
-              rm -f games.json
-              
-              python3 - << 'EOF'
+            git fetch origin main
+            git reset --mixed origin/main
+            rm -f Scr/games.json
+            
+            python3 - << 'EOF'
           import os, json, urllib.request, time
 
           target_dir = "Scr/games"
