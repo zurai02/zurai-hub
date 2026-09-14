@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
     "timestamp": 1789394436,
+=======
+    "timestamp": 1789394449,
+>>>>>>> Stashed changes
     "games": {
         "71213902019049": {
             "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
@@ -58,7 +62,7 @@
             "path": "Scr/games/74277864669743.lua"
         },
         "96033388567901": {
-            "name": "[\ud83d\udc8e] +1 Loot Evo \ud83d\udc32",
+            "name": "Universal",
             "path": "Scr/games/96033388567901.lua"
         },
         "135882949571046": {
@@ -98,7 +102,7 @@
             "path": "Scr/games/7449423635.lua"
         },
         "79546208627805": {
-            "name": "99 Nights in the Forest \ud83d\udd26",
+            "name": "Universal",
             "path": "Scr/games/79546208627805.lua"
         },
         "Conter-brainrot-police": {
