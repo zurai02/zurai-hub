@@ -1,8 +1,12 @@
 {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "timestamp": 1789394735,
 =======
     "timestamp": 1789394739,
+>>>>>>> Stashed changes
+=======
+    "timestamp": 1789394750,
 >>>>>>> Stashed changes
     "games": {
         "71213902019049": {
@@ -78,7 +82,7 @@
             "path": "Scr/games/83569851223739.lua"
         },
         "118296732158153": {
-            "name": "[\ud83d\udc8e] +1 Loot Evo \ud83d\udc32",
+            "name": "Universal",
             "path": "Scr/games/118296732158153.lua"
         },
         "4924922222": {
@@ -126,7 +130,7 @@
             "path": "Scr/games/98868317791094.lua"
         },
         "4442272183": {
-            "name": "[\ud83e\uddf2] Blox Fruits",
+            "name": "Universal",
             "path": "Scr/games/4442272183.lua"
         },
         "103259126755429": {
@@ -158,7 +162,7 @@
             "path": "Scr/games/17625359962.lua"
         },
         "112500097711893": {
-            "name": "Lick a Brainrot \ud83d\ude1b",
+            "name": "Universal",
             "path": "Scr/games/112500097711893.lua"
         },
         "universal": {
@@ -186,11 +190,11 @@
             "path": "Scr/games/89046742932569.lua"
         },
         "78515283254292": {
-            "name": "Animal Hospital (Anomaly) \ud83e\uddea",
+            "name": "Universal",
             "path": "Scr/games/78515283254292.lua"
         },
         "121326136128491": {
-            "name": "Math for Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/121326136128491.lua"
         }
     }
