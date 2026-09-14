@@ -1,0 +1,71 @@
+name: Games Manifest Generator
+
+on:
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate Manifest
+        run: |
+          python3 -c '
+          import os, json, urllib.request, time
+
+          target_dir = "Scr/games"
+          games_map = {}
+
+          if os.path.exists(target_dir):
+              for file in os.listdir(target_dir):
+                  if file.endswith((".lua", ".luau")):
+                      name = os.path.splitext(file)[0]
+                      path = os.path.join(target_dir, file).replace("\\", "/")
+                      entry = {"name": "Universal", "path": path}
+                      
+                      if name.isdigit():
+                          try:
+                              req = urllib.request.Request(f"https://apis.roproxy.com/universes/v1/places/{name}/universe", headers={"User-Agent": "Mozilla/5.0"})
+                              with urllib.request.urlopen(req, timeout=5) as res:
+                                  universe_id = json.loads(res.read().decode()).get("universeId")
+                              
+                              if universe_id:
+                                  req2 = urllib.request.Request(f"https://games.roproxy.com/v1/games?universeIds={universe_id}", headers={"User-Agent": "Mozilla/5.0"})
+                                  with urllib.request.urlopen(req2, timeout=5) as res2:
+                                      data = json.loads(res2.read().decode())
+                                      if data.get("data"):
+                                          entry["name"] = data["data"][0].get("name", "Unknown Game")
+                          except Exception:
+                              pass
+                              
+                      games_map[name] = entry
+
+          output = {
+              "timestamp": int(time.time()),
+              "games": games_map
+          }
+
+          with open("games.json", "w", encoding="utf-8") as f:
+              json.dump(output, f, indent=4)
+          '
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add games.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update games.json manifest [skip ci]" && git push)
