@@ -74,7 +74,7 @@
 ⣽⢸⢧⡻⣝⠾⣼⣛⣮⢿⣽⣳⢿⣻⣿⢿⣽⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⢿⣾⣻⢾⡽⣯⢟⣶⢻⡝⣮⢭⡳⢥⡛⡴⣋⡜⣣⠇⡞⢤⢣⡙⣌⠓⠬⠱⠜⡲⣑⢎⠳⡌⣷⡩⢆⡝⣢⢃⡞⣤⠳⡜⠦⢛⢠⠻⣝⠲⣌⠳⣌⢻⣜⡳⣝⢾⡹⣧⣟⢾⣳⣟⡾⣿⣻⣽⣿⣻⣽⣿⣿⣿⣿⣿⣿⣿⣿⣯⣷⣿⢿⣽⣾⣳⢿⣹⣞
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
-
+--!strict
 local CFG = {
 	o  = "zurai02",
 	r  = "zurai-hub",
@@ -87,7 +87,9 @@ local CFG = {
 local HS      = game:GetService("HttpService")
 local CFG_KEY = "zurai_hub_config.json"
 
-local function getGitPath(path)
+local EXTS = { ".luau", ".lua" }
+
+local function getGitPath(path: string): string
 	return ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(CFG.o, CFG.r, CFG.b, path)
 end
 
@@ -112,12 +114,12 @@ end
 
 loadConfig()
 
-local function get(u)
+local function get(u: string): string?
 	for i = 1, CFG.rt do
 		local ok, res = pcall(function()
 			return game:HttpGet(u, true)
 		end)
-		if ok and res and res ~= "" and not res:find("404") then
+		if ok and res and res ~= "" and not res:find("404") and not res:find("400") then
 			return res
 		end
 		if i < CFG.rt then task.wait(CFG.rd) end
@@ -125,27 +127,42 @@ local function get(u)
 	return nil
 end
 
-local function fetch(n)
-	return get(getGitPath(CFG.f .. "/" .. n))
+local function fetch(name: string): string?
+	for _, ext in ipairs(EXTS) do
+		local src = get(getGitPath(CFG.f .. "/" .. name .. ext))
+		if src then return src end
+	end
+	return nil
 end
 
-local function exec(src)
+local function fetchPath(path: string): string?
+	for _, ext in ipairs(EXTS) do
+		local src = get(getGitPath(path .. ext))
+		if src then return src end
+	end
+	return nil
+end
+
+local function exec(src: string?)
 	if not src or src == "" then return end
 	local fn, err = loadstring(src)
 	if fn then
 		task.spawn(function()
-			local ok, err = pcall(fn)
-			if not ok then warn("[zurai-hub] Runtime error:", err) end
+			local ok, runErr = pcall(fn)
+			if not ok then warn("[zurai-hub] Runtime error:", runErr) end
 		end)
 	else
 		warn("[zurai-hub] Load error:", err)
 	end
 end
 
-local function getRoproxyGameId()
+local function getRoproxyGameId(): string?
 	local pid = tostring(game.PlaceId)
 	local ok, res = pcall(function()
-		return game:HttpGet(("https://games.roproxy.com/v1/games/multiget-place-details?placeIds=%s"):format(pid), true)
+		return game:HttpGet(
+			("https://games.roproxy.com/v1/games/multiget-place-details?placeIds=%s"):format(pid),
+			true
+		)
 	end)
 	if not ok or not res then return nil end
 	local pok, parsed = pcall(function() return HS:JSONDecode(res) end)
@@ -175,25 +192,17 @@ NovaUI:Notify({
 local pid = tostring(game.PlaceId)
 local gid = tostring(game.GameId)
 
-local gameScript = fetch(pid .. ".lua")
-
-if not gameScript then
-	local roproxyGid = getRoproxyGameId()
-	if roproxyGid then
-		gameScript = fetch(roproxyGid .. ".lua")
-	end
-end
-
-if not gameScript then
-	gameScript = fetch(gid .. ".lua")
-end
-
-if not gameScript then
-	gameScript = fetch("universal.lua")
-end
+local gameScript: string? =
+	fetch(pid)
+	or (function()
+		local rgid = getRoproxyGameId()
+		return rgid and fetch(rgid) or nil
+	end)()
+	or fetch(gid)
+	or fetch("universal")
 
 exec(gameScript)
-exec(fetch("anti-afk.lua"))
+exec(fetch("anti-afk") or fetchPath("Scr/games/anti-afk"))
 
 saveConfig()
 
@@ -203,6 +212,7 @@ return {
 	loadConfig = loadConfig,
 	getGitPath = getGitPath,
 	fetch      = fetch,
+	fetchPath  = fetchPath,
 	exec       = exec,
 	NovaUI     = NovaUI,
 	Window     = win,
