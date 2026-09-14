@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
     "timestamp": 1789394735,
+=======
+    "timestamp": 1789394739,
+>>>>>>> Stashed changes
     "games": {
         "71213902019049": {
             "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
@@ -146,7 +150,7 @@
             "path": "Scr/games/137233438285284.lua"
         },
         "77862067599263": {
-            "name": "Obby As a Brainrot!",
+            "name": "Universal",
             "path": "Scr/games/77862067599263.lua"
         },
         "17625359962": {
