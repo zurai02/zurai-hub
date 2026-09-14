@@ -1,12 +1,12 @@
 {
-    "timestamp": 1789397353,
+    "timestamp": 1789404638,
     "games": {
         "71213902019049": {
-            "name": "Universal",
+            "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
             "path": "Scr/games/71213902019049.lua"
         },
         "2788229376": {
-            "name": "Universal",
+            "name": "[UPD] Da Hood",
             "path": "Scr/games/2788229376.lua"
         },
         "2753915549": {
@@ -38,7 +38,7 @@
             "path": "Scr/games/100964511576728.luau"
         },
         "133743722520024": {
-            "name": "Universal",
+            "name": "Skate For Brainrots \ud83d\udef9",
             "path": "Scr/games/133743722520024.lua"
         },
         "137069154816703": {
@@ -46,15 +46,15 @@
             "path": "Scr/games/137069154816703.lua"
         },
         "128736949265057": {
-            "name": "Universal",
+            "name": "(\u5b66\u4e71) Gakuran",
             "path": "Scr/games/128736949265057.lua"
         },
         "114640202062357": {
-            "name": "Universal",
+            "name": "Swing Obby for Brainrots!",
             "path": "Scr/games/114640202062357.lua"
         },
         "97508801613157": {
-            "name": "Universal",
+            "name": "Parkour Run For Brainrots!",
             "path": "Scr/games/97508801613157.lua"
         },
         "74277864669743": {
@@ -78,23 +78,27 @@
             "path": "Scr/games/110627433764494.lua"
         },
         "83569851223739": {
-            "name": "Universal",
+            "name": "+1 Speed Evolve \ud83e\udd8a[BOSSES]",
             "path": "Scr/games/83569851223739.lua"
+        },
+        "88993574192386": {
+            "name": "IQ Test Laser Tower \ud83e\udde0",
+            "path": "Scr/games/88993574192386.lua"
         },
         "118296732158153": {
             "name": "[\ud83d\udc8e] +1 Loot Evo \ud83d\udc32",
             "path": "Scr/games/118296732158153.lua"
         },
         "4924922222": {
-            "name": "Universal",
+            "name": "Brookhaven \ud83c\udfe1RP",
             "path": "Scr/games/4924922222.lua"
         },
         "136255418982514": {
-            "name": "Universal",
+            "name": "[\u26a1] Escape Maze For Brainrots!",
             "path": "Scr/games/136255418982514.lua"
         },
         "108207853263201": {
-            "name": "Universal",
+            "name": "[TITLE UNAVAILABLE]",
             "path": "Scr/games/108207853263201.lua"
         },
         "13772394625": {
@@ -114,7 +118,7 @@
             "path": "Scr/games/Conter-brainrot-police.lua"
         },
         "94780005879799": {
-            "name": "Universal",
+            "name": "SCREAM for Brainrot!",
             "path": "Scr/games/94780005879799.lua"
         },
         "99435399946069": {
@@ -130,7 +134,7 @@
             "path": "Scr/games/98868317791094.lua"
         },
         "4442272183": {
-            "name": "Universal",
+            "name": "[\ud83e\uddf2] Blox Fruits",
             "path": "Scr/games/4442272183.lua"
         },
         "80234914611737": {
