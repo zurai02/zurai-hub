@@ -1,8 +1,8 @@
 {
-    "timestamp": 1789394542,
+    "timestamp": 1789394578,
     "games": {
         "71213902019049": {
-            "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/71213902019049.lua"
         },
         "2788229376": {
@@ -118,7 +118,7 @@
             "path": "Scr/games/86614757217732.lua"
         },
         "98868317791094": {
-            "name": "Universal",
+            "name": "DUMP [ALPHA] ",
             "path": "Scr/games/98868317791094.lua"
         },
         "4442272183": {
@@ -138,7 +138,7 @@
             "path": "Scr/games/anti-afk.lua"
         },
         "106772177198260": {
-            "name": "Universal",
+            "name": "\ud83c\udfa3Reel a Brainrot! [NOW!]",
             "path": "Scr/games/106772177198260.lua"
         },
         "137233438285284": {
