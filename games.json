@@ -1,5 +1,5 @@
 {
-    "timestamp": 1789404783,
+    "timestamp": 1789408547,
     "games": {
         "71213902019049": {
             "name": "[\ud83c\udf0a] Cross Rivers for Brainrots!",
@@ -54,7 +54,7 @@
             "path": "Scr/games/114640202062357.lua"
         },
         "97508801613157": {
-            "name": "Parkour Run For Brainrots!",
+            "name": "Universal",
             "path": "Scr/games/97508801613157.lua"
         },
         "74277864669743": {
@@ -70,7 +70,7 @@
             "path": "Scr/games/96033388567901.lua"
         },
         "135882949571046": {
-            "name": "\ud83c\udf0cDream for Brainrots\ud83d\ude08",
+            "name": "Universal",
             "path": "Scr/games/135882949571046.lua"
         },
         "110627433764494": {
@@ -102,7 +102,7 @@
             "path": "Scr/games/136255418982514.lua"
         },
         "108207853263201": {
-            "name": "[TITLE UNAVAILABLE]",
+            "name": "Universal",
             "path": "Scr/games/108207853263201.lua"
         },
         "13772394625": {
@@ -142,7 +142,7 @@
             "path": "Scr/games/4442272183.lua"
         },
         "80234914611737": {
-            "name": "+1 Jetpack for Brainrots",
+            "name": "Universal",
             "path": "Scr/games/80234914611737.lua"
         },
         "anti-afk": {
