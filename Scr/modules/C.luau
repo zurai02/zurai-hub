@@ -1,8 +1,8 @@
 --!strict
 
-local Services = {} :: { [string]: any }
+local C = {} :: { [string]: any }
 
-setmetatable(Services, {
+setmetatable(C, {
     __index = function(self: { [string]: any }, serviceName: string): any
         local success, service = pcall(game.GetService, game, serviceName)
         
@@ -11,8 +11,8 @@ setmetatable(Services, {
             return service
         end
         
-        error(string.format("[ServiceMapper]: Service '%s' does not exist or cannot be accessed.", tostring(serviceName)), 2)
+        error(string.format("[C]: Service '%s' does not exist or cannot be accessed.", tostring(serviceName)), 2)
     end
 })
 
-return Services
+return C
