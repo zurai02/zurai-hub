@@ -74,6 +74,7 @@
 ⣽⢸⢧⡻⣝⠾⣼⣛⣮⢿⣽⣳⢿⣻⣿⢿⣽⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⢿⣾⣻⢾⡽⣯⢟⣶⢻⡝⣮⢭⡳⢥⡛⡴⣋⡜⣣⠇⡞⢤⢣⡙⣌⠓⠬⠱⠜⡲⣑⢎⠳⡌⣷⡩⢆⡝⣢⢃⡞⣤⠳⡜⠦⢛⢠⠻⣝⠲⣌⠳⣌⢻⣜⡳⣝⢾⡹⣧⣟⢾⣳⣟⡾⣿⣻⣽⣿⣻⣽⣿⣿⣿⣿⣿⣿⣿⣿⣯⣷⣿⢿⣽⣾⣳⢿⣹⣞
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
+
 --!strict
 local CFG = {
 	o  = "zurai02",
@@ -160,16 +161,15 @@ local function getRoproxyGameId(): string?
 	local pid = tostring(game.PlaceId)
 	local ok, res = pcall(function()
 		return game:HttpGet(
-			("https://games.roproxy.com/v1/games/multiget-place-details?placeIds=%s"):format(pid),
+			("https://apis.ropro.io/universes/v1/places/%s/universe"):format(pid),
 			true
 		)
 	end)
 	if not ok or not res then return nil end
 	local pok, parsed = pcall(function() return HS:JSONDecode(res) end)
 	if not pok or not parsed then return nil end
-	local entry = parsed[1]
-	if entry and entry.universeId then
-		return tostring(entry.universeId)
+	if parsed.universeId then
+		return tostring(parsed.universeId)
 	end
 	return nil
 end
