@@ -13,11 +13,14 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -41,12 +44,12 @@ jobs:
                       
                       if name.isdigit():
                           try:
-                              req = urllib.request.Request(f"https://apis.roproxy.com/universes/v1/places/{name}/universe", headers={"User-Agent": "Mozilla/5.0"})
+                              req = urllib.request.Request(f"https://apis.ropro.io/universes/v1/places/{name}/universe", headers={"User-Agent": "Mozilla/5.0"})
                               with urllib.request.urlopen(req, timeout=5) as res:
                                   universe_id = json.loads(res.read().decode()).get("universeId")
                               
                               if universe_id:
-                                  req2 = urllib.request.Request(f"https://games.roproxy.com/v1/games?universeIds={universe_id}", headers={"User-Agent": "Mozilla/5.0"})
+                                  req2 = urllib.request.Request(f"https://games.ropro.io/v1/games?universeIds={universe_id}", headers={"User-Agent": "Mozilla/5.0"})
                                   with urllib.request.urlopen(req2, timeout=5) as res2:
                                       data = json.loads(res2.read().decode())
                                       if data.get("data"):
