@@ -75,4 +75,217 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
-loadstring(game:HttpGet(getgitpath("games") .. "2753915549.lua"))()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function setupHumanoid(character)
+local humanoid = character:WaitForChild("Humanoid")
+humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+end
+
+player.CharacterAdded:Connect(setupHumanoid)
+
+if player.Character then
+setupHumanoid(player.Character)
+end
+
+if type(sethiddenproperty) == "function" then
+pcall(function() sethiddenproperty(Game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge) end)
+elseif type(setsimulationradius) == "function" then
+pcall(function() setsimulationradius(math.huge) end)
+end
+
+local itemFolder = workspace:FindFirstChild("ItemFolder") or workspace:FindFirstChild("ItemFolder1")
+
+if not itemFolder then
+for _, child in pairs(workspace:GetChildren()) do
+if string.match(child.Name, "%d") then
+itemFolder = child
+break
+end
+end
+end
+
+if itemFolder then
+itemFolder.Name = "ItemFolder1"
+end
+
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Window = WindUI:CreateWindow({
+Title = "Piggy | Zurai Hub",
+Icon = "lucide:piggy-bank",
+Author = "Zurai",
+Folder = "ZuraiHub",
+
+Size = UDim2.fromOffset(580, 460),
+MinSize = Vector2.new(500, 350),
+MaxSize = Vector2.new(900, 600),
+Transparent = true,
+Theme = "Dark",
+Resizable = true,
+SideBarWidth = 185,
+BackgroundImageTransparency = 0.42,
+HideSearchBar = false,
+ScrollBarEnabled = false,
+
+WindUI:AddTheme({
+Name = "Cyberpunk Purple",
+Accent = Color3.fromHex("#FF44CC"),
+Background = Color3.fromHex("#0F0022"),
+Outline = Color3.fromHex("#00FFF0"),
+Text = Color3.fromHex("#FFFFFF"),
+Button = Color3.fromHex("#2A0049"),
+Icon = Color3.fromHex("#FFD700"),
+})
+
+WindUI:AddTheme({
+Name = "Dracula",
+Accent = Color3.fromHex("#FF79C6"),
+Background = Color3.fromHex("#282A36"),
+Outline = Color3.fromHex("#6272A4"),
+Text = Color3.fromHex("#F8F8F2"),
+Button = Color3.fromHex("#44475A"),
+Icon = Color3.fromHex("#BD93F9"),
+})
+
+WindUI:AddTheme({
+Name = "Synthwave",
+Accent = Color3.fromHex("#FF44CC"),
+Background = Color3.fromHex("#1A0033"),
+Outline = Color3.fromHex("#FF9500"),
+Text = Color3.fromHex("#FFFFFF"),
+Button = Color3.fromHex("#330066"),
+Icon = Color3.fromHex("#00D4FF"),
+})
+
+WindUI:AddTheme({
+Name = "Forest",
+Accent = Color3.fromHex("#4ECDC4"),
+Background = Color3.fromHex("#1A1F16"),
+Outline = Color3.fromHex("#45B7D1"),
+Text = Color3.fromHex("#FFFFFF"),
+Button = Color3.fromHex("#2D3A26"),
+Icon = Color3.fromHex("#95E1D3"),
+})
+
+-- =========================================
+-- TABS & FEATURES SETUP
+-- =========================================
+
+local MainTab = Window:Tab({
+Title = "Main",
+Icon = "lucide:home"
+})
+
+MainTab:Section({
+Title = "Player Cheats"
+})
+
+-- Godmode Toggle
+local godmodeConnection
+MainTab:Toggle({
+Title = "Godmode",
+Desc = "Prevents your health from dropping",
+Default = false,
+Callback = function(state)
+if state then
+godmodeConnection = game:GetService("RunService").Heartbeat:Connect(function()
+local char = player.Character
+if char and char:FindFirstChildOfClass("Humanoid") then
+local humanoid = char:FindFirstChildOfClass("Humanoid")
+if humanoid.Health < humanoid.MaxHealth then
+humanoid.Health = humanoid.MaxHealth
+end
+end
+end)
+WindUI:Notify({ Title = "Godmode", Content = "Godmode Enabled!", Duration = 3 })
+else
+if godmodeConnection then
+godmodeConnection:Disconnect()
+godmodeConnection = nil
+end
+WindUI:Notify({ Title = "Godmode", Content = "Godmode Disabled!", Duration = 3 })
+end
+end
+})
+
+-- Walkspeed Slider
+MainTab:Slider({
+Title = "WalkSpeed",
+Desc = "Modify your walking speed",
+Min = 16,
+Max = 100,
+Default = 16,
+Step = 1,
+Callback = function(value)
+local char = player.Character
+if char and char:FindFirstChildOfClass("Humanoid") then
+char:FindFirstChildOfClass("Humanoid").WalkSpeed = value
+end
+end
+})
+
+-- Fullbright Toggle
+MainTab:Toggle({
+Title = "Fullbright",
+Desc = "Removes darkness from maps",
+Default = false,
+Callback = function(state)
+local lighting = game:GetService("Lighting")
+if state then
+lighting.Brightness = 2
+lighting.ClockTime = 14
+lighting.GlobalShadows = false
+else
+lighting.Brightness = 1
+lighting.GlobalShadows = true
+end
+end
+})
+
+MainTab:Section({
+Title = "Automation"
+})
+
+-- Auto Farm Toggle
+local autoFarmConnection
+MainTab:Toggle({
+Title = "Auto Farm Items",
+Desc = "Automatically teleports to collect items in the map",
+Default = false,
+Callback = function(state)
+if state then
+autoFarmConnection = task.spawn(function()
+while true do
+yield(1)
+pcall(function()
+local currentFolder = workspace:FindFirstChild("ItemFolder1") or workspace:FindFirstChild("ItemFolder")
+if currentFolder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+for _, item in ipairs(currentFolder:GetChildren()) do
+-- Check if the item has a handle or primary part to teleport to
+local targetPart = item:FindFirstChild("Handle") or item:FindFirstChild("Part") or item:IsA("Model") and item.PrimaryPart
+if not targetPart and item:IsA("BasePart") then
+targetPart = item
+end
+
+if targetPart then
+player.Character.HumanoidRootPart.CFrame = targetPart.CFrame + Vector3.new(0, 3, 0)
+yield(0.5)
+end
+end
+end
+end)
+end
+end)
+WindUI:Notify({ Title = "Auto Farm", Content = "Auto Farm Enabled!", Duration = 3 })
+else
+if autoFarmConnection then
+task.cancel(autoFarmConnection)
+autoFarmConnection = nil
+end
+WindUI:Notify({ Title = "Auto Farm", Content = "Auto Farm Disabled!", Duration = 3 })
+end
+end
+})
