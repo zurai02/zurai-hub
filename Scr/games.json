@@ -1,5 +1,5 @@
 {
-    "timestamp": 1789467726,
+    "timestamp": 1789469484,
     "games": {
         "71213902019049": {
             "name": "Universal",
@@ -97,6 +97,10 @@
             "name": "Universal",
             "path": "Scr/games/118296732158153.lua"
         },
+        "universal": {
+            "name": "Universal",
+            "path": "Scr/games/universal.luau"
+        },
         "4924922222": {
             "name": "Universal",
             "path": "Scr/games/4924922222.lua"
@@ -172,10 +176,6 @@
         "112500097711893": {
             "name": "Universal",
             "path": "Scr/games/112500097711893.lua"
-        },
-        "universal": {
-            "name": "Universal",
-            "path": "Scr/games/universal.lua"
         },
         "110373292461174": {
             "name": "Universal",
