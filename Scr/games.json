@@ -1,5 +1,5 @@
 {
-    "timestamp": 1789439711,
+    "timestamp": 1789467593,
     "games": {
         "71213902019049": {
             "name": "Universal",
@@ -68,6 +68,10 @@
         "96033388567901": {
             "name": "Universal",
             "path": "Scr/games/96033388567901.lua"
+        },
+        "6872265039": {
+            "name": "Universal",
+            "path": "Scr/games/6872265039.lua"
         },
         "135882949571046": {
             "name": "Universal",
