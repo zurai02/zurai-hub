@@ -75,4 +75,54 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]=======================================================================]
 
-loadstring(game:HttpGet(getgitpath( games ) .. 96033388567901.lua ))() b(section, data) end
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local target = {
+    enabled = true,
+    position = nil,
+}
+local Hooks = {}
+local function getClosestTarget()
+    local camera = workspace.Camera
+    local closestDist = math.huge
+    local closestPos = nil
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player == LocalPlayer then continue end
+        local char = player.Character
+        if not char then continue end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum or hum.Health <= 0 then continue end
+        local aimPart = char:FindFirstChild("Head") or hrp
+        local worldPos = aimPart.Position
+        local screenPos, onScreen = camera:WorldToScreenPoint(worldPos)
+        if not onScreen then continue end
+        local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+        local dist = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+        if dist < closestDist then
+            closestDist = dist
+            closestPos = worldPos
+        end
+    end
+    return closestPos
+end
+RunService.Heartbeat:Connect(function()
+    if target.enabled then
+        local pos = getClosestTarget()
+        if pos then
+            target.position = pos
+        end
+    end
+end)
+Hooks.Raycast = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+    local args = { ... }
+    local method = getnamecallmethod():lower()
+    local cam = workspace.Camera
+    if target.enabled and target.position and method == "raycast" and self.Name == "Workspace" then
+        local direction = (target.position - cam.CFrame.Position).Unit * 200
+        args[2] = direction
+        return Hooks.Raycast(self, table.unpack(args))
+    end
+    return Hooks.Raycast(self, ...)
+end))

@@ -75,4 +75,43 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]=======================================================================]
 
-loadstring(game:HttpGet(getgitpath( games ) .. 96033388567901.lua ))() b(section, data) end
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local localPlayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local function getClosestPlayerToCursor()
+    local character = localPlayer.Character
+    if not character then return nil end
+    local mousePos = UserInputService:GetMouseLocation()
+    local closestPart = nil
+    local closestScreenDist = math.huge
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character then
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            local hum = player.Character:FindFirstChildOfClass("Humanoid")
+            if root and hum and hum.Health > 0 then
+                local screenPoint = camera:WorldToScreenPoint(root.Position)
+                if screenPoint.Z > 0 then
+                    local screenPos = Vector2.new(screenPoint.X, screenPoint.Y)
+                    local dist = (screenPos - mousePos).Magnitude
+                    if dist < closestScreenDist then
+                        closestScreenDist = dist
+                        closestPart = root
+                    end
+                end
+            end
+        end
+    end
+    return closestPart
+end
+local BulletHandler = require(game:GetService("ReplicatedStorage").ModuleScripts.GunModules.BulletHandler)
+local oldFire = BulletHandler.Fire
+BulletHandler.Fire = function(p6)
+    local closestRoot = getClosestPlayerToCursor()
+    if closestRoot then
+        local origin = p6.Origin
+        local newDirection = (closestRoot.Position - origin).Unit
+        p6.Direction = newDirection
+    end
+    return oldFire(p6)
+end

@@ -75,4 +75,39 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]=======================================================================]
 
-loadstring(game:HttpGet(getgitpath( games ) .. 96033388567901.lua ))() b(section, data) end
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local BulletController = require(ReplicatedStorage.Modules.Client.Controllers.BulletController)
+local originalDischarge = BulletController.Discharge
+local function getClosestHeadToCursor(maxFov)
+    local closestTarget = nil
+    local shortestDist = maxFov or math.huge
+    local mousePos = UserInputService:GetMouseLocation()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if head and humanoid and humanoid.Health > 0 then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                    if dist < shortestDist then
+                        shortestDist = dist
+                        closestTarget = head
+                    end
+                end
+            end
+        end
+    end
+    return closestTarget
+end
+BulletController.Discharge = function(self, weaponId, origin, direction, trailOrigin, ...)
+    local targetHead = getClosestHeadToCursor(550)
+    if targetHead then
+        direction = (targetHead.Position - origin).Unit
+    end
+    return originalDischarge(self, weaponId, origin, direction, trailOrigin, ...)
+end
