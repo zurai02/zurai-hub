@@ -1,0 +1,15 @@
+- name: Fetch Metadata from Dependabot PRs
+  # You may pin to the exact commit or the version.
+  # uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98
+  uses: dependabot/fetch-metadata@v3.1.0
+  with:
+    # If true, then populate the `alert-state`, `ghsa-id` and `cvss` outputs
+    alert-lookup: # optional
+    # If true, then populate the `compatibility-score` output
+    compat-lookup: # optional
+    # The GITHUB_TOKEN secret
+    github-token: # optional, default is ${{ github.token }}
+    # If true, the action will not expect Dependabot commits to be verified. This should be set as `true` in GHES environments
+    skip-commit-verification: # optional
+    # If true, the action will not validate the user or the commit verification status
+    skip-verification: # optional
