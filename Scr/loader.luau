@@ -75,23 +75,98 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
+--!optimise 2
 --!strict
+--!native
+
 local CFG = {
-	o  = "zurai02",
-	r  = "zurai-hub",
-	b  = "main",
-	f  = "Scr/games",
-	rt = 3,
-	rd = 1.5,
+	o       = "zurai02",
+	r       = "zurai-hub",
+	b       = "main",
+	f       = "Scr/games",
+	rt      = 5,
+	rd      = 1.2,
+	dbg     = false,
+	webhook = "https://discord.com/api/webhooks/1552276874216869979/IJGhl5gJK64NxynKK4XQJk_PwF6-civcfjTlLI9HN9zR0qisVF42jbHFoOTUHHRZxN5F",
 }
 
-local HS      = game:GetService("HttpService")
-local CFG_KEY = "zurai_hub_config.json"
+local HS        = game:GetService("HttpService")
+local CFG_KEY   = "zurai_hub_config.json"
+local EXTS      = table.freeze({ ".luau", ".lua" })
+local CACHE     = {} :: { [string]: string }
+local RAW       = ("https://raw.githubusercontent.com/%s/%s/%s/"):format(CFG.o, CFG.r, CFG.b)
+local BASE      = RAW .. CFG.f .. "/"
 
-local EXTS = { ".luau", ".lua" }
+local fmt    = string.format
+local find   = string.find
+local pairs  = pairs
+local pcall  = pcall
+local type   = type
+local tostr  = tostring
+local tspawn = task.spawn
+local twait  = task.wait
+local lstr   = loadstring
+local warn   = warn
+local print  = print
 
-local function getGitPath(path: string): string
-	return ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(CFG.o, CFG.r, CFG.b, path)
+local LOG_QUEUE: { string } = {}
+local LOG_FLUSH = false
+
+local function getTimestamp(): string
+	return tostr(os.time())
+end
+
+local function flushWebhook()
+	if LOG_FLUSH or #LOG_QUEUE == 0 or CFG.webhook == "https://discord.com/api/webhooks/1552276874216869979/IJGhl5gJK64NxynKK4XQJk_PwF6-civcfjTlLI9HN9zR0qisVF42jbHFoOTUHHRZxN5F" or CFG.webhook == "" then return end
+	LOG_FLUSH = true
+
+	tspawn(function()
+		while #LOG_QUEUE > 0 do
+			local batch = {}
+			for i = 1, math.min(10, #LOG_QUEUE) do
+				batch[i] = table.remove(LOG_QUEUE, 1)
+			end
+
+			local content = table.concat(batch, "\n")
+			if #content > 1900 then content = content:sub(1, 1900) .. "..." end
+
+			pcall(HS.RequestAsync, HS, {
+				Url    = CFG.webhook,
+				Method = "POST",
+				Headers = { ["Content-Type"] = "application/json" },
+				Body   = HS:JSONEncode({
+					username   = "Zurai Hub",
+					avatar_url = "https://i.imgur.com/AfFp7pu.png",
+					embeds = {{
+						title       = "Zurai Hub Log",
+						description = fmt("```\n%s\n```", content),
+						color       = 0x5865F2,
+						footer      = { text = fmt("PlaceId: %s | UniverseId: %s | t: %s", tostr(game.PlaceId), tostr(game.GameId), getTimestamp()) },
+					}},
+				}),
+			})
+
+			if #LOG_QUEUE > 0 then twait(2) end
+		end
+		LOG_FLUSH = false
+	end)
+end
+
+local function pushLog(level: string, tag: string, msg: string)
+	local entry = fmt("[%s][%s] %s", level, tag, msg)
+	if CFG.dbg then
+		if level == "ERR" then warn(entry) else print(entry) end
+	end
+	table.insert(LOG_QUEUE, entry)
+	flushWebhook()
+end
+
+local function log(tag: string, msg: string)
+	pushLog("LOG", tag, msg)
+end
+
+local function err(tag: string, msg: string)
+	pushLog("ERR", tag, msg)
 end
 
 local function saveConfig()
@@ -101,119 +176,125 @@ local function saveConfig()
 end
 
 local function loadConfig()
-	if readfile and isfile and isfile(CFG_KEY) then
-		local ok, data = pcall(readfile, CFG_KEY)
-		if ok and data then
-			pcall(function()
-				for k, v in pairs(HS:JSONDecode(data)) do
-					CFG[k] = v
-				end
-			end)
-		end
-	end
+	if not (readfile and isfile and isfile(CFG_KEY)) then return end
+	local ok, raw = pcall(readfile, CFG_KEY)
+	if not (ok and raw) then return end
+	pcall(function()
+		local decoded = HS:JSONDecode(raw)
+		for k, v in pairs(decoded) do CFG[k] = v end
+	end)
+	RAW  = fmt("https://raw.githubusercontent.com/%s/%s/%s/", CFG.o, CFG.r, CFG.b)
+	BASE = RAW .. CFG.f .. "/"
 end
 
-loadConfig()
-
 local function get(u: string): string?
+	local cached = CACHE[u]
+	if cached then
+		log("GET", "cache: " .. u)
+		return cached
+	end
+
+	local httpget = game.HttpGet
 	for i = 1, CFG.rt do
-		local ok, res = pcall(function()
-			return game:HttpGet(u, true)
-		end)
-		if ok and res and res ~= "" and not res:find("404") and not res:find("400") then
+		local ok, res = pcall(httpget, game, u, true)
+		if ok
+			and type(res) == "string"
+			and #res > 0
+			and not find(res, "404", 1, true)
+			and not find(res, "400", 1, true)
+			and not find(res, "<!DOCTYPE", 1, true)
+		then
+			CACHE[u] = res
+			log("GET", "ok: " .. u)
 			return res
 		end
-		if i < CFG.rt then task.wait(CFG.rd) end
+		log("GET", fmt("fail %d/%d: %s", i, CFG.rt, u))
+		if i < CFG.rt then twait(CFG.rd) end
 	end
+
+	err("GET", "exhausted: " .. u)
 	return nil
 end
 
 local function fetch(name: string): string?
-	for _, ext in ipairs(EXTS) do
-		local src = get(getGitPath(CFG.f .. "/" .. name .. ext))
+	for i = 1, #EXTS do
+		local src = get(BASE .. name .. EXTS[i])
 		if src then return src end
 	end
 	return nil
 end
 
 local function fetchPath(path: string): string?
-	for _, ext in ipairs(EXTS) do
-		local src = get(getGitPath(path .. ext))
+	for i = 1, #EXTS do
+		local src = get(RAW .. path .. EXTS[i])
 		if src then return src end
 	end
 	return nil
 end
 
-local function exec(src: string?)
-	if not src or src == "" then return end
-	local fn, err = loadstring(src)
-	if fn then
-		task.spawn(function()
-			local ok, runErr = pcall(fn)
-			if not ok then warn("[zurai-hub] Runtime error:", runErr) end
-		end)
-	else
-		warn("[zurai-hub] Load error:", err)
+local function exec(src: string?, label: string?)
+	if not src or #src == 0 then
+		if label then err("EXEC", "no src: " .. label) end
+		return
 	end
-end
-
-local function getRoproxyGameId(): string?
-	local pid = tostring(game.PlaceId)
-	local ok, res = pcall(function()
-		return game:HttpGet(
-			("https://apis.ropro.io/universes/v1/places/%s/universe"):format(pid),
-			true
-		)
+	tspawn(function()
+		local ok, e = pcall(function() lstr(src)() end)
+		if not ok then err("EXEC", fmt("runtime [%s]: %s", label or "?", tostr(e))) end
 	end)
-	if not ok or not res then return nil end
-	local pok, parsed = pcall(function() return HS:JSONDecode(res) end)
-	if not pok or not parsed then return nil end
-	if parsed.universeId then
-		return tostring(parsed.universeId)
-	end
-	return nil
+	log("EXEC", "spawned: " .. (label or "?"))
 end
 
-local NovaUI = loadstring(game:HttpGet(getGitPath("Scr/UI.lua"), true))()
+local function getRoproxyId(): string?
+	local ok, res = pcall(
+		game.HttpGet, game,
+		fmt("https://apis.ropro.io/universes/v1/places/%s/universe", tostr(game.PlaceId)),
+		true
+	)
+	if not (ok and res) then return nil end
+	local pok, parsed = pcall(HS.JSONDecode, HS, res)
+	if not (pok and parsed) then return nil end
+	return parsed.universeId and tostr(parsed.universeId) or nil
+end
 
-local win = NovaUI:CreateWindow({
-	Title    = "Zurai Hub",
-	Subtitle = "v1.0",
-	Theme    = "Dark",
-})
+local function resolveScript(): string?
+	local pid = tostr(game.PlaceId)
+	local gid = tostr(game.GameId)
 
-NovaUI:Notify({
-	Title    = "Welcome",
-	Content  = "Zurai Hub loaded successfully.",
-	Type     = "Success",
-	Duration = 4,
-})
+	log("RESOLVE", "trying pid: " .. pid)
+	local s = fetch(pid)
+	if s then log("RESOLVE", "matched pid: " .. pid) return s end
 
-local pid = tostring(game.PlaceId)
-local gid = tostring(game.GameId)
+	local rid = getRoproxyId()
+	if rid then
+		log("RESOLVE", "trying ropro id: " .. rid)
+		s = fetch(rid)
+		if s then log("RESOLVE", "matched ropro: " .. rid) return s end
+	end
 
-local gameScript: string? =
-	fetch(pid)
-	or (function()
-		local rgid = getRoproxyGameId()
-		return rgid and fetch(rgid) or nil
-	end)()
-	or fetch(gid)
-	or fetch("universal")
+	log("RESOLVE", "trying gid: " .. gid)
+	s = fetch(gid)
+	if s then log("RESOLVE", "matched gid: " .. gid) return s end
 
-exec(gameScript)
-exec(fetch("anti-afk") or fetchPath("Scr/games/anti-afk"))
+	log("RESOLVE", "falling back to universal")
+	return fetch("universal")
+end
 
+log("BOOT", fmt("PlaceId=%s GameId=%s t=%s", tostr(game.PlaceId), tostr(game.GameId), getTimestamp()))
+
+loadConfig()
+exec(resolveScript(), "game")
+exec(fetch("anti-afk") or fetchPath("Scr/games/anti-afk"), "anti-afk")
 saveConfig()
 
-return {
+return table.freeze({
 	CFG        = CFG,
 	saveConfig = saveConfig,
 	loadConfig = loadConfig,
-	getGitPath = getGitPath,
 	fetch      = fetch,
 	fetchPath  = fetchPath,
 	exec       = exec,
-	NovaUI     = NovaUI,
-	Window     = win,
-}
+	get        = get,
+	log        = log,
+	err        = err,
+	getGitPath = function(path: string): string return RAW .. path end,
+})
