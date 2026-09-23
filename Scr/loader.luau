@@ -87,7 +87,7 @@ local CFG = {
 	rt      = 5,
 	rd      = 1.2,
 	dbg     = false,
-	webhook = "https://discord.com/api/webhooks/1552276874216869979/IJGhl5gJK64NxynKK4XQJk_PwF6-civcfjTlLI9HN9zR0qisVF42jbHFoOTUHHRZxN5F",
+	webhook = "https://discord.com/api/webhooks/1552313779373736027/5nd4D4qo3BiQ8ERz-VQTJ4BH_6AGnX1uxJzcSycsyOYyiB0JTkgrxesfnG6jlfo4rnEB",
 }
 
 local HS        = game:GetService("HttpService")
@@ -117,7 +117,7 @@ local function getTimestamp(): string
 end
 
 local function flushWebhook()
-	if LOG_FLUSH or #LOG_QUEUE == 0 or CFG.webhook == "https://discord.com/api/webhooks/1552276874216869979/IJGhl5gJK64NxynKK4XQJk_PwF6-civcfjTlLI9HN9zR0qisVF42jbHFoOTUHHRZxN5F" or CFG.webhook == "" then return end
+	if LOG_FLUSH or #LOG_QUEUE == 0 or CFG.webhook == "https://discord.com/api/webhooks/1552313779373736027/5nd4D4qo3BiQ8ERz-VQTJ4BH_6AGnX1uxJzcSycsyOYyiB0JTkgrxesfnG6jlfo4rnEB" or CFG.webhook == "" then return end
 	LOG_FLUSH = true
 
 	tspawn(function()
