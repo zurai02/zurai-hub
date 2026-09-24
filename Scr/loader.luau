@@ -2,7 +2,7 @@
 --!strict
 --!native
 
---[===========================================================[
+--]===========================================================]
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣿⣿⣿⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡭⣿⣿⡿⣷⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡜⣷⣿⣿⢿⡸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣼⣿⣿⣿⣿⣿⣿
@@ -78,8 +78,8 @@
 ⣽⢸⢧⡻⣝⠾⣼⣛⣮⢿⣽⣳⢿⣻⣿⢿⣽⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⢿⣾⣻⢾⡽⣯⢟⣶⢻⡝⣮⢭⡳⢥⡛⡴⣋⡜⣣⠇⡞⢤⢣⡙⣌⠓⠬⠱⠜⡲⣑⢎⠳⡌⣷⡩⢆⡝⣢⢃⡞⣤⠳⡜⠦⢛⢠⠻⣝⠲⣌⠳⣌⢻⣜⡳⣝⢾⡹⣧⣟⢾⣳⣟⡾⣿⣻⣽⣿⣻⣽⣿⣿⣿⣿⣿⣿⣿⣿⣯⣷⣿⢿⣽⣾⣳⢿⣹⣞
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
-
-local VERSION = "2.0.0"
+local VERSION = "2.1.0-BETA"
+local CHANNEL = "BETA"
 
 local CFG = {
 	o       = "zurai02",
@@ -94,6 +94,7 @@ local CFG = {
 
 local HS  = game:GetService("HttpService")
 local PLR = game:GetService("Players")
+local RUN = game:GetService("RunService")
 local TW  = game:GetService("TweenService")
 
 local CFG_KEY = "zurai_hub_config.json"
@@ -115,24 +116,30 @@ local tspawn  = task.spawn
 local twait   = task.wait
 local lstr    = loadstring
 local mmin    = math.min
+local mmax    = math.max
 local mfloor  = math.floor
+local msin    = math.sin
+local mabs    = math.abs
+local mrnd    = math.random
 local ostime  = os.time
+local clock   = os.clock
 local tconcat = table.concat
 local tremove = table.remove
 local tinsert = table.insert
 local tfreeze = table.freeze
 
-local LP           = PLR.LocalPlayer
+local LP        = PLR.LocalPlayer
 local LOG_QUEUE    = {} :: { string }
 local LOG_FLUSHING = false
 local BOOT_TIME    = ostime()
+local BOOT_CLOCK   = clock()
 
 local function ts(): string
 	return tostr(ostime())
 end
 
 local function elapsed(): string
-	return fmt("%.2fs", ostime() - BOOT_TIME)
+	return fmt("%.2fs", clock() - BOOT_CLOCK)
 end
 
 local function getPlayerInfo(): string
@@ -162,7 +169,7 @@ local function flushWebhook()
 			end
 
 			local content = tconcat(batch, "\n")
-			if #content > 1900 then content = content:sub(1, 1900) .. "鈥�" end
+			if #content > 1900 then content = content:sub(1, 1900) .. "…" end
 
 			pcall(HS.RequestAsync, HS, {
 				Url     = CFG.webhook,
@@ -172,15 +179,15 @@ local function flushWebhook()
 					username   = "Zurai Hub",
 					avatar_url = BOT_AVA,
 					embeds     = tfreeze({{
-						title     = "Zurai Hub " .. VERSION,
+						title     = fmt("Zurai Hub %s [%s]", VERSION, CHANNEL),
 						color     = 0x5865F2,
 						thumbnail = { url = BOT_AVA },
 						fields    = tfreeze({
-							{ name = "馃懁 Player", value = fmt("`%s`", getPlayerInfo()), inline = false },
-							{ name = "馃寪 Server", value = fmt("`%s`", getServerInfo()), inline = false },
-							{ name = "馃搵 Log",    value = fmt("```ansi\n%s\n```", content), inline = false },
+							{ name = "👤 Player",  value = fmt("`%s`", getPlayerInfo()), inline = false },
+							{ name = "🌐 Server",  value = fmt("`%s`", getServerInfo()), inline = false },
+							{ name = "📋 Log",     value = fmt("```ansi\n%s\n```", content), inline = false },
 						}),
-						footer    = { text = fmt("t=%s | up=%s | v%s", ts(), elapsed(), VERSION), icon_url = BOT_AVA },
+						footer    = { text = fmt("t=%s | up=%s | %s", ts(), elapsed(), VERSION), icon_url = BOT_AVA },
 						timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
 					}}),
 				}),
@@ -205,221 +212,367 @@ local function log(tag: string, msg: string) push("LOG", tag, msg) end
 local function err(tag: string, msg: string) push("ERR", tag, msg) end
 local function inf(tag: string, msg: string) push("INF", tag, msg) end
 
+local ACCENT     = Color3.fromRGB(88,  101, 242)
+local ACCENT2    = Color3.fromRGB(120, 80,  255)
+local BETA_COL   = Color3.fromRGB(255, 165, 0)
+local WHITE      = Color3.fromRGB(255, 255, 255)
+local DARK       = Color3.fromRGB(8,   8,   18)
+local DARKER     = Color3.fromRGB(5,   5,   10)
+local MID        = Color3.fromRGB(30,  30,  50)
+local DIM        = Color3.fromRGB(100, 100, 150)
+local DIM2       = Color3.fromRGB(60,  60,  100)
+
+local function new(cls: string): any
+	return Instance.new(cls)
+end
+
+local function corner(parent: any, radius: number)
+	local c = new("UICorner")
+	c.CornerRadius = UDim.new(0, radius)
+	c.Parent = parent
+end
+
+local function stroke(parent: any, col: Color3, thick: number, trans: number)
+	local s = new("UIStroke")
+	s.Color        = col
+	s.Thickness    = thick
+	s.Transparency = trans
+	s.Parent       = parent
+end
+
+local function label(parent: any, props: { [string]: any }): any
+	local l = new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.TextScaled             = true
+	l.ZIndex                 = props.ZIndex or 5
+	l.Parent                 = parent
+	for k, v in pairs(props) do
+		if k ~= "ZIndex" then (l :: any)[k] = v end
+	end
+	return l
+end
+
+local function frame(parent: any, props: { [string]: any }): any
+	local f = new("Frame")
+	f.BorderSizePixel = 0
+	f.Parent          = parent
+	for k, v in pairs(props) do (f :: any)[k] = v end
+	return f
+end
+
+local function img(parent: any, props: { [string]: any }): any
+	local i = new("ImageLabel")
+	i.BackgroundTransparency = 1
+	i.Parent                 = parent
+	for k, v in pairs(props) do (i :: any)[k] = v end
+	return i
+end
+
+local function tween(obj: any, t: number, style: Enum.EasingStyle, dir: Enum.EasingDirection, props: { [string]: any })
+	TW:Create(obj, TweenInfo.new(t, style, dir), props):Play()
+end
+
 local function createLoader()
-	local ScreenGui               = Instance.new("ScreenGui")
-	ScreenGui.Name                = "ZuraiLoader"
-	ScreenGui.ResetOnSpawn        = false
-	ScreenGui.ZIndexBehavior      = Enum.ZIndexBehavior.Sibling
-	ScreenGui.IgnoreGuiInset      = true
-	ScreenGui.Parent              = LP:WaitForChild("PlayerGui")
+	local RNS = RUN
 
-	local BG                      = Instance.new("Frame")
-	BG.Size                       = UDim2.fromScale(1, 1)
-	BG.BackgroundColor3           = Color3.fromRGB(5, 5, 10)
-	BG.BorderSizePixel            = 0
-	BG.ZIndex                     = 1
-	BG.Parent                     = ScreenGui
+	local Gui = new("ScreenGui")
+	Gui.Name           = "ZuraiLoader"
+	Gui.ResetOnSpawn   = false
+	Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	Gui.IgnoreGuiInset = true
+	Gui.Parent         = LP:WaitForChild("PlayerGui")
 
-	local IchigoImg               = Instance.new("ImageLabel")
-	IchigoImg.Size                = UDim2.fromScale(1, 1)
-	IchigoImg.Position            = UDim2.fromScale(0, 0)
-	IchigoImg.BackgroundTransparency = 1
-	IchigoImg.Image               = ICHIGO
-	IchigoImg.ScaleType           = Enum.ScaleType.Crop
-	IchigoImg.ImageTransparency   = 0.35
-	IchigoImg.ZIndex              = 2
-	IchigoImg.Parent              = BG
+	local BG = frame(Gui, {
+		Size               = UDim2.fromScale(1, 1),
+		BackgroundColor3   = DARKER,
+		ZIndex             = 1,
+	})
 
-	local Vignette                = Instance.new("ImageLabel")
-	Vignette.Size                 = UDim2.fromScale(1, 1)
-	Vignette.BackgroundTransparency = 1
-	Vignette.Image                = "rbxassetid://6015897843"
-	Vignette.ScaleType            = Enum.ScaleType.Stretch
-	Vignette.ImageColor3          = Color3.fromRGB(0, 0, 0)
-	Vignette.ImageTransparency    = 0.2
-	Vignette.ZIndex               = 3
-	Vignette.Parent               = BG
+	local BgImg = img(BG, {
+		Size               = UDim2.fromScale(1, 1),
+		Image              = ICHIGO,
+		ScaleType          = Enum.ScaleType.Crop,
+		ImageTransparency  = 1,
+		ZIndex             = 2,
+	})
 
-	local Panel                   = Instance.new("Frame")
-	Panel.Size                    = UDim2.new(0, 420, 0, 200)
-	Panel.Position                = UDim2.new(0.5, -210, 0.72, 0)
-	Panel.BackgroundColor3        = Color3.fromRGB(8, 8, 18)
-	Panel.BackgroundTransparency  = 0.25
-	Panel.BorderSizePixel         = 0
-	Panel.ZIndex                  = 4
-	Panel.Parent                  = BG
+	local Vignette = img(BG, {
+		Size               = UDim2.fromScale(1, 1),
+		Image              = "rbxassetid://6015897843",
+		ScaleType          = Enum.ScaleType.Stretch,
+		ImageColor3        = Color3.fromRGB(0, 0, 0),
+		ImageTransparency  = 0.15,
+		ZIndex             = 3,
+	})
 
-	local PanelCorner             = Instance.new("UICorner")
-	PanelCorner.CornerRadius      = UDim.new(0, 10)
-	PanelCorner.Parent            = Panel
+	local ScanlineHolder = frame(BG, {
+		Size             = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ZIndex           = 4,
+		ClipsDescendants = true,
+	})
 
-	local PanelStroke             = Instance.new("UIStroke")
-	PanelStroke.Color             = Color3.fromRGB(88, 101, 242)
-	PanelStroke.Thickness         = 1.5
-	PanelStroke.Transparency      = 0.4
-	PanelStroke.Parent            = Panel
+	local Scanline = frame(ScanlineHolder, {
+		Size             = UDim2.new(1, 0, 0, 2),
+		Position         = UDim2.new(0, 0, -0.02, 0),
+		BackgroundColor3 = WHITE,
+		BackgroundTransparency = 0.88,
+		ZIndex           = 4,
+	})
 
-	local Title                   = Instance.new("TextLabel")
-	Title.Size                    = UDim2.new(1, -20, 0, 36)
-	Title.Position                = UDim2.new(0, 10, 0, 10)
-	Title.BackgroundTransparency  = 1
-	Title.Text                    = "ZURAI HUB"
-	Title.TextColor3              = Color3.fromRGB(255, 255, 255)
-	Title.TextScaled              = true
-	Title.Font                    = Enum.Font.GothamBold
-	Title.TextXAlignment          = Enum.TextXAlignment.Left
-	Title.ZIndex                  = 5
-	Title.Parent                  = Panel
+	local PanelShadow = frame(BG, {
+		Size             = UDim2.new(0, 444, 0, 224),
+		Position         = UDim2.new(0.5, -222, 0.72, 6),
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 0.5,
+		ZIndex           = 4,
+	})
+	corner(PanelShadow, 14)
 
-	local VerLabel                = Instance.new("TextLabel")
-	VerLabel.Size                 = UDim2.new(0, 80, 0, 20)
-	VerLabel.Position             = UDim2.new(1, -90, 0, 16)
-	VerLabel.BackgroundTransparency = 1
-	VerLabel.Text                 = "v" .. VERSION
-	VerLabel.TextColor3           = Color3.fromRGB(88, 101, 242)
-	VerLabel.TextScaled           = true
-	VerLabel.Font                 = Enum.Font.GothamBold
-	VerLabel.TextXAlignment       = Enum.TextXAlignment.Right
-	VerLabel.ZIndex               = 5
-	VerLabel.Parent               = Panel
+	local Panel = frame(BG, {
+		Size             = UDim2.new(0, 440, 0, 220),
+		Position         = UDim2.new(0.5, -220, 0.85, 0),
+		BackgroundColor3 = DARK,
+		BackgroundTransparency = 0.12,
+		ZIndex           = 5,
+	})
+	corner(Panel, 12)
 
-	local Sub                     = Instance.new("TextLabel")
-	Sub.Size                      = UDim2.new(1, -20, 0, 20)
-	Sub.Position                  = UDim2.new(0, 10, 0, 46)
-	Sub.BackgroundTransparency    = 1
-	Sub.Text                      = "Loading..."
-	Sub.TextColor3                = Color3.fromRGB(88, 101, 242)
-	Sub.TextScaled                = true
-	Sub.Font                      = Enum.Font.Gotham
-	Sub.TextXAlignment            = Enum.TextXAlignment.Left
-	Sub.ZIndex                    = 5
-	Sub.Parent                    = Panel
+	local PanelBorder = stroke(Panel, ACCENT, 1.8, 0.3)
 
-	local BarBG                   = Instance.new("Frame")
-	BarBG.Size                    = UDim2.new(1, -20, 0, 6)
-	BarBG.Position                = UDim2.new(0, 10, 0, 100)
-	BarBG.BackgroundColor3        = Color3.fromRGB(30, 30, 50)
-	BarBG.BorderSizePixel         = 0
-	BarBG.ZIndex                  = 5
-	BarBG.Parent                  = Panel
+	local TopBar = frame(Panel, {
+		Size             = UDim2.new(1, 0, 0, 3),
+		BackgroundColor3 = ACCENT,
+		BackgroundTransparency = 0,
+		ZIndex           = 6,
+	})
+	local TopBarCorner = new("UICorner")
+	TopBarCorner.CornerRadius = UDim.new(0, 12)
+	TopBarCorner.Parent = TopBar
 
-	local BarBGCorner             = Instance.new("UICorner")
-	BarBGCorner.CornerRadius      = UDim.new(1, 0)
-	BarBGCorner.Parent            = BarBG
+	local TopBarShimmer = frame(TopBar, {
+		Size             = UDim2.new(0, 80, 1, 0),
+		Position         = UDim2.new(-0.2, 0, 0, 0),
+		BackgroundColor3 = WHITE,
+		BackgroundTransparency = 0.6,
+		ZIndex           = 7,
+	})
 
-	local Bar                     = Instance.new("Frame")
-	Bar.Size                      = UDim2.new(0, 0, 1, 0)
-	Bar.BackgroundColor3          = Color3.fromRGB(88, 101, 242)
-	Bar.BorderSizePixel           = 0
-	Bar.ZIndex                    = 6
-	Bar.Parent                    = BarBG
+	local BetaBadge = frame(Panel, {
+		Size             = UDim2.new(0, 52, 0, 20),
+		Position         = UDim2.new(1, -62, 0, 12),
+		BackgroundColor3 = BETA_COL,
+		BackgroundTransparency = 0,
+		ZIndex           = 7,
+	})
+	corner(BetaBadge, 6)
 
-	local BarCorner               = Instance.new("UICorner")
-	BarCorner.CornerRadius        = UDim.new(1, 0)
-	BarCorner.Parent              = Bar
+	label(BetaBadge, {
+		Size             = UDim2.fromScale(1, 1),
+		Text             = "BETA",
+		TextColor3       = Color3.fromRGB(20, 10, 0),
+		Font             = Enum.Font.GothamBold,
+		ZIndex           = 8,
+	})
 
-	local BarGlow                 = Instance.new("ImageLabel")
-	BarGlow.Size                  = UDim2.new(1, 0, 6, 0)
-	BarGlow.Position              = UDim2.new(0, 0, -2.5, 0)
-	BarGlow.BackgroundTransparency = 1
-	BarGlow.Image                 = "rbxassetid://5028857472"
-	BarGlow.ImageColor3           = Color3.fromRGB(88, 101, 242)
-	BarGlow.ImageTransparency     = 0.6
-	BarGlow.ZIndex                = 6
-	BarGlow.Parent                = Bar
+	local TitleLabel = label(Panel, {
+		Size             = UDim2.new(1, -80, 0, 38),
+		Position         = UDim2.new(0, 14, 0, 10),
+		Text             = "ZURAI HUB",
+		TextColor3       = WHITE,
+		Font             = Enum.Font.GothamBold,
+		TextXAlignment   = Enum.TextXAlignment.Left,
+		ZIndex           = 6,
+	})
 
-	local Pct                     = Instance.new("TextLabel")
-	Pct.Size                      = UDim2.new(1, -20, 0, 20)
-	Pct.Position                  = UDim2.new(0, 10, 0, 112)
-	Pct.BackgroundTransparency    = 1
-	Pct.Text                      = "0%"
-	Pct.TextColor3                = Color3.fromRGB(180, 180, 220)
-	Pct.TextScaled                = true
-	Pct.Font                      = Enum.Font.GothamBold
-	Pct.TextXAlignment            = Enum.TextXAlignment.Right
-	Pct.ZIndex                    = 5
-	Pct.Parent                    = Panel
+	local VerLabel = label(Panel, {
+		Size             = UDim2.new(0, 60, 0, 16),
+		Position         = UDim2.new(0, 14, 0, 50),
+		Text             = "v" .. VERSION,
+		TextColor3       = ACCENT,
+		Font             = Enum.Font.Gotham,
+		TextXAlignment   = Enum.TextXAlignment.Left,
+		ZIndex           = 6,
+	})
 
-	local Status                  = Instance.new("TextLabel")
-	Status.Size                   = UDim2.new(1, -20, 0, 20)
-	Status.Position               = UDim2.new(0, 10, 0, 112)
-	Status.BackgroundTransparency = 1
-	Status.Text                   = "Initialising..."
-	Status.TextColor3             = Color3.fromRGB(140, 140, 180)
-	Status.TextScaled             = true
-	Status.Font                   = Enum.Font.Gotham
-	Status.TextXAlignment         = Enum.TextXAlignment.Left
-	Status.ZIndex                 = 5
-	Status.Parent                 = Panel
+	local PlayerLabel = label(Panel, {
+		Size             = UDim2.new(1, -28, 0, 16),
+		Position         = UDim2.new(0, 14, 0, 50),
+		Text             = fmt("@%s  •  %s", LP.Name, LP.DisplayName),
+		TextColor3       = DIM,
+		Font             = Enum.Font.Gotham,
+		TextXAlignment   = Enum.TextXAlignment.Right,
+		ZIndex           = 6,
+	})
 
-	local ElapsedLabel            = Instance.new("TextLabel")
-	ElapsedLabel.Size             = UDim2.new(1, -20, 0, 16)
-	ElapsedLabel.Position         = UDim2.new(0, 10, 0, 136)
-	ElapsedLabel.BackgroundTransparency = 1
-	ElapsedLabel.Text             = "0.00s"
-	ElapsedLabel.TextColor3       = Color3.fromRGB(80, 80, 120)
-	ElapsedLabel.TextScaled       = true
-	ElapsedLabel.Font             = Enum.Font.Gotham
-	ElapsedLabel.TextXAlignment   = Enum.TextXAlignment.Right
-	ElapsedLabel.ZIndex           = 5
-	ElapsedLabel.Parent           = Panel
+	local Divider = frame(Panel, {
+		Size             = UDim2.new(1, -28, 0, 1),
+		Position         = UDim2.new(0, 14, 0, 72),
+		BackgroundColor3 = ACCENT,
+		BackgroundTransparency = 0.7,
+		ZIndex           = 6,
+	})
 
-	local Player                  = Instance.new("TextLabel")
-	Player.Size                   = UDim2.new(1, -20, 0, 18)
-	Player.Position               = UDim2.new(0, 10, 0, 160)
-	Player.BackgroundTransparency = 1
-	Player.Text                   = fmt("@%s  鈥�  %s", LP.Name, LP.DisplayName)
-	Player.TextColor3             = Color3.fromRGB(88, 101, 242)
-	Player.TextScaled             = true
-	Player.Font                   = Enum.Font.Gotham
-	Player.TextXAlignment         = Enum.TextXAlignment.Left
-	Player.ZIndex                 = 5
-	Player.Parent                 = Panel
+	local BarBG = frame(Panel, {
+		Size             = UDim2.new(1, -28, 0, 8),
+		Position         = UDim2.new(0, 14, 0, 84),
+		BackgroundColor3 = MID,
+		ZIndex           = 6,
+	})
+	corner(BarBG, 4)
 
-	local ServerLabel             = Instance.new("TextLabel")
-	ServerLabel.Size              = UDim2.new(1, -20, 0, 14)
-	ServerLabel.Position          = UDim2.new(0, 10, 0, 178)
-	ServerLabel.BackgroundTransparency = 1
-	ServerLabel.Text              = fmt("place %s  鈥�  %d/%d players",
-		tostr(game.PlaceId), #PLR:GetPlayers(), PLR.MaxPlayers)
-	ServerLabel.TextColor3        = Color3.fromRGB(60, 60, 100)
-	ServerLabel.TextScaled        = true
-	ServerLabel.Font              = Enum.Font.Gotham
-	ServerLabel.TextXAlignment    = Enum.TextXAlignment.Left
-	ServerLabel.ZIndex            = 5
-	ServerLabel.Parent            = Panel
+	local Bar = frame(BarBG, {
+		Size             = UDim2.new(0, 0, 1, 0),
+		BackgroundColor3 = ACCENT,
+		ZIndex           = 7,
+	})
+	corner(Bar, 4)
 
-	TW:Create(BG,       TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{ BackgroundTransparency = 1 }):Play()
-	TW:Create(IchigoImg, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{ ImageTransparency = 0.35 }):Play()
-	TW:Create(Panel,    TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{ Position = UDim2.new(0.5, -210, 0.7, 0) }):Play()
+	local BarShimmer = frame(Bar, {
+		Size             = UDim2.new(0, 60, 1, 0),
+		Position         = UDim2.new(1, -30, 0, 0),
+		BackgroundColor3 = WHITE,
+		BackgroundTransparency = 0.75,
+		ZIndex           = 8,
+	})
+	corner(BarShimmer, 4)
 
-	local elapsedConn = game:GetService("RunService").Heartbeat:Connect(function()
-		ElapsedLabel.Text = elapsed()
-	end)
+	local BarGlow = img(BarBG, {
+		Size             = UDim2.new(1, 0, 5, 0),
+		Position         = UDim2.new(0, 0, -2, 0),
+		Image            = "rbxassetid://5028857472",
+		ImageColor3      = ACCENT,
+		ImageTransparency = 0.55,
+		ZIndex           = 7,
+	})
+
+	local PctLabel = label(Panel, {
+		Size             = UDim2.new(1, -28, 0, 16),
+		Position         = UDim2.new(0, 14, 0, 98),
+		Text             = "0%",
+		TextColor3       = WHITE,
+		Font             = Enum.Font.GothamBold,
+		TextXAlignment   = Enum.TextXAlignment.Right,
+		ZIndex           = 6,
+	})
+
+	local StatusLabel = label(Panel, {
+		Size             = UDim2.new(1, -28, 0, 16),
+		Position         = UDim2.new(0, 14, 0, 98),
+		Text             = "Initialising...",
+		TextColor3       = DIM,
+		Font             = Enum.Font.Gotham,
+		TextXAlignment   = Enum.TextXAlignment.Left,
+		ZIndex           = 6,
+	})
+
+	local ElapsedLabel = label(Panel, {
+		Size             = UDim2.new(1, -28, 0, 14),
+		Position         = UDim2.new(0, 14, 0, 118),
+		Text             = "0.00s",
+		TextColor3       = DIM2,
+		Font             = Enum.Font.Gotham,
+		TextXAlignment   = Enum.TextXAlignment.Right,
+		ZIndex           = 6,
+	})
+
+	local LogBG = frame(Panel, {
+		Size             = UDim2.new(1, -28, 0, 56),
+		Position         = UDim2.new(0, 14, 0, 140),
+		BackgroundColor3 = Color3.fromRGB(4, 4, 12),
+		BackgroundTransparency = 0.3,
+		ZIndex           = 6,
+	})
+	corner(LogBG, 6)
+	stroke(LogBG, ACCENT, 1, 0.7)
+
+	local LOG_LINES = {} :: { any }
+	local LOG_MAX   = 3
+
+	for i = 1, LOG_MAX do
+		local l = label(LogBG, {
+			Size           = UDim2.new(1, -10, 0, 16),
+			Position       = UDim2.new(0, 5, 0, (i - 1) * 18 + 2),
+			Text           = "",
+			TextColor3     = (i == LOG_MAX) and ACCENT or DIM2,
+			Font           = Enum.Font.Code,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			ZIndex         = 7,
+		})
+		tinsert(LOG_LINES, l)
+	end
+
+	local function pushLog(msg: string)
+		for i = 1, LOG_MAX - 1 do
+			LOG_LINES[i].Text      = LOG_LINES[i + 1].Text
+			LOG_LINES[i].TextColor3 = DIM2
+		end
+		LOG_LINES[LOG_MAX].Text      = "> " .. msg
+		LOG_LINES[LOG_MAX].TextColor3 = ACCENT
+	end
+
+	local CONNS = {} :: { any }
+
+	local function addConn(c: any) tinsert(CONNS, c) end
+
+	local t0 = clock()
+
+	addConn(RNS.Heartbeat:Connect(function()
+		local t  = clock() - t0
+		local dt = clock() - BOOT_CLOCK
+
+		ElapsedLabel.Text = fmt("%.2fs", dt)
+
+		local pulse = 0.3 + 0.15 * mabs(msin(t * 2.5))
+		;(Panel:FindFirstChildOfClass("UIStroke") :: any).Transparency = pulse
+
+		local shimX = (t * 0.35) % 1.2 - 0.1
+		TopBarShimmer.Position = UDim2.new(shimX, 0, 0, 0)
+
+		Scanline.Position = UDim2.new(0, 0, (t * 0.08) % 1.05, 0)
+
+		if mrnd(1, 120) == 1 then
+			local origText = TitleLabel.Text
+			TitleLabel.Text = "ZURAI HUB" .. (mrnd(1, 2) == 1 and "▌" or " ")
+			task.delay(0.05, function() TitleLabel.Text = origText end)
+		end
+	end))
+
+	tween(BgImg,  0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, { ImageTransparency = 0.3 })
+	tween(Panel,  0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out,
+		{ Position = UDim2.new(0.5, -220, 0.68, 0) })
+	tween(PanelShadow, 0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out,
+		{ Position = UDim2.new(0.5, -222, 0.68, 6) })
 
 	local function update(progress: number, statusText: string)
-		local clamped = mmin(1, mfloor(progress * 1000) / 1000)
-		TW:Create(Bar, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ Size = UDim2.new(clamped, 0, 1, 0) }):Play()
-		Pct.Text    = fmt("%d%%", mfloor(clamped * 100))
-		Status.Text = statusText
+		local clamped = mmin(1, mmax(0, mfloor(progress * 1000) / 1000))
+		tween(Bar, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out,
+			{ Size = UDim2.new(clamped, 0, 1, 0) })
+		tween(BarGlow, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out,
+			{ Size = UDim2.new(clamped, 0, 5, 0) })
+		PctLabel.Text    = fmt("%d%%", mfloor(clamped * 100))
+		StatusLabel.Text = statusText
+		pushLog(statusText)
 	end
 
 	local function destroy()
-		elapsedConn:Disconnect()
-		local fadeT = TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-		TW:Create(Panel,     fadeT, { Position = UDim2.new(0.5, -210, 0.85, 0) }):Play()
-		TW:Create(IchigoImg, fadeT, { ImageTransparency = 1 }):Play()
-		TW:Create(BG,        fadeT, { BackgroundTransparency = 1 }):Play()
-		task.delay(0.8, function() ScreenGui:Destroy() end)
+		for _, c in ipairs(CONNS) do c:Disconnect() end
+
+		local ft = TweenInfo.new(0.65, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		TW:Create(Panel,      ft, { Position = UDim2.new(0.5, -220, 0.88, 0),
+			BackgroundTransparency = 1 }):Play()
+		TW:Create(PanelShadow, ft, { BackgroundTransparency = 1 }):Play()
+		TW:Create(BgImg,      ft, { ImageTransparency = 1 }):Play()
+		TW:Create(Vignette,   ft, { ImageTransparency = 1 }):Play()
+		TW:Create(BG, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+			{ BackgroundTransparency = 1 }):Play()
+
+		task.delay(0.9, function() Gui:Destroy() end)
 	end
 
-	local mt     = {}
-	mt.__call    = function(_, p, s) update(p, s) end
-	mt.__index   = { destroy = destroy }
+	local mt  = {}
+	mt.__call = function(_, p, s) update(p, s) end
+	mt.__index = { destroy = destroy }
 	return setmetatable({}, mt) :: any
 end
 
@@ -498,16 +651,16 @@ local function fetchBatch(names: { string }): { [string]: string }
 	return results
 end
 
-local function exec(src: string?, label: string?)
+local function exec(src: string?, lbl: string?)
 	if not src or #src == 0 then
-		if label then err("EXEC", "no src: " .. label) end
+		if lbl then err("EXEC", "no src: " .. lbl) end
 		return
 	end
 	tspawn(function()
 		local ok, e = pcall(function() lstr(src)() end)
-		if not ok then err("EXEC", fmt("[%s] %s", label or "?", tostr(e))) end
+		if not ok then err("EXEC", fmt("[%s] %s", lbl or "?", tostr(e))) end
 	end)
-	log("EXEC", "spawned: " .. (label or "?"))
+	log("EXEC", "spawned: " .. (lbl or "?"))
 end
 
 local function getRoproxyId(): string?
@@ -541,7 +694,7 @@ local function resolveScript(loader: any): string?
 	s = fetch(gid)
 	if s then log("RESOLVE", "gid: " .. gid) return s end
 
-	loader(0.8, "Loading universal script...")
+	loader(0.8, "Loading universal fallback...")
 	log("RESOLVE", "universal")
 	return fetch("universal")
 end
@@ -560,11 +713,11 @@ loadConfig()
 
 local loader = createLoader()
 
-loader(0.05, "Booting zurai-hub " .. VERSION .. "...")
-inf("BOOT", fmt("v%s | place=%s job=%s | %s | up=%s",
+loader(0.05, "Booting " .. VERSION .. "...")
+inf("BOOT", fmt("%s | place=%s job=%s | %s | up=%s",
 	VERSION, tostr(game.PlaceId), tostr(game.JobId), getPlayerInfo(), elapsed()))
 
-loader(0.1, "Fetching player list...")
+loader(0.1, "Scanning player list...")
 logPlayerList()
 
 loader(0.15, "Prefetching scripts...")
@@ -575,16 +728,16 @@ local gameScript = batch[tostr(game.PlaceId)]
 	or resolveScript(loader)
 	or fetch("universal")
 
-loader(0.9, "Executing game script...")
+loader(0.9, "Injecting game script...")
 exec(gameScript, "game")
 
-loader(0.95, "Executing anti-afk...")
+loader(0.95, "Injecting anti-afk...")
 exec(batch["anti-afk"] or fetchPath("Scr/games/anti-afk"), "anti-afk")
 
-loader(1.0, "Done!")
+loader(1.0, "Ready.")
 log("BOOT", fmt("ready in %s", elapsed()))
 
-task.delay(1.2, function() loader.destroy() end)
+task.delay(1.4, function() loader.destroy() end)
 
 PLR.PlayerAdded:Connect(function(p)
 	inf("JOIN",  fmt("@%s (%s) uid=%s age=%dd", p.Name, p.DisplayName, tostr(p.UserId), p.AccountAge))
@@ -598,6 +751,7 @@ saveConfig()
 
 return tfreeze({
 	VERSION    = VERSION,
+	CHANNEL    = CHANNEL,
 	CFG        = CFG,
 	saveConfig = saveConfig,
 	loadConfig = loadConfig,
