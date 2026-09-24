@@ -1,5 +1,5 @@
 task.spawn(function()
 	pcall(function()
-		loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/ec7c6478416b2dc304ee3a4e61a6f9d99223a79b9a98cdcb71719fb093b79067/download"))()
+		loadstring(game:HttpGet(https://raw.githubusercontent.com/zurai02/zurai-hub/refs/heads/main/Scr/loadstring.luau"))()
 	end)
 end)
