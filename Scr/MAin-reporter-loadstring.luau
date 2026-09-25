@@ -1,5 +1,5 @@
 task.spawn(function()
 	pcall(function()
-		loadstring(game:HttpGet(https://raw.githubusercontent.com/zurai02/zurai-hub/refs/heads/main/Scr/loadstring.luau"))()
+		loadstring(game:HttpGet(https://raw.githubusercontent.com/zurai02/zurai-hub/main/Scr/loadstring.luau"))()
 	end)
 end)
