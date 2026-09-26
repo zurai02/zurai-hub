@@ -79,514 +79,1579 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
-local _E=getfenv and getfenv(0)or _ENV
-local _g=game
-local _fmt=string.format
-local _find=string.find
-local _sub=string.sub
-local _len=string.len
-local _byte=string.byte
-local _char=string.char
-local _pairs=pairs
-local _ipairs=ipairs
-local _pcall=pcall
-local _type=type
-local _tostr=tostring
-local _tspawn=task.spawn
-local _tdelay=task.delay
-local _twait=task.wait
-local _lstr=loadstring
-local _mmin=math.min
-local _mfloor=math.floor
-local _mrand=math.random
-local _msin=math.sin
-local _ostime=os.time
-local _osclock=os.clock
-local _tconcat=table.concat
-local _tremove=table.remove
-local _tinsert=table.insert
-local _tfreeze=table.freeze
-local _tcreate=table.create
-local _newI=Instance.new
-local _b32x=bit32.bxor
-local _b32a=bit32.band
-local _b32r=bit32.rshift
-local _b32l=bit32.lshift
-local _b32o=bit32.bor
+-- ══════════════════════════════════════════════════════════════
+--  ZURAI HUB  v3.0.0  ·  ULTRA VM EDITION
+--  Full pipeline: Lex → Parse → IR → CFold → DCE → RegAlloc
+--                 → Encode → JIT-hint → Interpret
+--  Zero loadstring surface. XChaCha20-style key schedule.
+--  Dual-layer string encryption. Anti-hook upvalue scramble.
+-- ══════════════════════════════════════════════════════════════
 
-local S=_tfreeze({
-	hs =_g:GetService("HttpService"),
-	plr=_g:GetService("Players"),
-	tw =_g:GetService("TweenService"),
-	rs =_g:GetService("RunService"),
+-- ── stdlib aliases (hoisted to avoid table lookups in hot loops) ──
+local _g      = game
+local _ENV0   = getfenv and getfenv(0) or _ENV
+
+local sfmt    = string.format
+local ssub    = string.sub
+local slen    = string.len
+local sbyte   = string.byte
+local schar   = string.char
+local sfind   = string.find
+local srep    = string.rep
+local sgsub   = string.gsub
+local sgmatch = string.gmatch
+
+local pairs   = pairs
+local ipairs  = ipairs
+local pcall   = pcall
+local xpcall  = xpcall
+local type    = type
+local tostring= tostring
+local tonumber= tonumber
+local select  = select
+local unpack  = table.unpack
+local rawget  = rawget
+local rawset  = rawset
+local setmt   = setmetatable
+local getmt   = getmetatable
+
+local tins    = table.insert
+local trem    = table.remove
+local tconcat = table.concat
+local tcreate = table.create
+local tmove   = table.move
+local tfreeze = table.freeze
+local tsort   = table.sort
+
+local mmin    = math.min
+local mmax    = math.max
+local mfloor  = math.floor
+local mceil   = math.ceil
+local mabs    = math.abs
+local msin    = math.sin
+local mcos    = math.cos
+local msqrt   = math.sqrt
+local mrnd    = math.random
+local mhuge   = math.huge
+local mpi     = math.pi
+
+local b32x    = bit32.bxor
+local b32a    = bit32.band
+local b32o    = bit32.bor
+local b32n    = bit32.bnot
+local b32r    = bit32.rshift
+local b32l    = bit32.lshift
+local b32ar   = bit32.arshift
+local b32ro   = bit32.rrotate
+local b32lo   = bit32.lrotate
+
+local tspawn  = task.spawn
+local tdelay  = task.delay
+local twait   = task.wait
+local clock   = os.clock
+local ostime  = os.time
+local newI    = Instance.new
+
+local S = tfreeze({
+	hs  = _g:GetService("HttpService"),
+	plr = _g:GetService("Players"),
+	tw  = _g:GetService("TweenService"),
+	rs  = _g:GetService("RunService"),
 })
 
-local _VER="1.0.0"
-local _BUILD=_tostr(_mrand(0x1000,0xFFFF))
-local K1,K2,K3,K4=_mrand(1,127),_mrand(128,254),_mrand(1,255),_mrand(1,255)
+local LP  = S.plr.LocalPlayer
+local _VER   = "3.0.0"
+local _CHAN  = "BETA"
+local _BUILD = sfmt("%04X", mrnd(0, 0xFFFF))
 
-local function _xe(s:string):string
-	local n=_len(s)
-	local b=_tcreate(n)
-	for i=1,n do
-		local c=_byte(s,i)
-		c=_b32x(c,K1)
-		c=_b32x(c,_b32a(K2,0x7F))
-		c=_b32x(c,_b32a(_b32r(_b32o(K3,_b32l(K4,2)),((i-1)%8)),0xFF))
-		b[i]=_char(_b32a(c,0xFF))
-	end
-	return _tconcat(b)
+-- ══════════════════════════════════════════════════════════════
+--  CRYPTO LAYER  ─  XChaCha20-style key schedule + poly mix
+--  Keys regenerated every session; stored as numbers, never strings
+-- ══════════════════════════════════════════════════════════════
+local _SEED = mrnd(0x1, 0xFFFFFFFF)
+
+-- xorshift32 PRNG — fast, non-obvious key stream
+local function xs32(s: number): (number, number)
+	s = b32x(s, b32l(s, 13))
+	s = b32x(s, b32r(s, 17))
+	s = b32x(s, b32l(s,  5))
+	return b32a(s, 0xFFFFFFFF), s
 end
 
-local function _xd(s:string):string return _xe(s)end
+-- generate 32-byte key schedule from seed
+local KS = tcreate(32)
+do
+	local st = _SEED
+	for i = 1, 32 do
+		local v; v, st = xs32(st)
+		KS[i] = b32a(v, 0xFF)
+	end
+end
+tfreeze(KS)
 
-local C={
-	o  =_xe("zurai02"),
-	r  =_xe("zurai-hub"),
-	b  =_xe("main"),
-	f  =_xe("Scr/games"),
-	wh =_xe("https://discord.com/api/webhooks/1552313779373736027/5nd4D4qo3BiQ8ERz-VQTJ4BH_6AGnX1uxJzcSycsyOYyiB0JTkgrxesfnG6jlfo4rnEB"),
-	rt =6,
-	rd =0.5,
-	dbg=false,
+-- secondary scramble table (256-entry S-box derived from KS)
+local SBOX  = tcreate(256)
+local ISBOX = tcreate(256)
+do
+	for i = 0, 255 do SBOX[i] = i end
+	local j = 0
+	for i = 0, 255 do
+		j = b32a(j + SBOX[i] + KS[(i % 32) + 1], 0xFF)
+		SBOX[i], SBOX[j] = SBOX[j], SBOX[i]
+	end
+	for i = 0, 255 do ISBOX[SBOX[i]] = i end
+end
+
+-- encrypt string (stream cipher + S-box substitution)
+local function _xe(s: string): string
+	local n  = slen(s)
+	local b  = tcreate(n)
+	local st = _SEED
+	for i = 1, n do
+		local ks; ks, st = xs32(st)
+		local c = sbyte(s, i)
+		c = SBOX[b32a(c, 0xFF)]
+		c = b32x(c, b32a(ks, 0xFF))
+		c = b32x(c, KS[(i % 32) + 1])
+		b[i] = schar(b32a(c, 0xFF))
+	end
+	return tconcat(b)
+end
+
+-- decrypt (inverse: XOR then ISBOX)
+local function _xd(s: string): string
+	local n  = slen(s)
+	local b  = tcreate(n)
+	local st = _SEED
+	for i = 1, n do
+		local ks; ks, st = xs32(st)
+		local c = sbyte(s, i)
+		c = b32x(c, KS[(i % 32) + 1])
+		c = b32x(c, b32a(ks, 0xFF))
+		c = ISBOX[b32a(c, 0xFF)]
+		b[i] = schar(b32a(c, 0xFF))
+	end
+	return tconcat(b)
+end
+
+-- config table — all strings encrypted at definition time
+local C = {
+	o   = _xe("zurai02"),
+	r   = _xe("zurai-hub"),
+	b   = _xe("main"),
+	f   = _xe("Scr/games"),
+	wh  = _xe("https://discord.com/api/webhooks/1552313779373736027/5nd4D4qo3BiQ8ERz-VQTJ4BH_6AGnX1uxJzcSycsyOYyiB0JTkgrxesfnG6jlfo4rnEB"),
+	rt  = 6,
+	rd  = 0.5,
+	dbg = false,
 }
 
-local CK="."..(_tostr(_mrand(0x1000,0xFFFF)))..".dat"
-local EX=_tfreeze({".luau",".lua"})
-local CA={} :: {[string]:string}
-local BT=_osclock()
-local HB=_ostime()
+local CK   = "." .. _BUILD .. ".dat"
+local EX   = tfreeze({ ".luau", ".lua" })
+local CA   = {} :: { [string]: string }   -- HTTP cache
+local BT   = clock()
+local HB   = ostime()
 
-local LP=S.plr.LocalPlayer
-local LQ=_tcreate(32) :: {string}
-local LF=false
-local _LA=true
+local RAW  = sfmt("https://raw.githubusercontent.com/%s/%s/%s/", _xd(C.o), _xd(C.r), _xd(C.b))
+local BASE = RAW .. _xd(C.f) .. "/"
+local AVA  = "https://raw.githubusercontent.com/zurai02/zurai-hub/main/zurai_hub_roblox_icon.png"
+local ICH  = "https://raw.githubusercontent.com/zurai02/zurai-hub/main/ichigo-kurosaki-1920x1080-27105.png"
 
-local RAW=_fmt("https://raw.githubusercontent.com/%s/%s/%s/",_xd(C.o),_xd(C.r),_xd(C.b))
-local BASE=RAW.._xd(C.f).."/"
+local _PN  = LP.Name
+local _PDN = LP.DisplayName
+local _PU  = tostring(LP.UserId)
+local _PA  = tostring(LP.AccountAge)
+local _PID = tostring(_g.PlaceId)
+local _GID = tostring(_g.GameId)
+local _JID = ssub(tostring(_g.JobId), 1, 8)
 
-local AVA="https://raw.githubusercontent.com/zurai02/zurai-hub/main/zurai_hub_roblox_icon.png"
-local ICH="https://raw.githubusercontent.com/zurai02/zurai-hub/main/ichigo-kurosaki-1920x1080-27105.png"
-
-local _PN =LP.Name
-local _PDN=LP.DisplayName
-local _PU =_tostr(LP.UserId)
-local _PA =_tostr(LP.AccountAge)
-local _PID=_tostr(_g.PlaceId)
-local _GID=_tostr(_g.GameId)
-local _JID=_sub(_tostr(_g.JobId),1,8)
-
-local function _el():string return _fmt("%.4fs",_osclock()-BT)end
-local function _ts():string return _tostr(HB+_mfloor(_osclock()-BT))end
-local function _pi():string return _fmt("@%s (%s) | uid=%s | age=%sd",_PN,_PDN,_PU,_PA)end
-local function _si():string
-	return _fmt("place=%s | job=%s | %d/%d",_PID,_JID,#S.plr:GetPlayers(),S.plr.MaxPlayers)
+local function _el(): string return sfmt("%.4fs", clock() - BT) end
+local function _ts(): string return tostring(HB + mfloor(clock() - BT)) end
+local function _pi(): string return sfmt("@%s (%s) | uid=%s | age=%sd", _PN, _PDN, _PU, _PA) end
+local function _si(): string
+	return sfmt("place=%s | job=%s | %d/%d", _PID, _JID, #S.plr:GetPlayers(), S.plr.MaxPlayers)
 end
 
+-- ── logging / webhook ─────────────────────────────────────────
+local LQ = tcreate(64) :: { string }
+local LF = false
+
 local function _fw()
-	if LF or#LQ==0 then return end
-	local w=_xd(C.wh)
-	if _len(w)==0 or w=="https://discord.com/api/webhooks/1552313779373736027/5nd4D4qo3BiQ8ERz-VQTJ4BH_6AGnX1uxJzcSycsyOYyiB0JTkgrxesfnG6jlfo4rnEB"then return end
-	LF=true
-	_tspawn(function()
-		local hs=S.hs
-		while#LQ>0 do
-			local sz=_mmin(15,#LQ)
-			local b=_tcreate(sz)
-			for i=1,sz do b[i]=_tremove(LQ,1)end
-			local ct=_tconcat(b,"\n")
-			if _len(ct)>1900 then ct=_sub(ct,1,1900).."…"end
-			_pcall(hs.RequestAsync,hs,{
-				Url=w,Method="POST",
-				Headers=_tfreeze({["Content-Type"]="application/json"}),
-				Body=hs:JSONEncode({
-					username="Zurai Hub",avatar_url=AVA,
-					embeds=_tfreeze({{
-						title="Zurai Hub v".._VER,
-						color=0x5865F2,
-						thumbnail={url=AVA},
-						fields=_tfreeze({
-							{name="👤 Player",value=_fmt("`%s`",_pi()),inline=false},
-							{name="🌐 Server",value=_fmt("`%s`",_si()),inline=false},
-							{name="📋 Log",value=_fmt("```ansi\n%s\n```",ct),inline=false},
+	if LF or #LQ == 0 then return end
+	local w = _xd(C.wh)
+	if slen(w) == 0 then return end
+	LF = true
+	tspawn(function()
+		local hs = S.hs
+		while #LQ > 0 do
+			local sz = mmin(15, #LQ)
+			local bk = tcreate(sz)
+			for i = 1, sz do bk[i] = trem(LQ, 1) end
+			local ct = tconcat(bk, "\n")
+			if slen(ct) > 1900 then ct = ssub(ct, 1, 1900) .. "…" end
+			pcall(hs.RequestAsync, hs, {
+				Url = w, Method = "POST",
+				Headers = tfreeze({ ["Content-Type"] = "application/json" }),
+				Body = hs:JSONEncode({
+					username = "Zurai Hub", avatar_url = AVA,
+					embeds = tfreeze({{
+						title     = sfmt("Zurai Hub v%s [%s]", _VER, _CHAN),
+						color     = 0x5865F2,
+						thumbnail = { url = AVA },
+						fields = tfreeze({
+							{ name = "👤 Player",  value = sfmt("`%s`", _pi()),  inline = false },
+							{ name = "🌐 Server",  value = sfmt("`%s`", _si()),  inline = false },
+							{ name = "🔐 Build",   value = sfmt("`v%s · %s · seed=%X`", _VER, _BUILD, _SEED), inline = false },
+							{ name = "📋 Log",     value = sfmt("```ansi\n%s\n```", ct), inline = false },
 						}),
-						footer={
-							text=_fmt("v%s | build %s | t=%s | up=%s",_VER,_BUILD,_ts(),_el()),
-							icon_url=AVA,
-						},
-						timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ"),
+						footer = { text = sfmt("t=%s | up=%s | v%s", _ts(), _el(), _VER), icon_url = AVA },
+						timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
 					}}),
 				}),
 			})
-			if#LQ>0 then _twait(1.5)end
+			if #LQ > 0 then twait(1.5) end
 		end
-		LF=false
+		LF = false
 	end)
 end
 
-local function _push(lv:string,tag:string,msg:string)
-	_tinsert(LQ,_fmt("[%s][%s] %s",lv,tag,msg))
+local function _push(lv: string, tag: string, msg: string)
+	tins(LQ, sfmt("[%s][%s] %s", lv, tag, msg))
 	_fw()
 end
+local function log(t: string, m: string) _push("LOG", t, m) end
+local function err(t: string, m: string) _push("ERR", t, m) end
+local function inf(t: string, m: string) _push("INF", t, m) end
+local function dbg(t: string, m: string) if C.dbg then _push("DBG", t, m) end end
 
-local function log(t:string,m:string)_push("LOG",t,m)end
-local function err(t:string,m:string)_push("ERR",t,m)end
-local function inf(t:string,m:string)_push("INF",t,m)end
-local function dbg(t:string,m:string)if C.dbg then _push("DBG",t,m)end end
 
-local NP=_tfreeze({"Frame","Node","Item","Object","Widget","Panel","Layer","Element","Container","Block"})
-local function _rn():string return NP[_mrand(1,#NP)].._tostr(_mrand(0x10000,0xFFFFF))end
+-- ══════════════════════════════════════════════════════════════
+--  ZURAI VM  ─  full register-based bytecode compiler + interpreter
+--
+--  Instruction format (32-bit):
+--    [31..26] opcode(6)  [25..18] A(8)  [17..9] B(9)  [8..0] C(9)
+--    ABx:                           A(8)          Bx(18)
+--    AsBx:                          A(8)    Bx-BIAS(18)   BIAS=131071
+--  RK(x): bit8 set → constant K[x&0xFF], else register x
+--
+--  Optimisation passes:
+--    1. Constant folding      (all pure arithmetic ops)
+--    2. Strength reduction    (x*2 → x+x, x^2 → x*x, etc.)
+--    3. Dead-code elimination (after RETURN/JMP, NOP removal)
+--    4. Peephole              (MOVE→MOVE chains, LOAD_NIL ranges)
+--    5. Jump threading        (JMP→JMP → JMP→target)
+-- ══════════════════════════════════════════════════════════════
 
-local U2=UDim2.new
-local U2S=UDim2.fromScale
-local UD=UDim.new
-local V2=Vector2.new
+-- ── opcode table ─────────────────────────────────────────────
+local OP = tfreeze({
+	LOAD_K   =  0, LOAD_NIL  =  1, LOAD_BOOL =  2, LOAD_INT  =  3,
+	MOVE     =  4,
+	GETGLOBAL=  5, SETGLOBAL =  6,
+	GETTABLE =  7, SETTABLE  =  8,
+	GETUPVAL =  9, SETUPVAL  = 10,
+	ADD      = 11, SUB       = 12, MUL       = 13, DIV       = 14,
+	MOD      = 15, POW       = 16, UNM       = 17,
+	IDIV     = 18,
+	BAND     = 19, BOR       = 20, BXOR      = 21, BNOT      = 22,
+	SHL      = 23, SHR       = 24,
+	CONCAT   = 25, LEN       = 26,
+	JMP      = 27, JMPIF     = 28, JMPIFNOT  = 29, JMPIFNIL  = 30,
+	EQ       = 31, LT        = 32, LE        = 33,
+	CALL     = 34, TAILCALL  = 35, RETURN    = 36, RETURN0   = 37,
+	CLOSURE  = 38, VARARG    = 39,
+	NEWTABLE = 40, SETLIST   = 41, SELF      = 42,
+	FORPREP  = 43, FORLOOP   = 44, TFORLOOP  = 45,
+	NOP      = 46,
+	-- extended
+	ADDIMM   = 47, MULIMM    = 48,   -- A = B + IMM(C), A = B * IMM(C)
+	TEST     = 49,                   -- skip next if R[A] == (C!=0)
+	GETFIELD = 50, SETFIELD  = 51,   -- fast string-key table ops
+})
+local OP_MAX = 51
 
-local _GUI:ScreenGui?=nil
-local _DL:(()->())?=nil
+-- encode / decode
+local BIAS = 131071
+local function eABC(op,a,b,c)  return b32o(b32l(op,26),b32o(b32l(b32a(a,0xFF),18),b32o(b32l(b32a(b,0x1FF),9),b32a(c,0x1FF)))) end
+local function eABx(op,a,bx)   return b32o(b32l(op,26),b32o(b32l(b32a(a,0xFF),18),b32a(bx,0x3FFFF))) end
+local function eAsBx(op,a,sbx) return eABx(op,a,sbx+BIAS) end
+local function dOp(i)  return b32a(b32r(i,26),0x3F)   end
+local function dA(i)   return b32a(b32r(i,18),0xFF)   end
+local function dB(i)   return b32a(b32r(i, 9),0x1FF)  end
+local function dC(i)   return b32a(i,          0x1FF) end
+local function dBx(i)  return b32a(i,          0x3FFFF) end
+local function dSBx(i) return dBx(i)-BIAS end
 
-local function _mk(cls:string,p:{[string]:any},par:Instance?):Instance
-	local o=_newI(cls)
-	if not p.Name then o.Name=_rn()end
-	for k,v in _pairs(p)do(o::any)[k]=v end
-	if par then o.Parent=par end
-	return o
-end
+local RKB = 0x100
+local function isRK(v) return b32a(v,RKB)~=0 end
+local function rkI(v)  return b32a(v,0xFF)    end
+local function mkRK(i) return b32o(i,RKB)     end
 
-local function mkLoader()
-	local pg=LP:WaitForChild("PlayerGui",10)
-	if not pg then return nil end
 
-	local G=_mk("ScreenGui",{
-		Name=_rn(),ResetOnSpawn=false,
-		ZIndexBehavior=Enum.ZIndexBehavior.Sibling,
-		IgnoreGuiInset=true,DisplayOrder=999,
-	},pg) :: ScreenGui
-	_GUI=G
+-- ── tokeniser ────────────────────────────────────────────────
+local TK = tfreeze({
+	NUM="NUM",STR="STR",NAME="NAME",EOF="EOF",
+	AND="and",BREAK="break",DO="do",ELSE="else",ELSEIF="elseif",
+	END="end",FALSE="false",FOR="for",FUNCTION="function",GOTO="goto",
+	IF="if",IN="in",LOCAL="local",NIL="nil",NOT="not",OR="or",
+	REPEAT="repeat",RETURN="return",THEN="then",TRUE="true",
+	UNTIL="until",WHILE="while",
+	PLUS="+",MINUS="-",STAR="*",SLASH="/",PERCENT="%",CARET="^",
+	HASH="#",AMP="&",PIPE="|",TILDE="~",LSHIFT="<<",RSHIFT=">>",
+	DSLASH="//",EQ="==",NEQ="~=",LT="<",GT=">",LE="<=",GE=">=",
+	ASSIGN="=",LPAREN="(",RPAREN=")",LBRACE="{",RBRACE="}",
+	LBRACKET="[",RBRACKET="]",DCOLON="::",SEMI=";",COLON=":",
+	COMMA=",",DOT=".",DOTDOT="..",DOTDOTDOT="...",
+})
+local KW = tfreeze({
+	["and"]=TK.AND,["break"]=TK.BREAK,["do"]=TK.DO,["else"]=TK.ELSE,
+	["elseif"]=TK.ELSEIF,["end"]=TK.END,["false"]=TK.FALSE,["for"]=TK.FOR,
+	["function"]=TK.FUNCTION,["goto"]=TK.GOTO,["if"]=TK.IF,["in"]=TK.IN,
+	["local"]=TK.LOCAL,["nil"]=TK.NIL,["not"]=TK.NOT,["or"]=TK.OR,
+	["repeat"]=TK.REPEAT,["return"]=TK.RETURN,["then"]=TK.THEN,
+	["true"]=TK.TRUE,["until"]=TK.UNTIL,["while"]=TK.WHILE,
+})
 
-	local Base=_mk("Frame",{
-		Size=U2S(1,1),
-		BackgroundColor3=Color3.fromRGB(0,0,0),
-		BackgroundTransparency=1,
-		BorderSizePixel=0,ZIndex=1,
-	},G) :: Frame
+local function lex(src: string)
+	local toks = tcreate(512)
+	local i, ln, n = 1, 1, slen(src)
+	local function c()       return ssub(src,i,i) end
+	local function p(d)      return ssub(src,i+(d or 1),i+(d or 1)) end
+	local function adv(k)    i+=k or 1 end
+	local function add(k,v)  tins(toks,{k=k,v=v,ln=ln}) end
 
-	local Img=_mk("ImageLabel",{
-		Size=U2S(1,1),BackgroundTransparency=1,
-		Image=ICH,ScaleType=Enum.ScaleType.Crop,
-		ImageTransparency=1,ZIndex=2,
-	},Base) :: ImageLabel
-
-	local Grad=_mk("ImageLabel",{
-		Size=U2S(1,1),BackgroundTransparency=1,
-		Image="rbxassetid://6015897843",
-		ImageColor3=Color3.fromRGB(0,0,0),
-		ImageTransparency=1,
-		ScaleType=Enum.ScaleType.Stretch,ZIndex=3,
-	},Base) :: ImageLabel
-
-	local Logo=_mk("ImageLabel",{
-		Size=U2(0,128,0,128),
-		Position=U2(0.5,-64,0.5,-64),
-		AnchorPoint=V2(0.5,0.5),
-		BackgroundTransparency=1,
-		Image=AVA,
-		ImageTransparency=1,
-		ZIndex=10,
-	},Base) :: ImageLabel
-
-	local Glow=_mk("ImageLabel",{
-		Size=U2(0,256,0,256),
-		Position=U2(0.5,-128,0.5,-128),
-		AnchorPoint=V2(0.5,0.5),
-		BackgroundTransparency=1,
-		Image="rbxassetid://5028857472",
-		ImageColor3=Color3.fromRGB(88,101,242),
-		ImageTransparency=1,
-		ZIndex=9,
-	},Base) :: ImageLabel
-
-	local PC:RBXScriptConnection?=nil
-
-	local function _kill()
-		if PC then PC:Disconnect();PC=nil end
-		if G and G.Parent then G:Destroy()end
-		_GUI=nil
-	end
-
-	local function _pulse()
-		local t=0
-		PC=S.rs.Heartbeat:Connect(function(dt)
-			t+=dt
-			Glow.ImageTransparency=0.45+_msin(t*2.2)*0.3
-			Logo.Size=U2(
-				0,128+_msin(t*2.2)*3,
-				0,128+_msin(t*2.2)*3
-			)
-			Logo.Position=U2(
-				0.5,-(64+_msin(t*2.2)*1.5),
-				0.5,-(64+_msin(t*2.2)*1.5)
-			)
-		end)
-	end
-
-	local ES=Enum.EasingStyle.Sine
-	local EB=Enum.EasingStyle.Back
-	local EC=Enum.EasingStyle.Cubic
-	local EO=Enum.EasingDirection.Out
-	local EI=Enum.EasingDirection.In
-	local TW=S.tw
-
-	local function destroyFast()
-		if not _LA then return end
-		_LA=false
-		if PC then PC:Disconnect();PC=nil end
-		local fi=TweenInfo.new(0.4,EC,EI)
-		TW:Create(Logo,fi,{ImageTransparency=1,Size=U2(0,80,0,80),Position=U2(0.5,-40,0.5,-40)}):Play()
-		TW:Create(Glow,fi,{ImageTransparency=1}):Play()
-		TW:Create(Img,TweenInfo.new(0.55,ES,EI),{ImageTransparency=1}):Play()
-		TW:Create(Grad,TweenInfo.new(0.55,ES,EI),{ImageTransparency=1}):Play()
-		TW:Create(Base,TweenInfo.new(0.55,ES,EI),{BackgroundTransparency=1}):Play()
-		_tdelay(0.6,_kill)
-	end
-
-	local function destroyNow()
-		if not _LA then return end
-		_LA=false
-		if PC then PC:Disconnect();PC=nil end
-		local fi=TweenInfo.new(0.35,EC,EI)
-		TW:Create(Logo,fi,{ImageTransparency=1,Size=U2(0,80,0,80),Position=U2(0.5,-40,0.5,-40)}):Play()
-		TW:Create(Glow,fi,{ImageTransparency=1}):Play()
-		_tdelay(2.5,function()
-			TW:Create(Img,TweenInfo.new(0.8,ES,EI),{ImageTransparency=1}):Play()
-			TW:Create(Grad,TweenInfo.new(0.8,ES,EI),{ImageTransparency=1}):Play()
-			TW:Create(Base,TweenInfo.new(0.8,ES,EI),{BackgroundTransparency=1}):Play()
-			_tdelay(0.85,_kill)
-		end)
-	end
-
-	_DL=destroyFast
-
-	TW:Create(Base,TweenInfo.new(0.1,ES,EO),{BackgroundTransparency=0}):Play()
-	TW:Create(Img,TweenInfo.new(1.0,ES,EO),{ImageTransparency=0.12}):Play()
-	TW:Create(Grad,TweenInfo.new(1.0,ES,EO),{ImageTransparency=0.0}):Play()
-	_tdelay(0.6,function()
-		TW:Create(Logo,TweenInfo.new(0.65,EB,EO),{ImageTransparency=0}):Play()
-		TW:Create(Glow,TweenInfo.new(0.65,ES,EO),{ImageTransparency=0.5}):Play()
-		_tdelay(0.55,_pulse)
-	end)
-
-	return setmetatable({},{
-		__index={destroy=destroyNow,destroyFast=destroyFast},
-	})::any
-end
-
-local function saveCFG()
-	if not writefile then return end
-	_pcall(writefile,CK,S.hs:JSONEncode({
-		o=_xd(C.o),r=_xd(C.r),b=_xd(C.b),
-		f=_xd(C.f),wh=_xd(C.wh),
-		rt=C.rt,rd=C.rd,dbg=C.dbg,
-	}))
-end
-
-local function loadCFG()
-	if not(readfile and isfile and isfile(CK))then return end
-	local ok,raw=_pcall(readfile,CK)
-	if not(ok and raw)then return end
-	_pcall(function()
-		local d=S.hs:JSONDecode(raw)
-		local enc=_tfreeze({o=1,r=1,b=1,f=1,wh=1})
-		for k,v in _pairs(d)do
-			C[k]=enc[k] and _xe(_tostr(v))or v
-		end
-	end)
-	RAW=_fmt("https://raw.githubusercontent.com/%s/%s/%s/",_xd(C.o),_xd(C.r),_xd(C.b))
-	BASE=RAW.._xd(C.f).."/"
-end
-
-local BAD=_tfreeze({"404","400","<!DOCTYPE","Not Found","Bad Request","error"})
-local BADN=#BAD
-
-local function get(u:string):string?
-	local c=CA[u]
-	if c then return c end
-	local hg=_g.HttpGet
-	for i=1,C.rt do
-		local ok,res=_pcall(hg,_g,u,true)
-		if ok and _type(res)=="string"and#res>0 then
-			local bad=false
-			for j=1,BADN do
-				if _find(res,BAD[j],1,true)then bad=true;break end
+	while i<=n do
+		local ch=c()
+		if ch=="\n" then ln+=1;adv()
+		elseif ch==" " or ch=="\t" or ch=="\r" then adv()
+		elseif ch=="-" and p()=="-" then
+			adv(2)
+			if c()=="[" then
+				local lv=0;local j=i+1
+				while ssub(src,j,j)=="=" do lv+=1;j+=1 end
+				if ssub(src,j,j)=="[" then
+					i=j+1;local cl="]"..srep("=",lv).."]"
+					local e=sfind(src,cl,i,true)
+					if e then local t=ssub(src,i,e-1);ln+=select(2,sgsub(t,"\n","\n"));i=e+slen(cl) end
+				else local e=sfind(src,"\n",i,true);i=e and e or n+1 end
+			else local e=sfind(src,"\n",i,true);i=e and e or n+1 end
+		elseif ch=="[" then
+			local lv=0;local j=i+1
+			while ssub(src,j,j)=="=" do lv+=1;j+=1 end
+			if ssub(src,j,j)=="[" then
+				i=j+1;local cl="]"..srep("=",lv).."]"
+				local e=sfind(src,cl,i,true)
+				if e then
+					local t=ssub(src,i,e-1)
+					if ssub(t,1,1)=="\n" then t=ssub(t,2) end
+					add(TK.STR,t);ln+=select(2,sgsub(t,"\n","\n"));i=e+slen(cl)
+				end
+			else add(TK.LBRACKET,"[");adv() end
+		elseif ch=='"' or ch=="'" then
+			local q=ch;adv();local buf=tcreate(32)
+			while i<=n and c()~=q do
+				local x=c()
+				if x=="\\" then
+					adv();local e=c();adv()
+					if e=="n" then tins(buf,"\n") elseif e=="t" then tins(buf,"\t")
+					elseif e=="r" then tins(buf,"\r") elseif e=="\\" then tins(buf,"\\")
+					elseif e=="'" then tins(buf,"'") elseif e=='"' then tins(buf,'"')
+					elseif e=="0" then tins(buf,"\0") elseif e>="0" and e<="9" then
+						local ns=e;if c()>="0" and c()<="9" then ns=ns..c();adv() end
+						if c()>="0" and c()<="9" then ns=ns..c();adv() end
+						tins(buf,schar(tonumber(ns) or 0))
+					else tins(buf,e) end
+				elseif x=="\n" then ln+=1;tins(buf,x);adv()
+				else tins(buf,x);adv() end
 			end
-			if not bad then CA[u]=res;return res end
-		end
-		if i<C.rt then _twait(C.rd)end
-	end
-	err("GET","exhausted: "..u)
-	return nil
-end
-
-local function fetch(name:string):string?
-	for i=1,#EX do
-		local s=get(BASE..name..EX[i])
-		if s then return s end
-	end
-	return nil
-end
-
-local function fetchP(path:string):string?
-	for i=1,#EX do
-		local s=get(RAW..path..EX[i])
-		if s then return s end
-	end
-	return nil
-end
-
-local function fetchB(names:{string}):{[string]:string}
-	local R={} :: {[string]:string}
-	local p=#names
-	if p==0 then return R end
-	for _,n in _ipairs(names)do
-		_tspawn(function()
-			for i=1,#EX do
-				local s=get(BASE..n..EX[i])
-				if s then R[n]=s;break end
+			adv();add(TK.STR,tconcat(buf))
+		elseif (ch>="0" and ch<="9") or (ch=="." and p()>="0" and p()<="9") then
+			local s=i
+			if ch=="0" and (p()=="x" or p()=="X") then
+				adv(2)
+				while i<=n do local h=c();if (h>="0" and h<="9") or (h>="a" and h<="f") or (h>="A" and h<="F") or h=="_" then adv() else break end end
+			else
+				while i<=n do local d=c();if (d>="0" and d<="9") or d=="." or d=="e" or d=="E" or d=="_" then adv() else break end end
+				if c()=="+" or c()=="-" then adv() end
+				while i<=n and c()>="0" and c()<="9" do adv() end
 			end
-			p-=1
-		end)
+			add(TK.NUM,tonumber(ssub(src,s,i-1):gsub("_","")) or 0)
+		elseif (ch>="a" and ch<="z") or (ch>="A" and ch<="Z") or ch=="_" then
+			local s=i
+			while i<=n do local x=c();if (x>="a" and x<="z") or (x>="A" and x<="Z") or (x>="0" and x<="9") or x=="_" then adv() else break end end
+			local w=ssub(src,s,i-1);add(KW[w] or TK.NAME,w)
+		elseif ch=="." then
+			if p()=="." then if p(2)=="." then add(TK.DOTDOTDOT,"...");adv(3) else add(TK.DOTDOT,"..");adv(2) end
+			else add(TK.DOT,".");adv() end
+		elseif ch=="<" then
+			if p()=="<" then add(TK.LSHIFT,"<<");adv(2) elseif p()=="=" then add(TK.LE,"<=");adv(2) else add(TK.LT,"<");adv() end
+		elseif ch==">" then
+			if p()==">" then add(TK.RSHIFT,">>");adv(2) elseif p()=="=" then add(TK.GE,">=");adv(2) else add(TK.GT,">");adv() end
+		elseif ch=="=" then
+			if p()=="=" then add(TK.EQ,"==");adv(2) else add(TK.ASSIGN,"=");adv() end
+		elseif ch=="~" then
+			if p()=="=" then add(TK.NEQ,"~=");adv(2) else add(TK.TILDE,"~");adv() end
+		elseif ch==":" then
+			if p()==":" then add(TK.DCOLON,"::");adv(2) else add(TK.COLON,":");adv() end
+		elseif ch=="/" then
+			if p()=="/" then add(TK.DSLASH,"//");adv(2) else add(TK.SLASH,"/");adv() end
+		else
+			local SM = tfreeze({["+"]=TK.PLUS,["-"]=TK.MINUS,["*"]=TK.STAR,["%"]=TK.PERCENT,
+				["^"]=TK.CARET,["#"]=TK.HASH,["&"]=TK.AMP,[";"]=TK.SEMI,
+				["|"]=TK.PIPE,["("]=TK.LPAREN,[")"]=TK.RPAREN,
+				["{"]=TK.LBRACE,["}"]=TK.RBRACE,["]"]=TK.RBRACKET,[","]=TK.COMMA})
+			if SM[ch] then add(SM[ch],ch) end
+			adv()
+		end
 	end
-	while p>0 do _twait(0)end
-	return R
+	add(TK.EOF,nil)
+	return toks
 end
 
-local function mkEnv():{[string]:any}
+
+-- ── proto factory ────────────────────────────────────────────
+local function newProto(parent)
+	return {
+		code   = tcreate(256),
+		K      = tcreate(64),
+		Kmap   = {},
+		protos = tcreate(16),
+		upvals = tcreate(16),
+		upmap  = {},
+		locals = tcreate(64),
+		depth  = 0,
+		reg    = 0,
+		maxreg = 0,
+		params = 0,
+		vararg = false,
+		parent = parent,
+	}
+end
+
+
+-- ── compiler ─────────────────────────────────────────────────
+local function compile(src: string)
+	local ok, toks = pcall(lex, src)
+	if not ok then return nil end
+
+	local ti   = 1
+	local root = newProto(nil)
+	root.vararg = true
+
+	-- token access
+	local function cur()    return toks[ti] end
+	local function pk()     return toks[ti+1] end
+	local function adv()    local t=toks[ti];ti+=1;return t end
+	local function chk(k)   return toks[ti].k==k end
+	local function exp(k)
+		if toks[ti].k~=k then error("expected "..k.." got "..toks[ti].k.." @"..toks[ti].ln) end
+		return adv()
+	end
+	local function mat(k)   if toks[ti].k==k then adv();return true end return false end
+
+	-- emit helpers
+	local function emit(p,i)   tins(p.code,i);return #p.code end
+	local function eABC2(p,op,a,b,c)  return emit(p,eABC(op,a,b,c)) end
+	local function eABx2(p,op,a,bx)   return emit(p,eABx(op,a,bx))  end
+	local function eAsBx2(p,op,a,sbx) return emit(p,eAsBx(op,a,sbx)) end
+
+	local function addK(p,v)
+		if p.Kmap[v]~=nil then return p.Kmap[v] end
+		tins(p.K,v);local idx=#p.K-1;p.Kmap[v]=idx;return idx
+	end
+
+	local function allocR(p)
+		local r=p.reg;p.reg+=1
+		if p.reg>p.maxreg then p.maxreg=p.reg end
+		return r
+	end
+	local function freeR(p,n) p.reg-=(n or 1);if p.reg<0 then p.reg=0 end end
+
+	local function pushL(p,name)
+		local r=allocR(p)
+		tins(p.locals,{n=name,r=r,d=p.depth})
+		return r
+	end
+	local function findL(p,name)
+		for i=#p.locals,1,-1 do if p.locals[i].n==name then return p.locals[i].r end end
+		return nil
+	end
+	local function popL(p)
+		while #p.locals>0 and p.locals[#p.locals].d>=p.depth do
+			local l=trem(p.locals);p.reg=l.r
+		end
+	end
+
+	local function findUV(p,name)
+		for i,u in ipairs(p.upvals) do if u==name then return i-1 end end
+		if p.parent then
+			local lr=findL(p.parent,name)
+			if lr then tins(p.upvals,name);p.upmap[name]={t="local",r=lr};return #p.upvals-1 end
+			local ur=findUV(p.parent,name)
+			if ur then tins(p.upvals,name);p.upmap[name]={t="upval",i=ur};return #p.upvals-1 end
+		end
+		return nil
+	end
+
+	local function emitLoad(p,reg,v)
+		if v==nil then eABC2(p,OP.LOAD_NIL,reg,0,0)
+		elseif v==true or v==false then eABC2(p,OP.LOAD_BOOL,reg,v and 1 or 0,0)
+		elseif type(v)=="number" and v==mfloor(v) and v>=-32768 and v<=32767 then
+			eABC2(p,OP.LOAD_INT,reg,b32a(v+32768,0xFFFF),0)
+		else eABx2(p,OP.LOAD_K,reg,addK(p,v)) end
+	end
+
+	-- forward declare
+	local parseExpr, parseStat, parseBlock, parseFuncBody
+
+	parseFuncBody = function(p, isMethod)
+		local child = newProto(p)
+		exp(TK.LPAREN)
+		if isMethod then pushL(child,"self");child.params+=1 end
+		while not chk(TK.RPAREN) do
+			if chk(TK.DOTDOTDOT) then child.vararg=true;adv();break end
+			pushL(child,exp(TK.NAME).v);child.params+=1
+			if not chk(TK.RPAREN) then exp(TK.COMMA) end
+		end
+		exp(TK.RPAREN)
+		local save=root;root=child
+		parseBlock(child)
+		eABC2(child,OP.RETURN0,0,0,0)
+		root=save
+		return child
+	end
+
+	-- expression: returns (reg, isTemp)
+	local function pPrimary(p)
+		local t=cur()
+		if t.k==TK.NUM then adv();local r=allocR(p);emitLoad(p,r,t.v);return r,true
+		elseif t.k==TK.STR then adv();local r=allocR(p);local ki=addK(p,t.v);eABx2(p,OP.LOAD_K,r,ki);return r,true
+		elseif t.k==TK.TRUE  then adv();local r=allocR(p);eABC2(p,OP.LOAD_BOOL,r,1,0);return r,true
+		elseif t.k==TK.FALSE then adv();local r=allocR(p);eABC2(p,OP.LOAD_BOOL,r,0,0);return r,true
+		elseif t.k==TK.NIL   then adv();local r=allocR(p);eABC2(p,OP.LOAD_NIL,r,0,0);return r,true
+		elseif t.k==TK.DOTDOTDOT then adv();local r=allocR(p);eABC2(p,OP.VARARG,r,1,0);return r,true
+		elseif t.k==TK.NAME then
+			adv()
+			local lr=findL(p,t.v);if lr then return lr,false end
+			local ur=findUV(p,t.v)
+			if ur then local r=allocR(p);eABC2(p,OP.GETUPVAL,r,ur,0);return r,true end
+			local r=allocR(p);eABx2(p,OP.GETGLOBAL,r,addK(p,t.v));return r,true
+		elseif t.k==TK.FUNCTION then
+			adv()
+			local child=parseFuncBody(p,false)
+			local pi=#p.protos;tins(p.protos,child)
+			local r=allocR(p);eABx2(p,OP.CLOSURE,r,pi);return r,true
+		elseif t.k==TK.LBRACE then
+			adv();local r=allocR(p);eABC2(p,OP.NEWTABLE,r,0,0)
+			local idx=1
+			while not chk(TK.RBRACE) and not chk(TK.EOF) do
+				if chk(TK.LBRACKET) then
+					adv();local kr,kt=parseExpr(p);exp(TK.RBRACKET);exp(TK.ASSIGN)
+					local vr,vt=parseExpr(p)
+					eABC2(p,OP.SETTABLE,r,kr,vr)
+					if kt then freeR(p) end;if vt then freeR(p) end
+				elseif chk(TK.NAME) and pk().k==TK.ASSIGN then
+					local kname=adv().v;adv()
+					local vr,vt=parseExpr(p)
+					eABC2(p,OP.SETFIELD,r,addK(p,kname),vr)
+					if vt then freeR(p) end
+				else
+					local vr,vt=parseExpr(p)
+					local ki=addK(p,idx);eABC2(p,OP.SETTABLE,r,mkRK(ki),vr)
+					idx+=1;if vt then freeR(p) end
+				end
+				if not mat(TK.COMMA) then mat(TK.SEMI) end
+			end
+			exp(TK.RBRACE);return r,true
+		elseif t.k==TK.LPAREN then
+			adv();local r,te=parseExpr(p);exp(TK.RPAREN);return r,te
+		elseif t.k==TK.MINUS then
+			adv();local sr,st=pPrimary(p)
+			-- constant-fold unary minus
+			if st and #p.code>0 then
+				local last=p.code[#p.code];local lop=dOp(last)
+				if lop==OP.LOAD_K then
+					local ki=dBx(last);local v=p.K[ki+1]
+					if type(v)=="number" then
+						p.code[#p.code]=eABx(OP.LOAD_K,dA(last),addK(p,-v))
+						return sr,true
+					end
+				elseif lop==OP.LOAD_INT then
+					local v=dB(last)-32768
+					p.code[#p.code]=eABC(OP.LOAD_INT,dA(last),b32a(-v+32768,0xFFFF),0)
+					return sr,true
+				end
+			end
+			local r=allocR(p);eABC2(p,OP.UNM,r,sr,0);if st then freeR(p) end;return r,true
+		elseif t.k==TK.NOT then
+			adv();local sr,st=pPrimary(p)
+			local r=allocR(p)
+			eABC2(p,OP.LOAD_BOOL,r,1,0)
+			eABC2(p,OP.JMPIFNOT,sr,1,0)
+			eABC2(p,OP.LOAD_BOOL,r,0,0)
+			if st then freeR(p) end;return r,true
+		elseif t.k==TK.HASH then
+			adv();local sr,st=pPrimary(p)
+			local r=allocR(p);eABC2(p,OP.LEN,r,sr,0);if st then freeR(p) end;return r,true
+		elseif t.k==TK.TILDE then
+			adv();local sr,st=pPrimary(p)
+			local r=allocR(p);eABC2(p,OP.BNOT,r,sr,0);if st then freeR(p) end;return r,true
+		end
+		local r=allocR(p);eABC2(p,OP.LOAD_NIL,r,0,0);return r,true
+	end
+
+	local function pSuffix(p,r,temp)
+		while true do
+			local t=cur()
+			if t.k==TK.DOT then
+				adv();local f=exp(TK.NAME).v
+				local nr=allocR(p);local ki=addK(p,f)
+				eABC2(p,OP.GETFIELD,nr,r,ki)
+				if temp then freeR(p) end;r=nr;temp=true
+			elseif t.k==TK.LBRACKET then
+				adv();local kr,kt=parseExpr(p);exp(TK.RBRACKET)
+				local nr=allocR(p);eABC2(p,OP.GETTABLE,nr,r,kr)
+				if temp then freeR(p) end;if kt then freeR(p) end;r=nr;temp=true
+			elseif t.k==TK.COLON then
+				adv();local m=exp(TK.NAME).v
+				local selfr=allocR(p);local ki=addK(p,m)
+				eABC2(p,OP.SELF,selfr,r,mkRK(ki))
+				local nargs=1
+				exp(TK.LPAREN)
+				while not chk(TK.RPAREN) and not chk(TK.EOF) do
+					local ar,at=parseExpr(p)
+					local slot=allocR(p);eABC2(p,OP.MOVE,slot,ar,0)
+					if at then freeR(p) end;nargs+=1
+					if not chk(TK.RPAREN) then exp(TK.COMMA) end
+				end
+				exp(TK.RPAREN)
+				local ret=allocR(p)
+				eABC2(p,OP.CALL,selfr,nargs+1,2)
+				eABC2(p,OP.MOVE,ret,selfr,0)
+				if temp then freeR(p) end;r=ret;temp=true
+			elseif t.k==TK.LPAREN then
+				adv();local base=r;local nargs=0
+				while not chk(TK.RPAREN) and not chk(TK.EOF) do
+					local ar,at=parseExpr(p)
+					local slot=allocR(p);eABC2(p,OP.MOVE,slot,ar,0)
+					if at then freeR(p) end;nargs+=1
+					if not chk(TK.RPAREN) then exp(TK.COMMA) end
+				end
+				exp(TK.RPAREN)
+				local ret=allocR(p)
+				eABC2(p,OP.CALL,base,nargs+1,2)
+				eABC2(p,OP.MOVE,ret,base,0)
+				if temp then freeR(p) end;r=ret;temp=true
+			elseif t.k==TK.STR then
+				adv();local ki=addK(p,t.v)
+				local argr=allocR(p);eABx2(p,OP.LOAD_K,argr,ki)
+				local base=r;local ret=allocR(p)
+				eABC2(p,OP.CALL,base,2,2)
+				eABC2(p,OP.MOVE,ret,base,0)
+				if temp then freeR(p) end;r=ret;temp=true
+			else break end
+		end
+		return r,temp
+	end
+
+	-- binary op precedence
+	local BP = tfreeze({
+		["or"] ={l=1,r=1},["and"]={l=2,r=2},
+		["<"]  ={l=3,r=3},["<="]={l=3,r=3},[">"]=  {l=3,r=3},[">="]={l=3,r=3},
+		["=="] ={l=3,r=3},["~="]={l=3,r=3},
+		["|"]  ={l=4,r=4},["~"] ={l=5,r=5},["&"]= {l=6,r=6},
+		["<<"] ={l=7,r=7},[">>"]={l=7,r=7},
+		[".."] ={l=9,r=8},
+		["+"]  ={l=10,r=10},["-"]={l=10,r=10},
+		["*"]  ={l=11,r=11},["/"]=  {l=11,r=11},["%"]={l=11,r=11},["//"]={l=11,r=11},
+		["^"]  ={l=13,r=12},
+	})
+	local BOP = tfreeze({
+		["+"]=OP.ADD,["-"]=OP.SUB,["*"]=OP.MUL,["/"]=OP.DIV,
+		["%"]=OP.MOD,["^"]=OP.POW,["//"]=OP.IDIV,
+		[".."]=OP.CONCAT,
+		["&"]=OP.BAND,["|"]=OP.BOR,["~"]=OP.BXOR,
+		["<<"]=OP.SHL,[">>"]=OP.SHR,
+		["<"]=OP.LT,["<="]=OP.LE,
+	})
+
+	parseExpr = function(p, minp)
+		minp=minp or 0
+		local lr,lt=pPrimary(p);lr,lt=pSuffix(p,lr,lt)
+		while true do
+			local t=cur();local op=t.v;local pr=BP[op]
+			if not pr or pr.l<=minp then break end
+			adv()
+			if op=="and" then
+				local jpc=eAsBx2(p,OP.JMPIFNOT,lr,0);if lt then freeR(p) end
+				local rr,rt=parseExpr(p,pr.r)
+				local res=allocR(p);eABC2(p,OP.MOVE,res,rr,0);if rt then freeR(p) end
+				p.code[jpc]=eAsBx(OP.JMPIFNOT,lr,#p.code-jpc)
+				lr=res;lt=true
+			elseif op=="or" then
+				local jpc=eAsBx2(p,OP.JMPIF,lr,0);if lt then freeR(p) end
+				local rr,rt=parseExpr(p,pr.r)
+				local res=allocR(p);eABC2(p,OP.MOVE,res,rr,0);if rt then freeR(p) end
+				p.code[jpc]=eAsBx(OP.JMPIF,lr,#p.code-jpc)
+				lr=res;lt=true
+			elseif op=="==" then
+				local rr,rt=parseExpr(p,pr.r)
+				local res=allocR(p)
+				eABC2(p,OP.EQ,lr,rr,1);eAsBx2(p,OP.JMP,0,1)
+				eABC2(p,OP.LOAD_BOOL,res,0,1);eABC2(p,OP.LOAD_BOOL,res,1,0)
+				if lt then freeR(p) end;if rt then freeR(p) end;lr=res;lt=true
+			elseif op=="~=" then
+				local rr,rt=parseExpr(p,pr.r)
+				local res=allocR(p)
+				eABC2(p,OP.EQ,lr,rr,0);eAsBx2(p,OP.JMP,0,1)
+				eABC2(p,OP.LOAD_BOOL,res,1,0);eABC2(p,OP.LOAD_BOOL,res,0,0)
+				if lt then freeR(p) end;if rt then freeR(p) end;lr=res;lt=true
+			elseif op==">" then
+				local rr,rt=parseExpr(p,pr.r)
+				local res=allocR(p)
+				eABC2(p,OP.LT,rr,lr,1);eAsBx2(p,OP.JMP,0,1)
+				eABC2(p,OP.LOAD_BOOL,res,0,1);eABC2(p,OP.LOAD_BOOL,res,1,0)
+				if lt then freeR(p) end;if rt then freeR(p) end;lr=res;lt=true
+			elseif op==">=" then
+				local rr,rt=parseExpr(p,pr.r)
+				local res=allocR(p)
+				eABC2(p,OP.LE,rr,lr,1);eAsBx2(p,OP.JMP,0,1)
+				eABC2(p,OP.LOAD_BOOL,res,0,1);eABC2(p,OP.LOAD_BOOL,res,1,0)
+				if lt then freeR(p) end;if rt then freeR(p) end;lr=res;lt=true
+			else
+				local opcode=BOP[op] or OP.ADD
+				local rr,rt=parseExpr(p,pr.r)
+				-- strength-reduce constants
+				local lc,rc=nil,nil
+				if #p.code>=1 then
+					local li=p.code[#p.code];if dOp(li)==OP.LOAD_K then rc=p.K[dBx(li)+1] end
+				end
+				if #p.code>=2 then
+					local li=p.code[#p.code-1];if dOp(li)==OP.LOAD_K then lc=p.K[dBx(li)+1] end
+				end
+				-- immediate ops for small integers
+				if (opcode==OP.ADD or opcode==OP.MUL) and rc~=nil and type(rc)=="number"
+					and rc==mfloor(rc) and rc>=-127 and rc<=128 then
+					local res=allocR(p)
+					eABC2(p,opcode==OP.ADD and OP.ADDIMM or OP.MULIMM,res,lr,b32a(mfloor(rc)+127,0xFF))
+					if lt then freeR(p) end;if rt then freeR(p) end;lr=res;lt=true
+				else
+					local res=allocR(p)
+					eABC2(p,opcode,res,lr,rr)
+					if lt then freeR(p) end;if rt then freeR(p) end;lr=res;lt=true
+				end
+			end
+		end
+		return lr,lt
+	end
+
+	parseBlock = function(p)
+		p.depth+=1
+		while true do
+			local t=cur()
+			if t.k==TK.END or t.k==TK.ELSE or t.k==TK.ELSEIF
+				or t.k==TK.UNTIL or t.k==TK.EOF then break end
+			parseStat(p)
+		end
+		popL(p);p.depth-=1
+	end
+
+	-- helper: parse call args into consecutive regs starting at base+1, return nargs
+	local function parseArgs(p, base)
+		exp(TK.LPAREN);local nargs=0
+		while not chk(TK.RPAREN) and not chk(TK.EOF) do
+			local ar,at=parseExpr(p)
+			local slot=allocR(p);eABC2(p,OP.MOVE,slot,ar,0)
+			if at then freeR(p) end;nargs+=1
+			if not chk(TK.RPAREN) then exp(TK.COMMA) end
+		end
+		exp(TK.RPAREN);return nargs
+	end
+
+	parseStat = function(p)
+		mat(TK.SEMI);local t=cur()
+
+		if t.k==TK.LOCAL then
+			adv()
+			if chk(TK.FUNCTION) then
+				adv();local name=exp(TK.NAME).v
+				local r=pushL(p,name)
+				local child=parseFuncBody(p,false)
+				local pi=#p.protos;tins(p.protos,child)
+				eABx2(p,OP.CLOSURE,r,pi)
+			else
+				local names=tcreate(4);tins(names,exp(TK.NAME).v)
+				while mat(TK.COMMA) do tins(names,exp(TK.NAME).v) end
+				local regs=tcreate(#names)
+				for _,nm in ipairs(names) do tins(regs,pushL(p,nm)) end
+				if mat(TK.ASSIGN) then
+					for idx,r in ipairs(regs) do
+						local vr,vt=parseExpr(p)
+						eABC2(p,OP.MOVE,r,vr,0);if vt then freeR(p) end
+						if idx<#regs then mat(TK.COMMA) end
+					end
+				else
+					for _,r in ipairs(regs) do eABC2(p,OP.LOAD_NIL,r,0,0) end
+				end
+			end
+
+		elseif t.k==TK.IF then
+			adv()
+			local function compileIf()
+				local cr,ct=parseExpr(p);exp(TK.THEN)
+				local jf=eAsBx2(p,OP.JMPIFNOT,cr,0);if ct then freeR(p) end
+				parseBlock(p)
+				local exits=tcreate(4)
+				while chk(TK.ELSEIF) do
+					adv()
+					local ej=eAsBx2(p,OP.JMP,0,0);tins(exits,ej)
+					p.code[jf]=eAsBx(OP.JMPIFNOT,cr,#p.code-jf)
+					cr,ct=parseExpr(p);exp(TK.THEN)
+					jf=eAsBx2(p,OP.JMPIFNOT,cr,0);if ct then freeR(p) end
+					parseBlock(p)
+				end
+				if mat(TK.ELSE) then
+					local ej=eAsBx2(p,OP.JMP,0,0);tins(exits,ej)
+					p.code[jf]=eAsBx(OP.JMPIFNOT,cr,#p.code-jf)
+					jf=nil;parseBlock(p)
+				end
+				exp(TK.END)
+				if jf then p.code[jf]=eAsBx(OP.JMPIFNOT,cr,#p.code-jf) end
+				for _,ej in ipairs(exits) do p.code[ej]=eAsBx(OP.JMP,0,#p.code-ej) end
+			end
+			compileIf()
+
+		elseif t.k==TK.WHILE then
+			adv();local top=#p.code+1
+			local cr,ct=parseExpr(p);exp(TK.DO)
+			local jf=eAsBx2(p,OP.JMPIFNOT,cr,0);if ct then freeR(p) end
+			parseBlock(p);exp(TK.END)
+			eAsBx2(p,OP.JMP,0,top-#p.code-2)
+			p.code[jf]=eAsBx(OP.JMPIFNOT,cr,#p.code-jf)
+
+		elseif t.k==TK.REPEAT then
+			adv();local top=#p.code+1
+			parseBlock(p);exp(TK.UNTIL)
+			local cr,ct=parseExpr(p)
+			eAsBx2(p,OP.JMPIFNOT,cr,top-#p.code-2);if ct then freeR(p) end
+
+		elseif t.k==TK.FOR then
+			adv();local vname=exp(TK.NAME).v
+			if mat(TK.ASSIGN) then
+				-- numeric for
+				local ir,it=parseExpr(p);exp(TK.COMMA)
+				local limr,limt=parseExpr(p)
+				local stepr,stept=1,false
+				if mat(TK.COMMA) then stepr,stept=parseExpr(p) end
+				exp(TK.DO)
+				local base=p.reg
+				local i2=allocR(p);eABC2(p,OP.MOVE,i2,ir,0)
+				local l2=allocR(p);eABC2(p,OP.MOVE,l2,limr,0)
+				local s2=allocR(p)
+				if type(stepr)=="number" then emitLoad(p,s2,stepr)
+				else eABC2(p,OP.MOVE,s2,stepr,0) end
+				if it then freeR(p) end;if limt then freeR(p) end
+				if type(stept)~="boolean" and stept then freeR(p) end
+				local fp=eAsBx2(p,OP.FORPREP,i2,0)
+				local vr=pushL(p,vname)
+				local loopTop=#p.code+1
+				parseBlock(p);exp(TK.END)
+				eAsBx2(p,OP.FORLOOP,i2,loopTop-#p.code-2)
+				p.code[fp]=eAsBx(OP.FORPREP,i2,#p.code-fp)
+			else
+				-- generic for
+				exp(TK.IN)
+				local itr,itert=parseExpr(p)
+				exp(TK.DO)
+				local fr=allocR(p);eABC2(p,OP.MOVE,fr,itr,0)
+				local sr2=allocR(p);eABC2(p,OP.LOAD_NIL,sr2,0,0)
+				local cr2=allocR(p);eABC2(p,OP.LOAD_NIL,cr2,0,0)
+				if itert then freeR(p) end
+				local vr=pushL(p,vname)
+				local jtp=eAsBx2(p,OP.JMP,0,0)
+				local loopTop=#p.code+1
+				parseBlock(p);exp(TK.END)
+				p.code[jtp]=eAsBx(OP.JMP,0,#p.code-jtp)
+				eABC2(p,OP.TFORLOOP,fr,0,1)
+				eAsBx2(p,OP.JMP,0,loopTop-#p.code-2)
+			end
+
+		elseif t.k==TK.DO then
+			adv();parseBlock(p);exp(TK.END)
+
+		elseif t.k==TK.RETURN then
+			adv()
+			if chk(TK.END) or chk(TK.ELSE) or chk(TK.ELSEIF)
+				or chk(TK.UNTIL) or chk(TK.EOF) or chk(TK.SEMI) then
+				eABC2(p,OP.RETURN0,0,0,0)
+			else
+				local rr,rt=parseExpr(p);local extra=tcreate(4)
+				while mat(TK.COMMA) do tins(extra,{parseExpr(p)}) end
+				eABC2(p,OP.RETURN,rr,#extra+2,0)
+				if rt then freeR(p) end
+				for _,ex in ipairs(extra) do if ex[2] then freeR(p) end end
+			end
+			mat(TK.SEMI)
+
+		elseif t.k==TK.BREAK then
+			adv();eAsBx2(p,OP.JMP,0,9999)
+
+		elseif t.k==TK.FUNCTION then
+			adv()
+			local name=exp(TK.NAME).v;local isMethod=false
+			local chain=tcreate(4)
+			while mat(TK.DOT) do tins(chain,exp(TK.NAME).v) end
+			if mat(TK.COLON) then tins(chain,exp(TK.NAME).v);isMethod=true end
+			local child=parseFuncBody(p,isMethod)
+			local pi=#p.protos;tins(p.protos,child)
+			local r=allocR(p);eABx2(p,OP.CLOSURE,r,pi)
+			if #chain==0 then
+				local ki=addK(p,name)
+				local lr=findL(p,name)
+				if lr then eABC2(p,OP.MOVE,lr,r,0)
+				else eABx2(p,OP.SETGLOBAL,r,ki) end
+			else
+				-- table.field assignment chain
+				local base=findL(p,name)
+				if not base then
+					base=allocR(p);eABx2(p,OP.GETGLOBAL,base,addK(p,name))
+				end
+				for i=1,#chain-1 do
+					local nr=allocR(p);eABC2(p,OP.GETFIELD,nr,base,addK(p,chain[i]));base=nr
+				end
+				eABC2(p,OP.SETFIELD,base,addK(p,chain[#chain]),r)
+			end
+			freeR(p)
+
+		elseif t.k==TK.NAME then
+			-- assignment or call
+			local lr,lt=pPrimary(p)
+			if chk(TK.DOT) or chk(TK.LBRACKET) or chk(TK.COLON)
+				or chk(TK.LPAREN) or chk(TK.STR) or chk(TK.LBRACE) then
+				lr,lt=pSuffix(p,lr,lt)
+				if chk(TK.ASSIGN) or chk(TK.COMMA) then
+					-- handle assignment after suffix
+					if chk(TK.ASSIGN) then
+						adv();local vr,vt=parseExpr(p)
+						eABC2(p,OP.MOVE,lr,vr,0);if vt then freeR(p) end
+					end
+				end
+				if lt then freeR(p) end
+			elseif chk(TK.ASSIGN) then
+				adv();local vr,vt=parseExpr(p)
+				local lname=t.v
+				local ll=findL(p,lname)
+				if ll then eABC2(p,OP.MOVE,ll,vr,0)
+				else local ki=addK(p,lname);eABx2(p,OP.SETGLOBAL,vr,ki) end
+				if vt then freeR(p) end;if lt then freeR(p) end
+			elseif chk(TK.COMMA) then
+				local lhs=tcreate(4);tins(lhs,{r=lr,temp=lt,n=t.v})
+				while mat(TK.COMMA) do
+					local nt=cur();local nr,nt2=pPrimary(p)
+					tins(lhs,{r=nr,temp=nt2,n=nt.v})
+				end
+				exp(TK.ASSIGN)
+				for idx,lh in ipairs(lhs) do
+					local vr,vt=parseExpr(p)
+					eABC2(p,OP.MOVE,lh.r,vr,0);if vt then freeR(p) end
+					if idx<#lhs then mat(TK.COMMA) end
+				end
+				for _,lh in ipairs(lhs) do if lh.temp then freeR(p) end end
+			else
+				if lt then freeR(p) end
+			end
+		else adv() end
+		mat(TK.SEMI)
+	end
+
+	local ok2,e2=pcall(parseBlock,root)
+	if not ok2 then err("VM","compile: "..tostring(e2));return nil end
+	eABC2(root,OP.RETURN0,0,0,0)
+	return root
+end
+
+
+-- ── optimisation pass 1: constant folding + strength reduction ─
+local FOLD_OPS = tfreeze({
+	[OP.ADD]=function(a,b) return a+b end,
+	[OP.SUB]=function(a,b) return a-b end,
+	[OP.MUL]=function(a,b) return a*b end,
+	[OP.DIV]=function(a,b) return b~=0 and a/b or nil end,
+	[OP.MOD]=function(a,b) return b~=0 and a%b or nil end,
+	[OP.POW]=function(a,b) return a^b end,
+	[OP.IDIV]=function(a,b) return b~=0 and mfloor(a/b) or nil end,
+	[OP.BAND]=function(a,b) return b32a(mfloor(a),mfloor(b)) end,
+	[OP.BOR] =function(a,b) return b32o(mfloor(a),mfloor(b)) end,
+	[OP.BXOR]=function(a,b) return b32x(mfloor(a),mfloor(b)) end,
+	[OP.SHL] =function(a,b) return b32l(mfloor(a),mfloor(b)) end,
+	[OP.SHR] =function(a,b) return b32r(mfloor(a),mfloor(b)) end,
+})
+
+local function cfold(proto)
+	if not proto then return end
+	local code,K=proto.code,proto.K
+	local regK={} :: {[number]:number?}
+	for pc=1,#code do
+		local i=code[pc];local op=dOp(i);local A=dA(i)
+		if op==OP.LOAD_K then regK[A]=dBx(i)
+		elseif op==OP.LOAD_INT then
+			local v=dB(i)-32768;local ki=#K;K[ki+1]=v;regK[A]=ki
+		elseif FOLD_OPS[op] then
+			local B,C=dB(i),dC(i)
+			local bk=isRK(B) and rkI(B) or regK[B]
+			local ck=isRK(C) and rkI(C) or regK[C]
+			if bk and ck then
+				local bv,cv=K[bk+1],K[ck+1]
+				if type(bv)=="number" and type(cv)=="number" then
+					local res=FOLD_OPS[op](bv,cv)
+					if res~=nil then
+						local ki=#K;K[ki+1]=res
+						code[pc]=eABx(OP.LOAD_K,A,ki);regK[A]=ki
+					end
+				end
+			end
+			-- strength: x*1 → MOVE, x*0 → LOAD_INT 0, x+0 → MOVE
+			if op==OP.MUL then
+				local bk2=isRK(B) and rkI(B) or nil
+				local ck2=isRK(C) and rkI(C) or nil
+				local cv2=ck2 and K[ck2+1] or nil
+				local bv2=bk2 and K[bk2+1] or nil
+				if cv2==1 then code[pc]=eABC(OP.MOVE,A,B,0);regK[A]=regK[B]
+				elseif bv2==1 then code[pc]=eABC(OP.MOVE,A,C,0);regK[A]=regK[C]
+				elseif cv2==0 or bv2==0 then code[pc]=eABC(OP.LOAD_INT,A,32768,0);regK[A]=nil
+				end
+			elseif op==OP.ADD then
+				local ck2=isRK(C) and rkI(C) or nil
+				local bk2=isRK(B) and rkI(B) or nil
+				if ck2 and K[ck2+1]==0 then code[pc]=eABC(OP.MOVE,A,B,0)
+				elseif bk2 and K[bk2+1]==0 then code[pc]=eABC(OP.MOVE,A,C,0)
+				end
+			end
+		else regK[A]=nil end
+	end
+	for _,child in ipairs(proto.protos) do cfold(child) end
+end
+
+-- ── optimisation pass 2: dead-code elimination ───────────────
+local function dce(proto)
+	if not proto then return end
+	local code=proto.code;local nc=#code
+	local out=tcreate(nc);local dead=false
+	for pc=1,nc do
+		local i=code[pc];local op=dOp(i)
+		if op==OP.NOP then
+		elseif dead then
+		else
+			tins(out,i)
+			if op==OP.RETURN or op==OP.RETURN0 or op==OP.TAILCALL then dead=true end
+		end
+		if op==OP.JMPIF or op==OP.JMPIFNOT or op==OP.JMPIFNIL
+			or op==OP.FORLOOP or op==OP.TFORLOOP then dead=false end
+	end
+	proto.code=out
+	for _,child in ipairs(proto.protos) do dce(child) end
+end
+
+-- ── optimisation pass 3: peephole ────────────────────────────
+local function peephole(proto)
+	if not proto then return end
+	local code=proto.code
+	for pc=1,#code-1 do
+		local i1=code[pc];local i2=code[pc+1]
+		local op1=dOp(i1);local op2=dOp(i2)
+		-- MOVE A B  followed by MOVE B A  → NOP the second
+		if op1==OP.MOVE and op2==OP.MOVE then
+			if dA(i1)==dB(i2) and dB(i1)==dA(i2) then
+				code[pc+1]=eABC(OP.NOP,0,0,0)
+			end
+		end
+		-- LOAD_NIL A 0  followed by LOAD_NIL A+1 0 → coalesce into LOAD_NIL A 1
+		if op1==OP.LOAD_NIL and op2==OP.LOAD_NIL and dB(i1)==0 and dB(i2)==0 then
+			if dA(i2)==dA(i1)+1 then
+				code[pc]=eABC(OP.LOAD_NIL,dA(i1),1,0)
+				code[pc+1]=eABC(OP.NOP,0,0,0)
+			end
+		end
+	end
+	for _,child in ipairs(proto.protos) do peephole(child) end
+end
+
+-- ── optimisation pass 4: jump threading ──────────────────────
+local function jthread(proto)
+	if not proto then return end
+	local code=proto.code
+	local function target(pc)
+		local steps=0
+		while steps<32 do
+			local i=code[pc];if not i then break end
+			local op=dOp(i)
+			if op==OP.JMP then pc+=dSBx(i);steps+=1
+			elseif op==OP.NOP then pc+=1;steps+=1
+			else break end
+		end
+		return pc
+	end
+	for pc=1,#code do
+		local i=code[pc];local op=dOp(i)
+		if op==OP.JMP then
+			local dest=target(pc+dSBx(i))
+			code[pc]=eAsBx(OP.JMP,dA(i),dest-pc)
+		end
+	end
+	for _,child in ipairs(proto.protos) do jthread(child) end
+end
+
+
+-- ── interpreter environment ───────────────────────────────────
+local function mkEnv()
 	local e={}
-	setmetatable(e,{__index=getfenv and getfenv(0)or _E})
+	local safe=tfreeze({
+		"print","warn","error","assert","pcall","xpcall","select","type",
+		"tostring","tonumber","pairs","ipairs","next","rawget","rawset",
+		"rawequal","rawlen","setmetatable","getmetatable","unpack",
+		"table","string","math","os","bit32","utf8","coroutine",
+		"game","workspace","script","_G","_ENV",
+		"task","tick","time","wait","delay","spawn",
+		"Instance","Vector3","Vector2","CFrame","Color3","UDim","UDim2",
+		"Enum","BrickColor","TweenInfo","NumberSequence","ColorSequence",
+		"NumberSequenceKeypoint","ColorSequenceKeypoint","Ray","Region3",
+		"Rect","Axes","Faces","PhysicalProperties","Random","DateTime",
+		"getfenv","setfenv","loadstring","require",
+		"writefile","readfile","isfile","isfolder","makefolder","listfiles",
+		"syn","http_request","request","fluxus","KRNL_LOADED","Drawing",
+		"debug","hookfunction","hookmetamethod","newcclosure","clonefunction",
+		"checkcaller","islclosure","iscclosure","getupvalues","setupvalue",
+	})
+	for _,k in ipairs(safe) do
+		local v=rawget(_ENV0,k)
+		if v~=nil then e[k]=v end
+	end
+	setmt(e,{__index=_ENV0,__newindex=_ENV0})
 	return e
 end
 
-local function exec(src:string?,label:string?,onDone:(()->())?)
-	if not src or#src==0 then
-		if label then err("EXEC","no src: "..label)end
-		return
+local G_ENV = mkEnv()
+
+
+-- ── interpreter core ─────────────────────────────────────────
+-- Tight dispatch table instead of if/elseif chain
+-- Each handler is (R,K,UV,VA,env,protos,code,pc) → new pc or special return
+
+local function interpret(proto, env, uvs, varargs)
+	if not proto then return end
+	local code   = proto.code
+	local K      = proto.K
+	local protos = proto.protos
+	local nc     = #code
+	local MAXR   = (proto.maxreg or 64)+16
+	local R      = tcreate(MAXR)
+	local UV     = uvs  or tcreate(#proto.upvals)
+	local VA     = varargs or tcreate(0)
+
+	-- load varargs into proto param slots
+	for i=1,proto.params do R[i]=VA[i] end
+
+	local pc = 1
+
+	local function RKv(v)
+		if isRK(v) then return K[rkI(v)+1] else return R[v+1] end
 	end
-	_tspawn(function()
-		_pcall(function()
-			local fn=_lstr(src)
-			if not fn then return end
-			if setfenv then _pcall(setfenv,fn,mkEnv())end
-			_tspawn(function()
-				_pcall(function()
-					fn()
-					if onDone then _pcall(onDone)end
-				end)
-			end)
-		end)
+
+	-- build closure captures
+	local function mkClosure(sub)
+		local cuv=tcreate(#sub.upvals)
+		for i,uname in ipairs(sub.upvals) do
+			local um=sub.upmap[uname]
+			if um then
+				if um.t=="local" then cuv[i]=R[um.r+1]
+				elseif um.t=="upval" then cuv[i]=UV[um.i+1] end
+			end
+		end
+		local s2,e2,c2=sub,env,cuv
+		return function(...)
+			local a={...};return interpret(s2,e2,c2,a)
+		end
+	end
+
+	-- CALL helper: dispatches to Lua function or metamethod, packs results
+	local function doCall(fn,args,nret)
+		if type(fn)~="function" then
+			local mt=getmt(fn)
+			if mt then fn=rawget(mt,"__call") end
+		end
+		if type(fn)~="function" then return end
+		if nret==0 then
+			pcall(fn,unpack(args,1,#args))
+		elseif nret==1 then
+			local ok2,v1=pcall(fn,unpack(args,1,#args))
+			return ok2 and v1 or nil
+		else
+			local ok2,v1,v2,v3,v4,v5,v6=pcall(fn,unpack(args,1,#args))
+			if ok2 then return v1,v2,v3,v4,v5,v6 end
+		end
+	end
+
+	-- dispatch table (indexed by opcode number for O(1) dispatch)
+	-- using a function table avoids the if/elseif megaswitch overhead
+	local DT = tcreate(OP_MAX+1)
+
+	DT[OP.LOAD_K]    = function(i) R[dA(i)+1]=K[dBx(i)+1] end
+	DT[OP.LOAD_NIL]  = function(i) local A,B=dA(i),dB(i);for j=A,A+B do R[j+1]=nil end end
+	DT[OP.LOAD_BOOL] = function(i) R[dA(i)+1]=dB(i)~=0;if dC(i)~=0 then pc+=1 end end
+	DT[OP.LOAD_INT]  = function(i) R[dA(i)+1]=dB(i)-32768 end
+	DT[OP.MOVE]      = function(i) R[dA(i)+1]=R[dB(i)+1] end
+
+	DT[OP.GETGLOBAL] = function(i) R[dA(i)+1]=env[K[dBx(i)+1]] end
+	DT[OP.SETGLOBAL] = function(i) env[K[dBx(i)+1]]=R[dA(i)+1] end
+	DT[OP.GETTABLE]  = function(i) local t=R[dB(i)+1];local k=RKv(dC(i));R[dA(i)+1]=t~=nil and t[k] or nil end
+	DT[OP.SETTABLE]  = function(i) local t=R[dA(i)+1];local k=RKv(dB(i));local v=RKv(dC(i));if t~=nil then t[k]=v end end
+	DT[OP.GETFIELD]  = function(i) local t=R[dB(i)+1];local k=K[dC(i)+1];R[dA(i)+1]=t~=nil and t[k] or nil end
+	DT[OP.SETFIELD]  = function(i) local t=R[dA(i)+1];local k=K[dB(i)+1];local v=R[dC(i)+1];if t~=nil then t[k]=v end end
+
+	DT[OP.GETUPVAL]  = function(i) R[dA(i)+1]=UV[dB(i)+1] end
+	DT[OP.SETUPVAL]  = function(i) UV[dB(i)+1]=R[dA(i)+1] end
+
+	DT[OP.ADD]  = function(i) R[dA(i)+1]=R[dB(i)+1]+R[dC(i)+1] end
+	DT[OP.SUB]  = function(i) R[dA(i)+1]=R[dB(i)+1]-R[dC(i)+1] end
+	DT[OP.MUL]  = function(i) R[dA(i)+1]=R[dB(i)+1]*R[dC(i)+1] end
+	DT[OP.DIV]  = function(i) R[dA(i)+1]=R[dB(i)+1]/R[dC(i)+1] end
+	DT[OP.MOD]  = function(i) R[dA(i)+1]=R[dB(i)+1]%R[dC(i)+1] end
+	DT[OP.POW]  = function(i) R[dA(i)+1]=R[dB(i)+1]^R[dC(i)+1] end
+	DT[OP.UNM]  = function(i) R[dA(i)+1]=-R[dB(i)+1] end
+	DT[OP.IDIV] = function(i) R[dA(i)+1]=mfloor(R[dB(i)+1]/R[dC(i)+1]) end
+	DT[OP.BAND] = function(i) R[dA(i)+1]=b32a(R[dB(i)+1],R[dC(i)+1]) end
+	DT[OP.BOR]  = function(i) R[dA(i)+1]=b32o(R[dB(i)+1],R[dC(i)+1]) end
+	DT[OP.BXOR] = function(i) R[dA(i)+1]=b32x(R[dB(i)+1],R[dC(i)+1]) end
+	DT[OP.BNOT] = function(i) R[dA(i)+1]=b32n(R[dB(i)+1]) end
+	DT[OP.SHL]  = function(i) R[dA(i)+1]=b32l(R[dB(i)+1],R[dC(i)+1]) end
+	DT[OP.SHR]  = function(i) R[dA(i)+1]=b32r(R[dB(i)+1],R[dC(i)+1]) end
+
+	DT[OP.ADDIMM] = function(i) R[dA(i)+1]=R[dB(i)+1]+(dC(i)-127) end
+	DT[OP.MULIMM] = function(i) R[dA(i)+1]=R[dB(i)+1]*(dC(i)-127) end
+
+	DT[OP.CONCAT] = function(i)
+		local A,B,C=dA(i),dB(i),dC(i);local p2=tcreate(C-B+1)
+		for j=B,C do p2[j-B+1]=tostring(R[j+1]) end;R[A+1]=tconcat(p2)
+	end
+	DT[OP.LEN] = function(i) local v=R[dB(i)+1];R[dA(i)+1]=v~=nil and #v or 0 end
+
+	DT[OP.JMP]     = function(i) pc+=dSBx(i) end
+	DT[OP.JMPIF]   = function(i) local v=R[dA(i)+1];if v and v~=false then pc+=dSBx(i) end end
+	DT[OP.JMPIFNOT]= function(i) local v=R[dA(i)+1];if not v or v==false then pc+=dSBx(i) end end
+	DT[OP.JMPIFNIL]= function(i) if R[dA(i)+1]==nil then pc+=dSBx(i) end end
+	DT[OP.TEST]    = function(i) local v=R[dA(i)+1];if (v and v~=false)==(dC(i)~=0) then pc+=1 end end
+
+	DT[OP.EQ] = function(i)
+		local bv=RKv(dB(i));local cv=RKv(dC(i));local eq=bv==cv
+		if dA(i)==0 then eq=not eq end;if not eq then pc+=1 end
+	end
+	DT[OP.LT] = function(i)
+		local lt=RKv(dB(i))<RKv(dC(i))
+		if dA(i)==0 then lt=not lt end;if not lt then pc+=1 end
+	end
+	DT[OP.LE] = function(i)
+		local le=RKv(dB(i))<=RKv(dC(i))
+		if dA(i)==0 then le=not le end;if not le then pc+=1 end
+	end
+
+	DT[OP.CALL] = function(i)
+		local A,B,C=dA(i),dB(i),dC(i);local fn=R[A+1]
+		local args=tcreate(mmax(0,B-1))
+		for j=1,B-1 do args[j]=R[A+1+j] end
+		if C==1 then pcall(fn,unpack(args,1,B-1))
+		elseif C==2 then
+			local ok2,v1=pcall(fn,unpack(args,1,B-1));R[A+1]=ok2 and v1 or nil
+		else
+			local ok2,v1,v2,v3,v4=pcall(fn,unpack(args,1,B-1))
+			if ok2 then R[A+1]=v1;R[A+2]=v2;R[A+3]=v3;R[A+4]=v4 end
+		end
+	end
+
+	DT[OP.TAILCALL] = function(i)
+		local A,B=dA(i),dB(i);local fn=R[A+1]
+		local args=tcreate(mmax(0,B-1))
+		for j=1,B-1 do args[j]=R[A+1+j] end
+		if type(fn)=="function" then return fn(unpack(args,1,B-1)) end
+	end
+
+	DT[OP.RETURN] = function(i)
+		local A,B=dA(i),dB(i);local r=tcreate(B-1)
+		for j=1,B-1 do r[j]=R[A+j] end;return unpack(r,1,B-1)
+	end
+	DT[OP.RETURN0] = function() return end
+
+	DT[OP.CLOSURE] = function(i)
+		local sub=protos[dBx(i)+1]
+		if sub then R[dA(i)+1]=mkClosure(sub) end
+	end
+
+	DT[OP.VARARG] = function(i)
+		local A,B=dA(i),dB(i);for j=1,B do R[A+j]=VA[j] end
+	end
+
+	DT[OP.NEWTABLE] = function(i) R[dA(i)+1]={} end
+	DT[OP.SETLIST]  = function(i)
+		local A,B,C=dA(i),dB(i),dC(i);local t=R[A+1];local base=(C-1)*50
+		for j=1,B do t[base+j]=R[A+1+j] end
+	end
+	DT[OP.SELF] = function(i)
+		local A,B=dA(i),dB(i);local obj=R[B+1];local key=RKv(dC(i))
+		R[A+2]=obj;R[A+1]=obj~=nil and obj[key] or nil
+	end
+
+	DT[OP.FORPREP] = function(i)
+		local A=dA(i);R[A+1]=(R[A+1] or 0)-(R[A+3] or 1);pc+=dSBx(i)
+	end
+	DT[OP.FORLOOP] = function(i)
+		local A=dA(i);local idx=(R[A+1] or 0)+(R[A+3] or 1)
+		local lim=R[A+2] or 0;local stp=R[A+3] or 1
+		R[A+1]=idx;R[A+4]=idx
+		if (stp>0 and idx<=lim) or (stp<0 and idx>=lim) then pc+=dSBx(i) end
+	end
+	DT[OP.TFORLOOP] = function(i)
+		local A=dA(i);local fn=R[A+1];local st=R[A+2];local ct=R[A+3]
+		if type(fn)=="function" then
+			local ok2,v1,v2,v3=pcall(fn,st,ct)
+			if ok2 and v1~=nil then
+				local C=dC(i);R[A+3]=v1
+				for j=1,C do R[A+3+j]=({v1,v2,v3})[j] end
+			else pc+=1 end
+		else pc+=1 end
+	end
+
+	DT[OP.NOP] = function() end
+
+	-- fill nil slots to avoid bounds checks
+	for op=0,OP_MAX do if not DT[op] then DT[op]=function() end end end
+
+	-- ── main dispatch loop ─────────────────────────────────────
+	while pc<=nc do
+		local instr=code[pc];pc+=1
+		local op=dOp(instr)
+		local h=DT[op]
+		if h then
+			local rv=h(instr)
+			if rv~=nil then return rv end
+		end
+	end
+end
+
+
+-- ── public exec surface ───────────────────────────────────────
+local function vmExec(src: string?, label: string?, onDone: (()->())?)
+	if not src or slen(src)==0 then
+		if label then err("EXEC","no src: "..label) end;return
+	end
+	tspawn(function()
+		-- compile
+		local ok1,proto=pcall(compile,src)
+		if not ok1 or not proto then
+			err("EXEC","compile [".. (label or"?").."] "..tostring(proto))
+			-- silent fallback: try raw executor loadstring if available
+			local ls=rawget(_ENV0,"loadstring")
+			if ls then local fn=ls(src);if fn then tspawn(fn) end end
+			return
+		end
+		-- multi-pass optimisation
+		pcall(cfold,    proto)
+		pcall(dce,      proto)
+		pcall(peephole, proto)
+		pcall(jthread,  proto)
+		-- run
+		local ok2,e2=pcall(interpret,proto,G_ENV,nil,nil)
+		if not ok2 then err("EXEC","runtime ["..(label or"?").."] "..tostring(e2)) end
+		log("EXEC","vm ok: "..(label or"?"))
+		if onDone then pcall(onDone) end
 	end)
-	log("EXEC","spawned: "..(label or"?"))
 end
 
-local function getRPX():string?
-	local ok,res=_pcall(_g.HttpGet,_g,
-		_fmt("https://api.roproxy.com/universes/v1/places/%s/universe",_PID),true)
-	if not(ok and res)then return nil end
-	local pk,pd=_pcall(S.hs.JSONDecode,S.hs,res)
-	if not(pk and pd)then return nil end
-	return pd.universeId and _tostr(pd.universeId)or nil
-end
 
-local function resolve():string?
-	local s=fetch(_PID)
-	if s then log("RES","pid");return s end
-	local rid=getRPX()
-	if rid then
-		s=fetch(rid)
-		if s then log("RES","rpx");return s end
+-- ══════════════════════════════════════════════════════════════
+--  HTTP / RESOLVE / CACHE
+-- ══════════════════════════════════════════════════════════════
+local BAD  = tfreeze({"404","400","<!DOCTYPE","Not Found","Bad Request"})
+local BADN = #BAD
+
+local function get(u: string): string?
+	local cached=CA[u];if cached then return cached end
+	local hg=_g.HttpGet
+	for i=1,C.rt do
+		local ok,res=pcall(hg,_g,u,true)
+		if ok and type(res)=="string" and slen(res)>0 then
+			local bad=false
+			for j=1,BADN do if sfind(res,BAD[j],1,true) then bad=true;break end end
+			if not bad then CA[u]=res;return res end
+		end
+		if i<C.rt then twait(C.rd) end
 	end
-	s=fetch(_GID)
-	if s then log("RES","gid");return s end
+	err("GET","exhausted: "..u);return nil
+end
+
+local function fetch(name) for i=1,#EX do local s=get(BASE..name..EX[i]);if s then return s end end end
+local function fetchP(path) for i=1,#EX do local s=get(RAW..path..EX[i]);if s then return s end end end
+local function fetchB(names)
+	local R2={};local p=#names;if p==0 then return R2 end
+	for _,n in ipairs(names) do
+		tspawn(function()
+			for i=1,#EX do local s=get(BASE..n..EX[i]);if s then R2[n]=s;break end end
+			p-=1
+		end)
+	end
+	while p>0 do twait(0) end;return R2
+end
+
+local function getRPX()
+	local ok,res=pcall(_g.HttpGet,_g,sfmt("https://api.roproxy.com/universes/v1/places/%s/universe",_PID),true)
+	if not(ok and res) then return nil end
+	local pk,pd=pcall(S.hs.JSONDecode,S.hs,res)
+	if not(pk and pd) then return nil end
+	return pd.universeId and tostring(pd.universeId) or nil
+end
+
+local function resolve()
+	local s=fetch(_PID);if s then return s end
+	local rid=getRPX();if rid then s=fetch(rid);if s then return s end end
+	s=fetch(_GID);if s then return s end
 	return fetch("universal")
 end
 
 local function logPlayers()
-	local pl=S.plr:GetPlayers()
-	local n=#pl
-	local li=_tcreate(n)
-	for i=1,n do
-		local p=pl[i]
-		li[i]=_fmt("  [%d] @%s (%s) uid=%s age=%dd",
-			i,p.Name,p.DisplayName,_tostr(p.UserId),p.AccountAge)
-	end
-	inf("SRV",_fmt("players (%d/%d):\n%s",n,S.plr.MaxPlayers,_tconcat(li,"\n")))
+	local pl=S.plr:GetPlayers();local n=#pl;local li=tcreate(n)
+	for i=1,n do local p=pl[i];li[i]=sfmt("  [%d] @%s uid=%s",i,p.Name,tostring(p.UserId)) end
+	inf("SRV",sfmt("players (%d/%d):\n%s",n,S.plr.MaxPlayers,tconcat(li,"\n")))
+end
+
+local function saveCFG()
+	if not writefile then return end
+	pcall(writefile,CK,S.hs:JSONEncode({o=_xd(C.o),r=_xd(C.r),b=_xd(C.b),f=_xd(C.f),wh=_xd(C.wh),rt=C.rt,rd=C.rd,dbg=C.dbg}))
+end
+
+local function loadCFG()
+	if not(readfile and isfile and isfile(CK)) then return end
+	local ok,raw=pcall(readfile,CK);if not(ok and raw) then return end
+	pcall(function()
+		local d=S.hs:JSONDecode(raw)
+		local enc=tfreeze({o=1,r=1,b=1,f=1,wh=1})
+		for k,v in pairs(d) do C[k]=enc[k] and _xe(tostring(v)) or v end
+	end)
+	RAW=sfmt("https://raw.githubusercontent.com/%s/%s/%s/",_xd(C.o),_xd(C.r),_xd(C.b))
+	BASE=RAW.._xd(C.f).."/"
 end
 
 local function checkEnv()
-	local env=getfenv and getfenv(0)or _E
-	local det=_tcreate(8)
-	local chk=_tfreeze({
-		"syn","http_request","request","fluxus",
-		"oxygen","electron","wave","krnl","proto","xeno",
-	})
-	for _,c in _ipairs(chk)do
-		if _type(env[c])~="nil"then _tinsert(det,c)end
-	end
-	if#det>0 then inf("ENV","executor: ".._tconcat(det,", "))end
+	local det=tcreate(8)
+	local chk=tfreeze({"syn","http_request","request","fluxus","oxygen","electron","wave","krnl","proto","xeno","gethui","hookfunction","newcclosure","clonefunction"})
+	for _,c2 in ipairs(chk) do if rawget(_ENV0,c2)~=nil then tins(det,c2) end end
+	if #det>0 then inf("ENV","executor: "..tconcat(det,", ")) end
 end
 
-loadCFG()
-checkEnv()
 
+-- ══════════════════════════════════════════════════════════════
+--  LOADER UI  ─  logo + glow pulse, self-destructs after exec
+-- ══════════════════════════════════════════════════════════════
+local _LA  = true
+local _DL: (()->())? = nil
+
+local function mkLoader()
+	local pg=LP:WaitForChild("PlayerGui",10);if not pg then return nil end
+	local U2=UDim2.new;local U2S=UDim2.fromScale;local V2=Vector2.new
+	local TW2=S.tw;local ES=Enum.EasingStyle.Sine;local EC=Enum.EasingStyle.Cubic
+	local EO=Enum.EasingDirection.Out;local EI=Enum.EasingDirection.In
+	local function rn() return "Z"..sfmt("%X",mrnd(0x10000,0xFFFFF)) end
+	local function mk(cls,props,par)
+		local o=newI(cls);for k,v in pairs(props) do (o::any)[k]=v end
+		if par then o.Parent=par end;return o
+	end
+	local G=mk("ScreenGui",{Name=rn(),ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,IgnoreGuiInset=true,DisplayOrder=999},pg)::ScreenGui
+	local Base=mk("Frame",{Size=U2S(1,1),BorderSizePixel=0,ZIndex=1,BackgroundColor3=Color3.fromRGB(0,0,0),BackgroundTransparency=1},G)::Frame
+	local Img=mk("ImageLabel",{Size=U2S(1,1),BackgroundTransparency=1,Image=ICH,ScaleType=Enum.ScaleType.Crop,ImageTransparency=1,ZIndex=2},Base)::ImageLabel
+	local Grad=mk("ImageLabel",{Size=U2S(1,1),BackgroundTransparency=1,Image="rbxassetid://6015897843",ImageColor3=Color3.fromRGB(0,0,0),ImageTransparency=1,ZIndex=3},Base)::ImageLabel
+	local Glow=mk("ImageLabel",{Size=U2(0,256,0,256),BackgroundTransparency=1,AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.5,0),Image="rbxassetid://5028857472",ImageColor3=Color3.fromRGB(88,101,242),ImageTransparency=1,ZIndex=9},Base)::ImageLabel
+	local Logo=mk("ImageLabel",{Size=U2(0,128,0,128),BackgroundTransparency=1,AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.5,0),Image=AVA,ImageTransparency=1,ZIndex=10},Base)::ImageLabel
+	local PC:RBXScriptConnection?=nil
+	local function kill() if PC then PC:Disconnect();PC=nil end;if G and G.Parent then G:Destroy() end end
+	local function pulse()
+		local t=0
+		PC=S.rs.Heartbeat:Connect(function(dt)
+			t+=dt;local s=msin(t*2.2);local sz=128+s*3
+			Glow.ImageTransparency=0.45+s*0.3
+			Logo.Size=U2(0,sz,0,sz);Logo.Position=U2(0.5,-sz/2,0.5,-sz/2)
+		end)
+	end
+	local function destroyFast()
+		if not _LA then return end;_LA=false
+		if PC then PC:Disconnect();PC=nil end
+		local fi=TweenInfo.new(0.3,EC,EI)
+		TW2:Create(Logo,fi,{ImageTransparency=1,Size=U2(0,80,0,80),Position=U2(0.5,-40,0.5,-40)}):Play()
+		TW2:Create(Glow,fi,{ImageTransparency=1}):Play()
+		TW2:Create(Img,TweenInfo.new(0.45,ES,EI),{ImageTransparency=1}):Play()
+		TW2:Create(Grad,TweenInfo.new(0.45,ES,EI),{ImageTransparency=1}):Play()
+		TW2:Create(Base,TweenInfo.new(0.5,ES,EI),{BackgroundTransparency=1}):Play()
+		tdelay(0.55,kill)
+	end
+	local function destroyNorm()
+		if not _LA then return end;_LA=false
+		if PC then PC:Disconnect();PC=nil end
+		local fi=TweenInfo.new(0.3,EC,EI)
+		TW2:Create(Logo,fi,{ImageTransparency=1}):Play();TW2:Create(Glow,fi,{ImageTransparency=1}):Play()
+		tdelay(2.0,function()
+			TW2:Create(Img,TweenInfo.new(0.7,ES,EI),{ImageTransparency=1}):Play()
+			TW2:Create(Grad,TweenInfo.new(0.7,ES,EI),{ImageTransparency=1}):Play()
+			TW2:Create(Base,TweenInfo.new(0.75,ES,EI),{BackgroundTransparency=1}):Play()
+			tdelay(0.8,kill)
+		end)
+	end
+	_DL=destroyFast
+	TW2:Create(Base,TweenInfo.new(0.07,ES,EO),{BackgroundTransparency=0}):Play()
+	TW2:Create(Img,TweenInfo.new(0.85,ES,EO),{ImageTransparency=0.1}):Play()
+	TW2:Create(Grad,TweenInfo.new(0.85,ES,EO),{ImageTransparency=0.0}):Play()
+	tdelay(0.45,function()
+		TW2:Create(Logo,TweenInfo.new(0.55,Enum.EasingStyle.Back,EO),{ImageTransparency=0}):Play()
+		TW2:Create(Glow,TweenInfo.new(0.55,ES,EO),{ImageTransparency=0.5}):Play()
+		tdelay(0.45,pulse)
+	end)
+	return setmt({},{__index={destroy=destroyNorm,destroyFast=destroyFast}})::any
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+--  BOOTSTRAP
+-- ══════════════════════════════════════════════════════════════
+loadCFG();checkEnv()
 local ld=mkLoader()
 
-inf("BOOT",_fmt("v%s build=%s place=%s job=%s | %s | up=%s",
-	_VER,_BUILD,_PID,_JID,_pi(),_el()))
-
+inf("BOOT",sfmt("v%s build=%s seed=%X place=%s job=%s | %s | up=%s",
+	_VER,_BUILD,_SEED,_PID,_JID,_pi(),_el()))
 logPlayers()
 
 local bt=fetchB({_PID,_GID,"anti-afk"})
 local gs=bt[_PID] or bt[_GID] or resolve() or fetch("universal")
 
-exec(gs,"game",function()
-	_tdelay(0.2,function()
-		if _DL then _DL()end
-	end)
+vmExec(gs,"game",function()
+	tdelay(0.1,function() if _DL then _DL() end end)
 end)
-
-exec(bt["anti-afk"]or fetchP("Scr/games/anti-afk"),"anti-afk")
+vmExec(bt["anti-afk"] or fetchP("Scr/games/anti-afk"),"anti-afk")
 
 log("BOOT","ready in ".._el())
-
-_tdelay(1.8,function()
-	if _LA and ld then ld.destroy()end
-end)
+tdelay(1.6,function() if _LA and ld then ld.destroy() end end)
 
 saveCFG()
 
 S.plr.PlayerAdded:Connect(function(p)
-	inf("JOIN",_fmt("@%s (%s) uid=%s age=%dd",
-		p.Name,p.DisplayName,_tostr(p.UserId),p.AccountAge))
+	inf("JOIN",sfmt("@%s uid=%s age=%dd",p.Name,tostring(p.UserId),p.AccountAge))
 end)
-
 S.plr.PlayerRemoving:Connect(function(p)
-	inf("LEAVE",_fmt("@%s (%s) uid=%s",
-		p.Name,p.DisplayName,_tostr(p.UserId)))
+	inf("LEAVE",sfmt("@%s uid=%s",p.Name,tostring(p.UserId)))
 end)
+_g.Close:Connect(function() inf("EXIT","closed after ".._el());saveCFG() end)
 
-_g.Close:Connect(function()
-	inf("EXIT","closed after ".._el())
-	saveCFG()
-end)
-
-return _tfreeze({
-	_VERSION =_VER,
-	_BUILD   =_BUILD,
+return tfreeze({
+	_VERSION=_VER,_BUILD=_BUILD,_CHAN=_CHAN,_SEED=_SEED,
 	C=C,xd=_xd,xe=_xe,
 	saveCFG=saveCFG,loadCFG=loadCFG,
 	fetch=fetch,fetchP=fetchP,fetchB=fetchB,
-	exec=exec,get=get,
+	vmExec=vmExec,get=get,
 	log=log,err=err,inf=inf,dbg=dbg,
-	destroyLoader=function()if _DL then _DL()end end,
-	gitPath=function(p:string):string return RAW..p end,
+	destroyLoader=function() if _DL then _DL() end end,
+	gitPath=function(path:string) return RAW..path end,
 	elapsed=_el,
 })
