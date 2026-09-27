@@ -1578,29 +1578,43 @@ local function interpret(proto, env, uvs, varargs)
 end
 
 
--- ── internal run: takes confirmed source string, compiles + runs ──
-local function _runSrc(src: string, label: string?, onDone: (()->())?)
-	-- strip Luau/Lua shebang or attribute lines the VM lexer doesn't understand
-	-- e.g. --!strict  --!native  --!optimise  (safe to strip, they're hints)
-	local cleaned = src:gsub("^%-%-![^
-]*
-?",""):gsub("
-%-%-![^
-]*","")
+-- ══════════════════════════════════════════════════════════════
+--  EXECUTION GATE
+--  Only .lua and .luau source is ever executed.
+--  Every entry point enforces this — no other format runs.
+-- ══════════════════════════════════════════════════════════════
+
+-- _runSrc: internal only. ext MUST be ".lua" or ".luau" — anything else rejected.
+local function _runSrc(src: string, ext: string, label: string?, onDone: (()->())?)
+	-- Hard gate: only .lua / .luau allowed through, no exceptions
+	if not EX_SET[ext] then
+		err("EXEC","blocked ["..(label or"?").."] unsupported ext: "..tostring(ext))
+		return
+	end
+
+	-- Strip Luau compiler-hint comments the VM lexer doesn't understand
+	-- e.g. --!strict  --!native  --!optimise  --!nolint
+	-- These are hints only, safe to strip; no runtime behaviour is lost.
+	local cleaned = src
+		:gsub("^%-%-![^\n]*\n?","")
+		:gsub("\n%-%-![^\n]*","")
+
 	-- 1. compile via VM
-	local ok1,proto=pcall(compile,cleaned)
+	local ok1,proto = pcall(compile,cleaned)
 	if not ok1 or not proto then
 		err("EXEC","vm compile ["..(label or"?").."] "..tostring(proto))
-		-- fallback: hand raw source (not cleaned) to executor loadstring
-		-- This handles .lua files with syntax the VM doesn't support yet
-		local ls=rawget(_E0,"loadstring")
+		-- Fallback: executor loadstring handles .lua and .luau natively.
+		-- Pass original src (not cleaned) so executor sees the full file.
+		local ls = rawget(_E0,"loadstring")
 		if ls then
-			local fn,le=ls(src)
+			local fn,le = ls(src)
 			if fn then
-				log("EXEC","ls fallback ok ["..(label or"?").."]")
+				log("EXEC","ls fallback ok ["..(label or"?").."] ext="..ext)
 				tspawn(function()
-					local ok2,e2=pcall(fn)
-					if not ok2 then err("EXEC","ls runtime ["..(label or"?").."] "..tostring(e2)) end
+					local ok2,e2 = pcall(fn)
+					if not ok2 then
+						err("EXEC","ls runtime ["..(label or"?").."] "..tostring(e2))
+					end
 					if onDone then pcall(onDone) end
 				end)
 			else
@@ -1609,49 +1623,77 @@ local function _runSrc(src: string, label: string?, onDone: (()->())?)
 		end
 		return
 	end
-	-- 2. optimise (all passes pcall-guarded — one bad pass never aborts exec)
+
+	-- 2. optimise — each pass individually pcall-guarded
 	pcall(cfold,   proto)
 	pcall(dce,     proto)
 	pcall(peep,    proto)
 	pcall(jthread, proto)
+
 	-- 3. interpret
-	local ok2,e2=pcall(interpret,proto,G_ENV,nil,nil)
-	if not ok2 then err("EXEC","vm runtime ["..(label or"?").."] "..tostring(e2)) end
-	log("EXEC","vm ok ["..(label or"?").."] ".._el())
+	local ok2,e2 = pcall(interpret,proto,G_ENV,nil,nil)
+	if not ok2 then
+		err("EXEC","vm runtime ["..(label or"?").."] "..tostring(e2))
+	end
+	log("EXEC","vm ok ["..(label or"?").."] ext="..ext.." up=".._el())
 	if onDone then pcall(onDone) end
 end
 
--- ── public exec: source string → VM (supports .lua and .luau source) ──
--- vmExec(src, label?, onDone?)
--- src must be actual source code, not a path.
-local function vmExec(src: string?, label: string?, onDone: (()->())?)
+-- ── vmExec(src, ext, label?, onDone?) ────────────────────────────────────
+-- Execute a source string. ext must be ".lua" or ".luau" — rejected otherwise.
+-- Use when you already have source in hand from a fetch call.
+local function vmExec(src: string?, ext: string?, label: string?, onDone: (()->())?)
 	if not src or slen(src)==0 then
-		if label then err("EXEC","no src: "..label) end;return
+		if label then err("EXEC","no src: "..label) end
+		return
 	end
-	tspawn(function() _runSrc(src,label,onDone) end)
+	local e = ext or ".luau"
+	if not EX_SET[e] then
+		err("EXEC","rejected ["..(label or"?").."] ext not .lua/.luau: "..tostring(e))
+		return
+	end
+	tspawn(function() _runSrc(src,e,label,onDone) end)
 end
 
--- ── public exec by path: fetches then executes ──
--- Accepts any of: "anti-afk"  "anti-afk.lua"  "anti-afk.luau"
--- Tries .luau first, .lua second for the fetch; then runs via vmExec.
+-- ── vmExecPath(path, label?, onDone?) ────────────────────────────────────
+-- Execute by path (relative to BASE).
+-- Accepts "anti-afk" | "anti-afk.lua" | "anti-afk.luau"
+-- Any other extension (e.g. ".txt", ".json") is hard-rejected before fetch.
+-- Tries .luau first, .lua second. Not found = logged and silently dropped.
 local function vmExecPath(path: string, label: string?, onDone: (()->())?)
 	if not path or slen(path)==0 then
-		if label then err("EXEC","no path: "..label) end;return
+		if label then err("EXEC","no path: "..label) end
+		return
 	end
 	tspawn(function()
-		local base=stripExt(path)
+		local base,passedExt = stripExt(path)
+
+		-- Explicit extension provided but not supported → hard reject, no fetch
+		if passedExt and not EX_SET[passedExt] then
+			err("EXEC","rejected ["..(label or"?").."] unsupported ext: "..passedExt)
+			return
+		end
+
+		-- Try .luau first, .lua second — only these two ever attempted
 		local src: string? = nil
+		local foundExt = ""
 		for i=1,#EX do
-			src=get(BASE..base..EX[i])
-			if src then
-				log("EXEC","fetched "..base..EX[i].." for [".. (label or"?").."]")
+			local candidate = get(BASE..base..EX[i])
+			if candidate then
+				src      = candidate
+				foundExt = EX[i]
+				log("EXEC","fetched "..base..EX[i].." [".. (label or"?").."]")
 				break
 			end
 		end
-		if not src then
-			err("EXEC","fetch failed for path: "..path);return
+
+		if not src or slen(foundExt)==0 then
+			err("EXEC","not found ["..(label or"?").."] tried "..base..".luau / "..base..".lua")
+			return
 		end
-		_runSrc(src,label,onDone)
+
+		-- foundExt is guaranteed .luau or .lua here — gate inside _runSrc double-checks
+		_runSrc(src,foundExt,label,onDone)
 	end)
 end
 
@@ -1680,40 +1722,49 @@ local function get(u: string): string?
 end
 
 -- fetch a named game script from BASE.
--- Accepts "placeid", "placeid.lua", or "placeid.luau" — normalises to basename
--- then tries BASE/<name>.luau first, BASE/<name>.lua second.
-local function fetch(name: string): string?
-	local base=stripExt(name)        -- strip any extension the caller passed
+-- Returns (src, ext) where ext is ".luau" or ".lua", or (nil, nil) on failure.
+-- Only ever fetches .luau / .lua — no other extension is attempted.
+local function fetch(name: string): (string?, string?)
+	local base=stripExt(name)
 	for i=1,#EX do
-		local s=get(BASE..base..EX[i]);if s then return s end
+		local s=get(BASE..base..EX[i])
+		if s then return s,EX[i] end
 	end
+	return nil,nil
 end
 
 -- fetch by full path relative to RAW root.
--- Accepts "Scr/games/anti-afk", "Scr/games/anti-afk.lua", etc.
-local function fetchP(path: string): string?
+-- Returns (src, ext) or (nil, nil). Only .luau / .lua attempted.
+local function fetchP(path: string): (string?, string?)
 	local base=stripExt(path)
 	for i=1,#EX do
-		local s=get(RAW..base..EX[i]);if s then return s end
+		local s=get(RAW..base..EX[i])
+		if s then return s,EX[i] end
 	end
+	return nil,nil
 end
 
 -- parallel batch fetch — accepts names with or without extensions.
--- Returns table of original-name → source so callers use the same key.
-local function fetchB(names: {string}): {[string]:string}
-	local R2={};local pending=#names
+-- Returns table of name → {src=string, ext=".luau"|".lua"}.
+-- Only .luau / .lua ever fetched. Any other ext in a name is hard-rejected.
+local function fetchB(names: {string}): {[string]:{src:string,ext:string}}
+	local R2 = {} :: {[string]:{src:string,ext:string}}
+	local pending = #names
 	if pending==0 then return R2 end
 	for _,name in ipairs(names) do
 		tspawn(function()
-			local base=stripExt(name)
+			local base,passedExt = stripExt(name)
+			if passedExt and not EX_SET[passedExt] then
+				err("FETCH","skipping "..name.." — unsupported ext: "..passedExt)
+				pending-=1;return
+			end
 			for i=1,#EX do
 				local s=get(BASE..base..EX[i])
-				if s then R2[name]=s;break end   -- key is original name, not base
+				if s then R2[name]={src=s,ext=EX[i]};break end
 			end
 			pending-=1
 		end)
 	end
-	-- yield until all parallel fetches finish (max 30 s)
 	local timeout=clock()+30
 	while pending>0 and clock()<timeout do twait(0) end
 	return R2
@@ -1729,13 +1780,16 @@ local function getRPX(): string?
 	return pd.universeId and tostring(pd.universeId) or nil
 end
 
-local function resolve(): string?
-	local s=fetch(_PID);if s then inf("RES","by placeId");return s end
+-- resolve returns (src, ext) or (nil, nil) — always one of the two allowed exts
+local function resolve(): (string?, string?)
+	local s,e=fetch(_PID);if s then inf("RES","by placeId ext="..e);return s,e end
 	local rid=getRPX()
-	if rid then s=fetch(rid);if s then inf("RES","by universeId");return s end end
-	s=fetch(_GID);if s then inf("RES","by gameId");return s end
-	s=fetch("universal");if s then inf("RES","universal");return s end
-	return nil
+	if rid then
+		s,e=fetch(rid);if s then inf("RES","by universeId ext="..e);return s,e end
+	end
+	s,e=fetch(_GID);if s then inf("RES","by gameId ext="..e);return s,e end
+	s,e=fetch("universal");if s then inf("RES","universal ext="..e);return s,e end
+	return nil,nil
 end
 
 local function logPlayers()
@@ -1919,15 +1973,31 @@ inf("URL", sfmt("RAW=%s BASE=%s",RAW,BASE))
 logPlayers()
 
 -- parallel-fetch game script + anti-afk together
+-- fetchB now returns {name → {src, ext}} — only .lua/.luau ever fetched
 local bt = fetchB({_PID,_GID,"anti-afk"})
-local gs = bt[_PID] or bt[_GID] or resolve()
 
-vmExec(gs,"game",function()
-	-- destroy loader immediately after game script finishes executing
-	tdelay(0.08,function() if _DL then _DL() end end)
+-- resolve game script: placeId first, then gameId, then full resolve chain
+local gs_entry = bt[_PID] or bt[_GID]
+local gs_src: string?  = gs_entry and gs_entry.src or nil
+local gs_ext: string?  = gs_entry and gs_entry.ext or nil
+if not gs_src then
+	gs_src,gs_ext = resolve()   -- tries placeId→universeId→gameId→universal
+end
+
+-- execute game script — ext enforced inside vmExec/_runSrc
+vmExec(gs_src, gs_ext, "game", function()
+	-- destroy loader the moment the game script finishes
+	tdelay(0.08, function() if _DL then _DL() end end)
 end)
 
-vmExec(bt["anti-afk"] or fetchP("Scr/games/anti-afk"),"anti-afk")
+-- anti-afk: from batch if fetched, otherwise fetchP (also returns src,ext)
+local afk_entry = bt["anti-afk"]
+if afk_entry then
+	vmExec(afk_entry.src, afk_entry.ext, "anti-afk")
+else
+	local afk_src,afk_ext = fetchP("Scr/games/anti-afk")
+	vmExec(afk_src, afk_ext, "anti-afk")
+end
 
 log("BOOT","boot complete in ".._el())
 
@@ -1960,11 +2030,11 @@ return tfr({
 	xe            = _xe,
 	saveCFG       = saveCFG,
 	loadCFG       = loadCFG,
-	fetch         = fetch,
-	fetchP        = fetchP,
-	fetchB        = fetchB,
-	vmExec        = vmExec,
-	vmExecPath    = vmExecPath,
+	fetch         = fetch,         -- (name)->(src?,ext?)  only .lua/.luau
+	fetchP        = fetchP,        -- (path)->(src?,ext?)  only .lua/.luau
+	fetchB        = fetchB,        -- (names)->{name->{src,ext}}
+	vmExec        = vmExec,        -- (src,ext,label?,done?)
+	vmExecPath    = vmExecPath,    -- (path,label?,done?)  enforces .lua/.luau
 	get           = get,
 	log           = log,
 	err           = err,
