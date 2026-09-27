@@ -250,7 +250,19 @@ local C = {
 
 -- config-file key — random per session so it can't be predicted
 local CK    = "." .. _BLD .. ".zdat"
-local EX    = tfr({ ".luau", ".lua" })
+-- supported extensions in priority order (.luau first, .lua fallback)
+local EX     = tfr({ ".luau", ".lua" })
+local EX_SET = tfr({ [".luau"]=true, [".lua"]=true })  -- fast membership test
+
+-- strip a known extension from a name → (basename, ext|nil)
+local function stripExt(name: string): (string, string?)
+	for i=1,#EX do
+		local ext=EX[i];local el=slen(ext)
+		if ssub(name,-el)==ext then return ssub(name,1,-el-1),ext end
+	end
+	return name,nil
+end
+
 local CA    = {} :: { [string]: string }   -- HTTP cache
 local BT    = clock()
 local HBST  = ostime()
@@ -1566,35 +1578,80 @@ local function interpret(proto, env, uvs, varargs)
 end
 
 
--- ── public exec: compile → optimise → run (zero loadstring) ──
+-- ── internal run: takes confirmed source string, compiles + runs ──
+local function _runSrc(src: string, label: string?, onDone: (()->())?)
+	-- strip Luau/Lua shebang or attribute lines the VM lexer doesn't understand
+	-- e.g. --!strict  --!native  --!optimise  (safe to strip, they're hints)
+	local cleaned = src:gsub("^%-%-![^
+]*
+?",""):gsub("
+%-%-![^
+]*","")
+	-- 1. compile via VM
+	local ok1,proto=pcall(compile,cleaned)
+	if not ok1 or not proto then
+		err("EXEC","vm compile ["..(label or"?").."] "..tostring(proto))
+		-- fallback: hand raw source (not cleaned) to executor loadstring
+		-- This handles .lua files with syntax the VM doesn't support yet
+		local ls=rawget(_E0,"loadstring")
+		if ls then
+			local fn,le=ls(src)
+			if fn then
+				log("EXEC","ls fallback ok ["..(label or"?").."]")
+				tspawn(function()
+					local ok2,e2=pcall(fn)
+					if not ok2 then err("EXEC","ls runtime ["..(label or"?").."] "..tostring(e2)) end
+					if onDone then pcall(onDone) end
+				end)
+			else
+				err("EXEC","ls compile ["..(label or"?").."] "..tostring(le))
+			end
+		end
+		return
+	end
+	-- 2. optimise (all passes pcall-guarded — one bad pass never aborts exec)
+	pcall(cfold,   proto)
+	pcall(dce,     proto)
+	pcall(peep,    proto)
+	pcall(jthread, proto)
+	-- 3. interpret
+	local ok2,e2=pcall(interpret,proto,G_ENV,nil,nil)
+	if not ok2 then err("EXEC","vm runtime ["..(label or"?").."] "..tostring(e2)) end
+	log("EXEC","vm ok ["..(label or"?").."] ".._el())
+	if onDone then pcall(onDone) end
+end
+
+-- ── public exec: source string → VM (supports .lua and .luau source) ──
+-- vmExec(src, label?, onDone?)
+-- src must be actual source code, not a path.
 local function vmExec(src: string?, label: string?, onDone: (()->())?)
 	if not src or slen(src)==0 then
 		if label then err("EXEC","no src: "..label) end;return
 	end
+	tspawn(function() _runSrc(src,label,onDone) end)
+end
+
+-- ── public exec by path: fetches then executes ──
+-- Accepts any of: "anti-afk"  "anti-afk.lua"  "anti-afk.luau"
+-- Tries .luau first, .lua second for the fetch; then runs via vmExec.
+local function vmExecPath(path: string, label: string?, onDone: (()->())?)
+	if not path or slen(path)==0 then
+		if label then err("EXEC","no path: "..label) end;return
+	end
 	tspawn(function()
-		-- 1. compile
-		local ok1,proto=pcall(compile,src)
-		if not ok1 or not proto then
-			err("EXEC","compile [".. (label or"?").."] "..tostring(proto))
-			-- silent fallback to raw executor loadstring if VM failed
-			local ls=rawget(_E0,"loadstring")
-			if ls then
-				local fn,le=ls(src)
-				if fn then tspawn(fn)
-				else err("EXEC","ls fallback fail: "..tostring(le)) end
+		local base=stripExt(path)
+		local src: string? = nil
+		for i=1,#EX do
+			src=get(BASE..base..EX[i])
+			if src then
+				log("EXEC","fetched "..base..EX[i].." for [".. (label or"?").."]")
+				break
 			end
-			return
 		end
-		-- 2. optimise (all passes, each pcall-guarded so one failure can't abort)
-		pcall(cfold,   proto)
-		pcall(dce,     proto)
-		pcall(peep,    proto)
-		pcall(jthread, proto)
-		-- 3. run
-		local ok2,e2=pcall(interpret,proto,G_ENV,nil,nil)
-		if not ok2 then err("EXEC","runtime ["..(label or"?").."] "..tostring(e2)) end
-		log("EXEC","vm ok ["..(label or"?").."] ".._el())
-		if onDone then pcall(onDone) end
+		if not src then
+			err("EXEC","fetch failed for path: "..path);return
+		end
+		_runSrc(src,label,onDone)
 	end)
 end
 
@@ -1622,35 +1679,41 @@ local function get(u: string): string?
 	err("GET","exhausted "..u);return nil
 end
 
--- fetch a named game script: tries BASE/<name>.luau then BASE/<name>.lua
+-- fetch a named game script from BASE.
+-- Accepts "placeid", "placeid.lua", or "placeid.luau" — normalises to basename
+-- then tries BASE/<name>.luau first, BASE/<name>.lua second.
 local function fetch(name: string): string?
+	local base=stripExt(name)        -- strip any extension the caller passed
 	for i=1,#EX do
-		local s=get(BASE..name..EX[i]);if s then return s end
+		local s=get(BASE..base..EX[i]);if s then return s end
 	end
 end
 
--- fetch by full path relative to RAW root
+-- fetch by full path relative to RAW root.
+-- Accepts "Scr/games/anti-afk", "Scr/games/anti-afk.lua", etc.
 local function fetchP(path: string): string?
+	local base=stripExt(path)
 	for i=1,#EX do
-		local s=get(RAW..path..EX[i]);if s then return s end
+		local s=get(RAW..base..EX[i]);if s then return s end
 	end
 end
 
--- parallel batch fetch — returns table of name→source
+-- parallel batch fetch — accepts names with or without extensions.
+-- Returns table of original-name → source so callers use the same key.
 local function fetchB(names: {string}): {[string]:string}
 	local R2={};local pending=#names
 	if pending==0 then return R2 end
 	for _,name in ipairs(names) do
 		tspawn(function()
+			local base=stripExt(name)
 			for i=1,#EX do
-				local s=get(BASE..name..EX[i])
-				if s then R2[name]=s;break end
+				local s=get(BASE..base..EX[i])
+				if s then R2[name]=s;break end   -- key is original name, not base
 			end
-			-- decrement atomically (Lua is single-threaded; tspawn yields only at twait)
 			pending-=1
 		end)
 	end
-	-- yield until all threads finish
+	-- yield until all parallel fetches finish (max 30 s)
 	local timeout=clock()+30
 	while pending>0 and clock()<timeout do twait(0) end
 	return R2
@@ -1901,6 +1964,7 @@ return tfr({
 	fetchP        = fetchP,
 	fetchB        = fetchB,
 	vmExec        = vmExec,
+	vmExecPath    = vmExecPath,
 	get           = get,
 	log           = log,
 	err           = err,
