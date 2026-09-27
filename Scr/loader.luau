@@ -78,6 +78,7 @@
 ⣽⢸⢧⡻⣝⠾⣼⣛⣮⢿⣽⣳⢿⣻⣿⢿⣽⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⢿⣾⣻⢾⡽⣯⢟⣶⢻⡝⣮⢭⡳⢥⡛⡴⣋⡜⣣⠇⡞⢤⢣⡙⣌⠓⠬⠱⠜⡲⣑⢎⠳⡌⣷⡩⢆⡝⣢⢃⡞⣤⠳⡜⠦⢛⢠⠻⣝⠲⣌⠳⣌⢻⣜⡳⣝⢾⡹⣧⣟⢾⣳⣟⡾⣿⣻⣽⣿⣻⣽⣿⣿⣿⣿⣿⣿⣿⣿⣯⣷⣿⢿⣽⣾⣳⢿⣹⣞
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
+
 -- ══════════════════════════════════════════════════════════════
 --   ZURAI HUB  v3.1.0  ·  ULTRA VM  ·  BETA
 --
@@ -115,13 +116,11 @@ local sgsub   = string.gsub
 local pairs   = pairs
 local ipairs  = ipairs
 local pcall   = pcall
-local xpcall  = xpcall
 local type    = type
 local tostring= tostring
 local tonumber= tonumber
 local select  = select
 local rawget  = rawget
-local rawset  = rawset
 local setmt   = setmetatable
 local getmt   = getmetatable
 
@@ -129,10 +128,8 @@ local tins  = table.insert
 local trem  = table.remove
 local tcat  = table.concat
 local tcr   = table.create
-local tmov  = table.move
 local tfr   = table.freeze
 local tup   = table.unpack
-local tsort = table.sort
 
 local mmin  = math.min
 local mmax  = math.max
@@ -147,8 +144,6 @@ local b32o  = bit32.bor
 local b32n  = bit32.bnot
 local b32r  = bit32.rshift
 local b32l  = bit32.lshift
-local b32ro = bit32.rrotate
-local b32lo = bit32.lrotate
 
 local tspawn = task.spawn
 local tdelay = task.delay
@@ -427,6 +422,16 @@ local KW = tfr({
 	["true"]=TK.TRUE,["until"]=TK.UNTIL,["while"]=TK.WHILE,
 })
 
+-- single-char symbol map — defined once, shared across all lex() calls
+local LEX_SM = tfr({
+	["+"]=TK.PLUS, ["-"]=TK.MINUS,  ["*"]=TK.STAR,
+	["%"]=TK.PERCENT, ["^"]=TK.CARET, ["#"]=TK.HASH,
+	["&"]=TK.AMP,  [";"]=TK.SEMI,    ["|"]=TK.PIPE,
+	["("]=TK.LPAREN,[")"]=TK.RPAREN,
+	["{"]=TK.LBRACE,["}"]=TK.RBRACE,
+	["]"]=TK.RBRACKET,[","]=TK.COMMA,
+})
+
 local function lex(src: string)
 	local toks = tcr(512)
 	local i, ln, n = 1, 1, slen(src)
@@ -537,15 +542,7 @@ local function lex(src: string)
 			if p()=="/" then add(TK.DSLASH,"//");adv(2)
 			else add(TK.SLASH,"/");adv() end
 		else
-			local SM = tfr({
-				["+"]=TK.PLUS, ["-"]=TK.MINUS,  ["*"]=TK.STAR,
-				["%"]=TK.PERCENT, ["^"]=TK.CARET, ["#"]=TK.HASH,
-				["&"]=TK.AMP,  [";"]=TK.SEMI,    ["|"]=TK.PIPE,
-				["("]=TK.LPAREN,[")"]=TK.RPAREN,
-				["{"]=TK.LBRACE,["}"]=TK.RBRACE,
-				["]"]=TK.RBRACKET,[","]=TK.COMMA,
-			})
-			if SM[ch] then add(SM[ch],ch) end
+			if LEX_SM[ch] then add(LEX_SM[ch],ch) end
 			adv()
 		end
 	end
@@ -752,8 +749,10 @@ local function compile(src: string)
 		elseif t.k==TK.NOT then
 			adv();local sr,st=pPrimary(p)
 			local r=allocR(p)
+			-- LOAD_BOOL r=true; if condition is falsy skip the LOAD_BOOL r=false
+			-- JMPIFNOT must use AsBx encoding — interpreter reads dSBx(i)
 			eABC2(p,OP.LOAD_BOOL,r,1,0)
-			eABC2(p,OP.JMPIFNOT,sr,1,0)
+			eAsBx2(p,OP.JMPIFNOT,sr,1)  -- skip 1 instruction forward if falsy
 			eABC2(p,OP.LOAD_BOOL,r,0,0)
 			if st then freeR(p) end;return r,true
 
@@ -1193,7 +1192,7 @@ local function cfold(proto)
 			if bk and ck then
 				local bv,cv=K[bk+1],K[ck+1]
 				if type(bv)=="number" and type(cv)=="number" then
-					local res=pcall(function()
+					pcall(function()
 						local r=FOPS[op](bv,cv)
 						if r~=nil then
 							local ki=#K;K[ki+1]=r
@@ -1534,28 +1533,27 @@ local function interpret(proto, env, uvs, varargs)
 
 	-- TFORLOOP: A=iter-func, A+1=state, A+2=control, A+3..A+2+C=results
 	-- Calls iter(state,control); if result[1]~=nil, store results and continue
+	-- Layout matches compiler: fr=A, state=A+1, control=A+2, vars start at A+3
 	DT[OP.TFORLOOP] = function(i)
 		local A=dA(i);local C=dC(i)
 		local fn=R[A+1];local st=R[A+2];local ct=R[A+3]
 		if type(fn)=="function" then
 			local ok2,v1,v2,v3,v4=pcall(fn,st,ct)
 			if ok2 and v1~=nil then
-				-- update control variable (A+2 is NOT updated; A+3 = first result)
-				R[A+3]=v1
-				R[A+2]=v1   -- update control for next iteration
+				-- write C result values into A+3 .. A+2+C (user loop vars)
 				local rv={v1,v2,v3,v4}
-				for j=1,C do R[A+3+j-1]=rv[j] end
+				for j=1,C do R[A+2+j]=rv[j] end
+				-- update control var (A+2 slot, 1-indexed = R[A+3]) for next call
+				R[A+3]=v1
 			else
-				pc+=1   -- skip the back-jump: iterator exhausted
+				pc+=1   -- skip back-jump: iterator exhausted
 			end
 		else
 			pc+=1
 		end
 	end
-
 	-- fill gaps to avoid nil-index panics
 	for op=0,OP_MAX+1 do if not DT[op] then DT[op]=function() end end end
-
 	-- ── main dispatch loop ────────────────────────────────────
 	while pc<=nc do
 		local instr=code[pc];pc+=1
@@ -1642,7 +1640,6 @@ end
 local function fetchB(names: {string}): {[string]:string}
 	local R2={};local pending=#names
 	if pending==0 then return R2 end
-	local lock=false   -- simple spin-lock for counter
 	for _,name in ipairs(names) do
 		tspawn(function()
 			for i=1,#EX do
