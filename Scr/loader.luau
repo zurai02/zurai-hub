@@ -79,6 +79,7 @@
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
 
+
 local _g  = game
 local _E0 = getfenv and getfenv(0) or _ENV
 
@@ -1377,106 +1378,97 @@ end
 local _LA=true
 local _DL:(()->())?=nil
 
+local function _waitLoad()
+	if not _g.IsLoaded then pcall(function()_g.Loaded:Wait()end) end
+	repeat twait(0)until _g.IsLoaded
+end
 local function mkLoader()
 	local pg=LP:WaitForChild("PlayerGui",10);if not pg then return nil end
-	local U2=UDim2.new;local U2S=UDim2.fromScale;local V2=Vector2.new
-	local TW2=S.tw
-	local ES=Enum.EasingStyle.Sine;local EC=Enum.EasingStyle.Cubic
-	local EB=Enum.EasingStyle.Back
-	local EO=Enum.EasingDirection.Out;local EI=Enum.EasingDirection.In
-	local function rn() return "Z"..sfmt("%X",mrnd(0x10000,0xFFFFF)) end
-	local function mk(cls,props,par)
-		local o=newI(cls);for k,v in pairs(props) do (o::any)[k]=v end
-		if par then o.Parent=par end;return o
-	end
-	local tw=function(o,t,st,dir,props) TW2:Create(o,TweenInfo.new(t,st,dir),props):Play() end
-	local G=mk("ScreenGui",{Name=rn(),ResetOnSpawn=false,
-		ZIndexBehavior=Enum.ZIndexBehavior.Sibling,
-		IgnoreGuiInset=true,DisplayOrder=999},pg)::ScreenGui
-	local Base=mk("Frame",{Size=U2S(1,1),BorderSizePixel=0,ZIndex=1,
-		BackgroundColor3=Color3.fromRGB(0,0,0),BackgroundTransparency=1},G)::Frame
-	local Img=mk("ImageLabel",{Size=U2S(1,1),BackgroundTransparency=1,
-		Image=ICH,ScaleType=Enum.ScaleType.Crop,ImageTransparency=1,ZIndex=2},Base)::ImageLabel
-	local Grad=mk("ImageLabel",{Size=U2S(1,1),BackgroundTransparency=1,
-		Image="rbxassetid://6015897843",ImageColor3=Color3.fromRGB(0,0,0),
-		ImageTransparency=1,ZIndex=3},Base)::ImageLabel
-	local Glow=mk("ImageLabel",{Size=U2(0,300,0,300),AnchorPoint=V2(0.5,0.5),
-		Position=U2(0.5,0,0.5,0),BackgroundTransparency=1,
-		Image="rbxassetid://5028857472",ImageColor3=Color3.fromRGB(88,101,242),
-		ImageTransparency=1,ZIndex=9},Base)::ImageLabel
-	local Logo=mk("ImageLabel",{Size=U2(0,128,0,128),AnchorPoint=V2(0.5,0.5),
-		Position=U2(0.5,0,0.5,0),BackgroundTransparency=1,
-		Image=AVA,ImageTransparency=1,ZIndex=10},Base)::ImageLabel
+	local TW2,ES,EC,EB,EO,EI=S.tw,Enum.EasingStyle.Sine,Enum.EasingStyle.Cubic,Enum.EasingStyle.Back,Enum.EasingDirection.Out,Enum.EasingDirection.In
+	local U2,V2,ACC=UDim2.new,Vector2.new,Color3.fromRGB(88,101,242)
+	local function tw(o,t,st,d,p)TW2:Create(o,TweenInfo.new(t,st,d),p):Play()end
+	local function mk(c,p,r)local o=newI(c);for k,v in pairs(p)do(o::any)[k]=v end;if r then o.Parent=r end;return o end
+	local function rnd()return"Z"..sfmt("%X",mrnd(0x10000,0xFFFFF))end
+	local function cr(p,r)local c=newI("UICorner");c.CornerRadius=UDim.new(r or 1,0);c.Parent=p end
+	local G=mk("ScreenGui",{Name=rnd(),ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,IgnoreGuiInset=true,DisplayOrder=999},pg)
+	local Base=mk("Frame",{Size=UDim2.fromScale(1,1),BorderSizePixel=0,ZIndex=1,BackgroundColor3=Color3.fromRGB(0,0,0),BackgroundTransparency=1},G)
+	local Img=mk("ImageLabel",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Image=ICH,ScaleType=Enum.ScaleType.Crop,ImageTransparency=1,ZIndex=2},Base)
+	local Grad=mk("ImageLabel",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Image="rbxassetid://6015897843",ImageColor3=Color3.fromRGB(0,0,0),ImageTransparency=1,ZIndex=3},Base)
+	local Glow=mk("ImageLabel",{Size=U2(0,320,0,320),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.5,0),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC,ImageTransparency=1,ZIndex=9},Base)
+	local Logo=mk("ImageLabel",{Size=U2(0,128,0,128),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.5,0),BackgroundTransparency=1,Image=AVA,ImageTransparency=1,ZIndex=10},Base)
+	local BarBG=mk("Frame",{Size=U2(0.7,0,0,5),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.84,0),BackgroundColor3=Color3.fromRGB(20,20,35),BorderSizePixel=0,ZIndex=11},Base);cr(BarBG)
+	local Bar=mk("Frame",{Size=U2(0,0,1,0),BackgroundColor3=ACC,BorderSizePixel=0,ZIndex=12},BarBG);cr(Bar)
+	local BarGlow=mk("ImageLabel",{Size=U2(1,0,4,0),Position=U2(0,-0,0.5,-10),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC,ImageTransparency=0.6,ZIndex=12},Bar)
+	local Stat=mk("TextLabel",{Size=U2(1,0,0,18),AnchorPoint=V2(0.5,0),Position=U2(0.5,0,0.87,0),BackgroundTransparency=1,TextColor3=Color3.fromRGB(140,140,190),TextScaled=true,Font=Enum.Font.GothamBold,Text="",ZIndex=13},Base)
 	local PC:RBXScriptConnection?=nil
-	local function kill() if PC then PC:Disconnect();PC=nil end;if G and G.Parent then G:Destroy() end end
+	local function kill()if PC then PC:Disconnect();PC=nil end;if G and G.Parent then G:Destroy()end end
+	local function setBar(p:number,t:string?)
+		TW2:Create(Bar,TweenInfo.new(0.22,ES,EO),{Size=U2(mmin(1,p),0,1,0)}):Play()
+		TW2:Create(BarGlow,TweenInfo.new(0.22,ES,EO),{Size=U2(mmin(1,p),0,4,0)}):Play()
+		if t then Stat.Text=t end
+	end
 	local function pulse()
 		local t=0
 		PC=S.rs.Heartbeat:Connect(function(dt)
-			t+=dt;local s=msin(t*2.2);local sz=128+s*4
-			Glow.ImageTransparency=0.42+s*0.28
+			t+=dt;local s=msin(t*2.2);local sz=128+s*6
+			Glow.ImageTransparency=0.38+s*0.22
 			Logo.Size=U2(0,sz,0,sz);Logo.Position=U2(0.5,-sz/2,0.5,-sz/2)
 		end)
 	end
-	local function dFast()
+	local function wipe(fast:boolean)
 		if not _LA then return end;_LA=false
 		if PC then PC:Disconnect();PC=nil end
-		tw(Logo,0.28,EC,EI,{ImageTransparency=1,Size=U2(0,70,0,70),Position=U2(0.5,-35,0.5,-35)})
-		tw(Glow,0.28,EC,EI,{ImageTransparency=1})
-		tw(Img, 0.42,ES,EI,{ImageTransparency=1})
-		tw(Grad,0.42,ES,EI,{ImageTransparency=1})
-		tw(Base,0.48,ES,EI,{BackgroundTransparency=1})
-		tdelay(0.52,kill)
+		local lt=fast and 0.22 or 0.28
+		local bt2=fast and 0.32 or 0.55
+		tw(Logo,lt,EC,EI,{ImageTransparency=1,Size=U2(0,64,0,64),Position=U2(0.5,-32,0.5,-32)})
+		tw(Glow,lt,EC,EI,{ImageTransparency=1})
+		tw(BarBG,lt,ES,EI,{BackgroundTransparency=1})
+		tw(Stat,lt,ES,EI,{TextTransparency=1})
+		if not fast then twait(1.6)end
+		tw(Img,bt2,ES,EI,{ImageTransparency=1})
+		tw(Grad,bt2,ES,EI,{ImageTransparency=1})
+		tw(Base,bt2+0.06,ES,EI,{BackgroundTransparency=1})
+		tdelay(bt2+0.1,kill)
 	end
-	local function dNorm()
-		if not _LA then return end;_LA=false
-		if PC then PC:Disconnect();PC=nil end
-		tw(Logo,0.3,EC,EI,{ImageTransparency=1});tw(Glow,0.3,EC,EI,{ImageTransparency=1})
-		tdelay(2.0,function()
-			tw(Img, 0.65,ES,EI,{ImageTransparency=1})
-			tw(Grad,0.65,ES,EI,{ImageTransparency=1})
-			tw(Base,0.72,ES,EI,{BackgroundTransparency=1})
-			tdelay(0.75,kill)
-		end)
-	end
-	_DL=dFast
-	tw(Base,0.06,ES,EO,{BackgroundTransparency=0})
-	tw(Img, 0.80,ES,EO,{ImageTransparency=0.10})
-	tw(Grad,0.80,ES,EO,{ImageTransparency=0.0})
-	tdelay(0.38,function()
-		tw(Logo,0.55,EB,EO,{ImageTransparency=0})
-		tw(Glow,0.55,ES,EO,{ImageTransparency=0.48})
-		tdelay(0.48,pulse)
+	_DL=function()wipe(true)end
+	tw(Base,0.05,ES,EO,{BackgroundTransparency=0})
+	tw(Img,0.72,ES,EO,{ImageTransparency=0.08})
+	tw(Grad,0.72,ES,EO,{ImageTransparency=0})
+	tdelay(0.3,function()
+		tw(Logo,0.48,EB,EO,{ImageTransparency=0})
+		tw(Glow,0.48,ES,EO,{ImageTransparency=0.42})
+		tdelay(0.42,pulse)
 	end)
-	return setmt({},{__index={destroy=dNorm,destroyFast=dFast}})::any
+	return setmt({},{__index={destroy=function()wipe(false)end,destroyFast=function()wipe(true)end,setBar=setBar}})::any
 end
-
 loadCFG();checkEnv()
 local ld=mkLoader()
-
 inf("BOOT",sfmt("v%s b=%s s=%X p=%s j=%s|%s",_VER,_BLD,_SEED,_PID,_JID,_pi()))
 logPlayers()
-
-local bt=fetchB({_PID,_GID,"anti-afk"})
-local gse=bt[_PID] or bt[_GID]
-local gs_src:string?=gse and gse.src or nil
-local gs_ext:string?=gse and gse.ext or nil
-if not gs_src then gs_src,gs_ext=resolve() end
-
-vmExec(gs_src,gs_ext,"game",function()
-	tdelay(0.08,function() if _DL then _DL() end end)
+tspawn(function()
+	if ld then ld.setBar(0.04,"Waiting for game...") end
+	_waitLoad()
+	if ld then ld.setBar(0.18,"Fetching...") end
+	local bt=fetchB({_PID,_GID,"anti-afk"})
+	local gse=bt[_PID] or bt[_GID]
+	local gs_src:string?=gse and gse.src or nil
+	local gs_ext:string?=gse and gse.ext or nil
+	if not gs_src then
+		if ld then ld.setBar(0.55,"Resolving...") end
+		gs_src,gs_ext=resolve()
+	end
+	if ld then ld.setBar(0.85,"Executing...") end
+	vmExec(gs_src,gs_ext,"game",function()
+		if ld then ld.setBar(1,"Done!") end
+		tdelay(0.25,function()if _DL then _DL()end end)
+	end)
+	local afke=bt["anti-afk"]
+	if afke then vmExec(afke.src,afke.ext,"anti-afk")
+	else local as,ae=fetchP(S_AFK);vmExec(as,ae,"anti-afk") end
+	log("BOOT","ready ".._el())
+	tdelay(4,function()if _LA and ld then ld.destroy()end end)
+	saveCFG()
 end)
-
-local afke=bt["anti-afk"]
-if afke then
-	vmExec(afke.src,afke.ext,"anti-afk")
-else
-	local as,ae=fetchP(S_AFK)
-	vmExec(as,ae,"anti-afk")
-end
-
-log("BOOT","ready ".._el())
-tdelay(1.5,function() if _LA and ld then ld.destroy() end end)
-saveCFG()
 
 S.plr.PlayerAdded:Connect(function(p)
 	inf("JOIN",sfmt("@%s uid=%s age=%d",p.Name,tostring(p.UserId),p.AccountAge))
