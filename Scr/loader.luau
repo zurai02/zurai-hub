@@ -1381,227 +1381,129 @@ local function _waitLoad()
 	if not _g.IsLoaded then pcall(function()_g.Loaded:Wait()end) end
 	repeat twait(0)until _g.IsLoaded
 end
-
 local function mkLoader()
 	local pg=LP:WaitForChild("PlayerGui",10);if not pg then return nil end
 	local TW2=S.tw
-	local ES,EC,EB=Enum.EasingStyle.Sine,Enum.EasingStyle.Cubic,Enum.EasingStyle.Back
+	local ES,EC,EB,EQ=Enum.EasingStyle.Sine,Enum.EasingStyle.Cubic,Enum.EasingStyle.Back,Enum.EasingStyle.Quart
 	local EO,EI=Enum.EasingDirection.Out,Enum.EasingDirection.In
-	local U2,V2=UDim2.new,Vector2.new
-	local U2S=UDim2.fromScale
+	local U2,V2,U2S=UDim2.new,Vector2.new,UDim2.fromScale
 	local C3=Color3.fromRGB
-	local ACC=C3(88,101,242)
-	local DARK=C3(0,0,0)
-	local BARB=C3(18,18,32)
-	local TXTI=C3(160,160,200)
-	local function tw(o,t,st,d,p)TW2:Create(o,TweenInfo.new(t,st,d),p):Play()end
-	local function mk(c,p,r)
-		local o=newI(c)
-		for k,v in pairs(p)do(o::any)[k]=v end
-		if r then o.Parent=r end
-		return o
-	end
-	local function cr(p,r)
-		local c=newI("UICorner")
-		c.CornerRadius=UDim.new(r or 1,0)
-		c.Parent=p
-	end
-	local function stroke(p,col,th)
-		local s=newI("UIStroke")
-		s.Color=col;s.Thickness=th or 1
-		s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
-		s.Parent=p
-	end
+	local ACC,ACC2,GOLD,WHITE,DARK,PBK,TXTS,TXTP=C3(88,101,242),C3(130,70,255),C3(255,165,0),C3(255,255,255),C3(0,0,0),C3(5,5,16),C3(140,140,190),C3(55,55,90)
+	local function tw(o,t,st,d,p) TW2:Create(o,TweenInfo.new(t,st,d),p):Play() end
+	local function mk(c,p,r) local o=newI(c);for k,v in pairs(p)do(o::any)[k]=v end;if r then o.Parent=r end;return o end
+	local function cr(p,r) local c=newI("UICorner");c.CornerRadius=UDim.new(0,r or 999);c.Parent=p end
+	local function ug(p,c1,c2,rot) local g=newI("UIGradient");g.Color=ColorSequence.new(c1,c2);g.Rotation=rot or 90;g.Parent=p end
+	local function us(p,col,th,tr) local s=newI("UIStroke");s.Color=col;s.Thickness=th or 1;s.Transparency=tr or 0;s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;s.Parent=p;return s end
 	local rn=function()return"Z"..sfmt("%X",mrnd(0x10000,0xFFFFF))end
-
-	local G=mk("ScreenGui",{
-		Name=rn(),ResetOnSpawn=false,
-		ZIndexBehavior=Enum.ZIndexBehavior.Sibling,
-		IgnoreGuiInset=true,DisplayOrder=999
-	},pg)
-
-	local Base=mk("Frame",{
-		Size=U2S(1,1),BorderSizePixel=0,ZIndex=1,
-		BackgroundColor3=DARK,BackgroundTransparency=1
-	},G)
-
-	local Img=mk("ImageLabel",{
-		Size=U2S(1,1),BackgroundTransparency=1,
-		Image=ICH,ScaleType=Enum.ScaleType.Crop,
-		ImageTransparency=1,ZIndex=2
-	},Base)
-
-	local Grad=mk("ImageLabel",{
-		Size=U2S(1,1),BackgroundTransparency=1,
-		Image="rbxassetid://6015897843",
-		ImageColor3=DARK,ImageTransparency=1,ZIndex=3
-	},Base)
-
-	local Vign=mk("ImageLabel",{
-		Size=U2S(1,1),BackgroundTransparency=1,
-		Image="rbxassetid://1316045217",
-		ImageColor3=DARK,ImageTransparency=0.3,ZIndex=4
-	},Base)
-
-	local GlowOuter=mk("ImageLabel",{
-		Size=U2(0,420,0,420),AnchorPoint=V2(0.5,0.5),
-		Position=U2(0.5,0,0.42,0),BackgroundTransparency=1,
-		Image="rbxassetid://5028857472",
-		ImageColor3=ACC,ImageTransparency=1,ZIndex=8
-	},Base)
-
-	local Glow=mk("ImageLabel",{
-		Size=U2(0,260,0,260),AnchorPoint=V2(0.5,0.5),
-		Position=U2(0.5,0,0.42,0),BackgroundTransparency=1,
-		Image="rbxassetid://5028857472",
-		ImageColor3=ACC,ImageTransparency=1,ZIndex=9
-	},Base)
-
-	local Logo=mk("ImageLabel",{
-		Size=U2(0,110,0,110),AnchorPoint=V2(0.5,0.5),
-		Position=U2(0.5,0,0.42,0),BackgroundTransparency=1,
-		Image=AVA,ImageTransparency=1,ZIndex=10
-	},Base)
-
-	local Panel=mk("Frame",{
-		Size=U2(0,360,0,110),AnchorPoint=V2(0.5,0.5),
-		Position=U2(0.5,0,0.78,0),BackgroundTransparency=1,
-		BorderSizePixel=0,ZIndex=10
-	},Base)
-
-	local PanelBG=mk("Frame",{
-		Size=U2S(1,1),BackgroundColor3=C3(8,8,20),
-		BackgroundTransparency=0.25,BorderSizePixel=0,ZIndex=10
-	},Panel)
-	cr(PanelBG,8);stroke(PanelBG,ACC,1.2)
-
-	local Title=mk("TextLabel",{
-		Size=U2(1,-20,0,28),Position=U2(0,10,0,10),
-		BackgroundTransparency=1,TextColor3=Color3.fromRGB(255,255,255),
-		TextScaled=true,Font=Enum.Font.GothamBold,
-		Text="ZURAI HUB",TextXAlignment=Enum.TextXAlignment.Left,ZIndex=11
-	},Panel)
-
-	local VerL=mk("TextLabel",{
-		Size=U2(0,60,0,16),Position=U2(1,-70,0,14),
-		BackgroundTransparency=1,TextColor3=ACC,
-		TextScaled=true,Font=Enum.Font.Gotham,
-		Text="v".._VER,TextXAlignment=Enum.TextXAlignment.Right,ZIndex=11
-	},Panel)
-
-	local BarBG=mk("Frame",{
-		Size=U2(1,-20,0,5),Position=U2(0,10,0,46),
-		BackgroundColor3=BARB,BorderSizePixel=0,ZIndex=11
-	},Panel);cr(BarBG)
-
-	local Bar=mk("Frame",{
-		Size=U2(0,0,1,0),BackgroundColor3=ACC,
-		BorderSizePixel=0,ZIndex=12
-	},BarBG);cr(Bar)
-
-	local BarGlow=mk("ImageLabel",{
-		Size=U2(1,0,5,0),Position=U2(0,0,0.5,-12),
-		BackgroundTransparency=1,
-		Image="rbxassetid://5028857472",
-		ImageColor3=ACC,ImageTransparency=0.5,ZIndex=12
-	},Bar)
-
-	local Stat=mk("TextLabel",{
-		Size=U2(1,-20,0,18),Position=U2(0,10,0,58),
-		BackgroundTransparency=1,TextColor3=TXTI,
-		TextScaled=true,Font=Enum.Font.Gotham,
-		Text="Initialising...",
-		TextXAlignment=Enum.TextXAlignment.Left,ZIndex=11
-	},Panel)
-
-	local Pct=mk("TextLabel",{
-		Size=U2(0,50,0,18),Position=U2(1,-60,0,58),
-		BackgroundTransparency=1,TextColor3=C3(200,200,240),
-		TextScaled=true,Font=Enum.Font.GothamBold,
-		Text="0%",TextXAlignment=Enum.TextXAlignment.Right,ZIndex=11
-	},Panel)
-
-	local PC:RBXScriptConnection?=nil
-
+	-- Background layers
+	local G=mk("ScreenGui",{Name=rn(),ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,IgnoreGuiInset=true,DisplayOrder=999},pg)
+	local Base=mk("Frame",{Size=U2S(1,1),BorderSizePixel=0,ZIndex=1,BackgroundColor3=DARK,BackgroundTransparency=1},G)
+	local Img=mk("ImageLabel",{Size=U2S(1,1),BackgroundTransparency=1,Image=ICH,ScaleType=Enum.ScaleType.Crop,ImageTransparency=1,ZIndex=2},Base)
+	local Grad=mk("ImageLabel",{Size=U2S(1,1),BackgroundTransparency=1,Image="rbxassetid://6015897843",ImageColor3=DARK,ImageTransparency=1,ZIndex=3},Base)
+	local Vign=mk("ImageLabel",{Size=U2(1,120,1,120),Position=U2(0,-60,0,-60),BackgroundTransparency=1,Image="rbxassetid://1316045217",ImageColor3=DARK,ImageTransparency=1,ZIndex=4},Base)
+	local Scan=mk("Frame",{Size=U2(1,0,0,2),Position=U2(0,0,-0.05,0),BackgroundColor3=WHITE,BackgroundTransparency=0.94,BorderSizePixel=0,ZIndex=5},Base)
+	-- Triple glow
+	local GlowFar=mk("ImageLabel",{Size=U2(0,600,0,600),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.38,0),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC2,ImageTransparency=1,ZIndex=6},Base)
+	local GlowMid=mk("ImageLabel",{Size=U2(0,360,0,360),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.38,0),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC,ImageTransparency=1,ZIndex=7},Base)
+	local GlowNear=mk("ImageLabel",{Size=U2(0,180,0,180),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.38,0),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=WHITE,ImageTransparency=1,ZIndex=8},Base)
+	local LogoRing=mk("ImageLabel",{Size=U2(0,126,0,126),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.38,0),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC,ImageTransparency=1,ZIndex=9},Base)
+	local Logo=mk("ImageLabel",{Size=U2(0,104,0,104),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,0.38,0),BackgroundTransparency=1,Image=AVA,ImageTransparency=1,ZIndex=10},Base)
+	-- Glass panel
+	local Panel=mk("Frame",{Size=U2(0,400,0,138),AnchorPoint=V2(0.5,0.5),Position=U2(0.5,0,1.15,0),BackgroundTransparency=1,BorderSizePixel=0,ZIndex=10},Base)
+	local PBG=mk("Frame",{Size=U2S(1,1),BorderSizePixel=0,BackgroundColor3=PBK,BackgroundTransparency=0.12,ZIndex=10},Panel);cr(PBG,12);ug(PBG,C3(8,8,22),C3(3,3,12),200)
+	local PST=us(PBG,ACC,1.6,0.38)
+	local TL=mk("Frame",{Size=U2(1,0,0,2),Position=U2(0,0,0,0),BorderSizePixel=0,BackgroundColor3=ACC,ZIndex=11},Panel);cr(TL,2);ug(TL,ACC,ACC2,0)
+	local CG=mk("ImageLabel",{Size=U2(0,80,0,80),Position=U2(0,-20,0,-20),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC2,ImageTransparency=0.7,ZIndex=11},Panel)
+	mk("TextLabel",{Size=U2(0.55,0,0,32),Position=U2(0,14,0,10),BackgroundTransparency=1,TextColor3=WHITE,TextScaled=true,Font=Enum.Font.GothamBold,Text="ZURAI HUB",TextXAlignment=Enum.TextXAlignment.Left,ZIndex=12},Panel)
+	local BB=mk("Frame",{Size=U2(0,50,0,20),Position=U2(0,14,0,44),BackgroundColor3=GOLD,BorderSizePixel=0,ZIndex=12},Panel);cr(BB,4)
+	mk("TextLabel",{Size=U2S(1,1),BackgroundTransparency=1,TextColor3=C3(20,10,0),TextScaled=true,Font=Enum.Font.GothamBold,Text="BETA",ZIndex=13},BB)
+	mk("TextLabel",{Size=U2(0,80,0,18),Position=U2(1,-92,0,13),BackgroundTransparency=1,TextColor3=ACC,TextScaled=true,Font=Enum.Font.Gotham,Text="v".._VER,TextXAlignment=Enum.TextXAlignment.Right,ZIndex=12},Panel)
+	mk("Frame",{Size=U2(1,-28,0,1),Position=U2(0,14,0,68),BackgroundColor3=ACC,BackgroundTransparency=0.7,BorderSizePixel=0,ZIndex=11},Panel)
+	local BarBG=mk("Frame",{Size=U2(1,-28,0,7),Position=U2(0,14,0,78),BackgroundColor3=C3(12,12,26),BorderSizePixel=0,ZIndex=11},Panel);cr(BarBG);us(BarBG,ACC,1,0.65)
+	local Bar=mk("Frame",{Size=U2(0,0,1,0),BorderSizePixel=0,ZIndex=12},BarBG);cr(Bar);ug(Bar,ACC,ACC2,0)
+	local BarShim=mk("Frame",{Size=U2(0.18,0,1,0),Position=U2(-0.18,0,0,0),BackgroundColor3=WHITE,BackgroundTransparency=0.72,BorderSizePixel=0,ZIndex=13},Bar);cr(BarShim)
+	local BarGlow=mk("ImageLabel",{Size=U2(1,0,7,0),Position=U2(0,0,0.5,-17),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC,ImageTransparency=0.42,ZIndex=12},Bar)
+	local Stat=mk("TextLabel",{Size=U2(0.68,0,0,18),Position=U2(0,14,0,94),BackgroundTransparency=1,TextColor3=TXTS,TextScaled=true,Font=Enum.Font.Gotham,Text="Initialising...",TextXAlignment=Enum.TextXAlignment.Left,ZIndex=12},Panel)
+	local Pct=mk("TextLabel",{Size=U2(0.32,-14,0,18),Position=U2(0.68,0,0,94),BackgroundTransparency=1,TextColor3=WHITE,TextScaled=true,Font=Enum.Font.GothamBold,Text="0%",TextXAlignment=Enum.TextXAlignment.Right,ZIndex=12},Panel)
+	mk("TextLabel",{Size=U2(1,-28,0,14),Position=U2(0,14,0,119),BackgroundTransparency=1,TextColor3=TXTP,TextScaled=true,Font=Enum.Font.Gotham,Text=sfmt("@%s 路 %s 路 uid %s",LP.Name,LP.DisplayName,_PU),TextXAlignment=Enum.TextXAlignment.Left,ZIndex=12},Panel)
+	local alive,PCS=true,nil
 	local function kill()
-		if PC then PC:Disconnect();PC=nil end
+		alive=false
+		if PCS then PCS:Disconnect();PCS=nil end
 		if G and G.Parent then G:Destroy()end
 	end
-
-	local function setBar(p:number,t:string?)
+	local function setBar(p:number,txt:string?)
 		local cl=mmin(1,mmax(0,p))
-		TW2:Create(Bar,TweenInfo.new(0.2,ES,EO),{Size=U2(cl,0,1,0)}):Play()
-		TW2:Create(BarGlow,TweenInfo.new(0.2,ES,EO),{Size=U2(cl,0,5,0)}):Play()
+		TW2:Create(Bar,TweenInfo.new(0.28,ES,EO),{Size=U2(cl,0,1,0)}):Play()
+		TW2:Create(BarGlow,TweenInfo.new(0.28,ES,EO),{Size=U2(cl,0,7,0)}):Play()
 		Pct.Text=sfmt("%d%%",mflr(cl*100))
-		if t then Stat.Text=t end
+		if txt then Stat.Text=txt end
 	end
-
 	local function pulse()
-		local t=0
-		local pulseBorder=true
-		PC=S.rs.Heartbeat:Connect(function(dt)
-			t+=dt
-			local s=msin(t*2.4)
-			local sz=110+s*7
-			Glow.ImageTransparency=0.35+s*0.2
-			GlowOuter.ImageTransparency=0.6+s*0.15
-			Logo.Size=U2(0,sz,0,sz)
-			Logo.Position=U2(0.5,-sz/2,0.42,-sz/2)
-			if pulseBorder then
-				local st=PanelBG:FindFirstChildOfClass("UIStroke")
-				if st then st.Transparency=0.2+mabs(s)*0.5 end
-			end
+		local t,st2=0,0
+		PCS=S.rs.Heartbeat:Connect(function(dt)
+			if not alive then return end
+			t+=dt;st2+=dt*0.55
+			local s,s2,s3=msin(t*2.4),msin(t*0.9+0.8),msin(t*3.1)
+			local sz=104+s*9
+			Logo.Size=U2(0,sz,0,sz);Logo.Position=U2(0.5,-sz/2,0.38,-sz/2)
+			LogoRing.Size=U2(0,sz+22,0,sz+22);LogoRing.Position=U2(0.5,-(sz+22)/2,0.38,-(sz+22)/2)
+			GlowNear.ImageTransparency=0.5+s*0.22
+			GlowMid.ImageTransparency=0.32+s2*0.16
+			GlowFar.ImageTransparency=0.6+s3*0.1
+			LogoRing.ImageTransparency=0.65+mabs(s)*0.2
+			PST.Transparency=0.25+mabs(s)*0.48
+			TL.BackgroundTransparency=mabs(s)*0.35
+			CG.ImageTransparency=0.55+s2*0.2
+			Scan.Position=U2(0,0,(t*0.065)%1.08,0)
+			BarShim.Position=U2((st2%1.35)-0.18,0,0,0)
 		end)
 	end
-
 	local function wipe(fast:boolean)
 		if not _LA then return end
-		_LA=false
-		if PC then PC:Disconnect();PC=nil end
-		local lt=fast and 0.2 or 0.28
-		local ft=fast and 0.35 or 0.65
-		local hold=fast and 0 or 1.8
-		tw(Logo,lt,EC,EI,{ImageTransparency=1,Size=U2(0,60,0,60),Position=U2(0.5,-30,0.42,-30)})
-		tw(Glow,lt,EC,EI,{ImageTransparency=1})
-		tw(GlowOuter,lt,EC,EI,{ImageTransparency=1})
-		tw(Panel,lt,EC,EI,{Position=U2(0.5,0,0.95,0),BackgroundTransparency=1})
-		tw(PanelBG,lt,ES,EI,{BackgroundTransparency=1})
+		_LA=false;alive=false
+		if PCS then PCS:Disconnect();PCS=nil end
+		local lt=fast and 0.16 or 0.26
+		local hold=fast and 0 or 2.5
+		local ft=fast and 0.28 or 0.75
+		tw(Logo,lt,EC,EI,{ImageTransparency=1,Size=U2(0,50,0,50),Position=U2(0.5,-25,0.38,-25)})
+		tw(LogoRing,lt,EC,EI,{ImageTransparency=1})
+		tw(GlowNear,lt,EC,EI,{ImageTransparency=1})
+		tw(GlowMid,lt,EC,EI,{ImageTransparency=1})
+		tw(GlowFar,lt,EC,EI,{ImageTransparency=1})
+		tw(Panel,lt,EQ,EI,{Position=U2(0.5,0,1.08,0)})
+		tw(PBG,lt,ES,EI,{BackgroundTransparency=1})
+		tw(Scan,lt,ES,EI,{BackgroundTransparency=1})
 		tdelay(lt+hold,function()
 			tw(Vign,ft,ES,EI,{ImageTransparency=1})
-			tw(Img,ft,ES,EI,{ImageTransparency=1})
-			tw(Grad,ft,ES,EI,{ImageTransparency=1})
-			tw(Base,ft+0.1,ES,EI,{BackgroundTransparency=1})
-			tdelay(ft+0.15,kill)
+			tw(Img,ft+0.12,ES,EI,{ImageTransparency=1})
+			tw(Grad,ft+0.12,ES,EI,{ImageTransparency=1})
+			tw(Base,ft+0.25,ES,EI,{BackgroundTransparency=1})
+			tdelay(ft+0.32,kill)
 		end)
 	end
-
 	_DL=function()wipe(true)end
-
 	tw(Base,0.04,ES,EO,{BackgroundTransparency=0})
-	tw(Img,0.8,ES,EO,{ImageTransparency=0.06})
-	tw(Grad,0.8,ES,EO,{ImageTransparency=0})
-	tw(Vign,0.8,ES,EO,{ImageTransparency=0.3})
+	tw(Img,0.9,ES,EO,{ImageTransparency=0.04})
+	tw(Grad,0.9,ES,EO,{ImageTransparency=0})
+	tw(Vign,0.9,ES,EO,{ImageTransparency=0.25})
+	tw(Scan,0.9,ES,EO,{BackgroundTransparency=0.94})
 	tdelay(0.28,function()
-		tw(Logo,0.5,EB,EO,{ImageTransparency=0})
-		tw(Glow,0.5,ES,EO,{ImageTransparency=0.38})
-		tw(GlowOuter,0.5,ES,EO,{ImageTransparency=0.62})
-		tw(Panel,0.45,EB,EO,{Position=U2(0.5,0,0.76,0)})
-		tw(PanelBG,0.45,ES,EO,{BackgroundTransparency=0.25})
-		tdelay(0.4,pulse)
+		tw(GlowFar,0.6,ES,EO,{ImageTransparency=0.62})
+		tw(GlowMid,0.6,ES,EO,{ImageTransparency=0.34})
+		tw(GlowNear,0.6,ES,EO,{ImageTransparency=0.52})
+		tw(LogoRing,0.6,ES,EO,{ImageTransparency=0.68})
+		tw(Logo,0.55,EB,EO,{ImageTransparency=0})
+		tw(Panel,0.52,EB,EO,{Position=U2(0.5,0,0.78,0)})
+		tw(PBG,0.52,ES,EO,{BackgroundTransparency=0.12})
+		tdelay(0.48,pulse)
 	end)
-
-	return setmt({},{__index={
-		destroy=function()wipe(false)end,
-		destroyFast=function()wipe(true)end,
-		setBar=setBar,
-	}})::any
+	return setmt({},{__index={destroy=function()wipe(false)end,destroyFast=function()wipe(true)end,setBar=setBar}})::any
 end
-
 loadCFG();checkEnv()
 local ld=mkLoader()
 inf("BOOT",sfmt("v%s b=%s s=%X p=%s j=%s|%s",_VER,_BLD,_SEED,_PID,_JID,_pi()))
 logPlayers()
-
 tspawn(function()
 	if ld then ld.setBar(0.03,"Waiting for game...") end
 	_waitLoad()
@@ -1614,18 +1516,16 @@ tspawn(function()
 		if ld then ld.setBar(0.5,"Resolving...") end
 		gs_src,gs_ext=resolve()
 	end
-	if ld then ld.setBar(0.82,"Executing...") end
+	if ld then ld.setBar(0.85,"Executing...") end
 	vmExec(gs_src,gs_ext,"game",function()
 		if ld then ld.setBar(1,"Done!") end
-		tdelay(0.6,function()
-			if ld then ld.destroy()end
-		end)
+		tdelay(0.9,function()if ld then ld.destroy()end end)
 	end)
 	local afke=bt["anti-afk"]
 	if afke then vmExec(afke.src,afke.ext,"anti-afk")
 	else local as,ae=fetchP(S_AFK);vmExec(as,ae,"anti-afk") end
 	log("BOOT","ready ".._el())
-	tdelay(6,function()if _LA and ld then ld.destroy()end end)
+	tdelay(10,function()if _LA and ld then ld.destroy()end end)
 	saveCFG()
 end)
 
