@@ -1,5 +1,0 @@
-task.spawn(function()
-	pcall(function()
-		loadstring(game:HttpGet(https://raw.githubusercontent.com/zurai02/zurai-hub/main/Scr/loadstring.luau"))()
-	end)
-end)
