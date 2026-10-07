@@ -1,0 +1,225 @@
+<title>Zurai Hub — API</title>
+<link rel="stylesheet" href="style.css">
+
+<nav>
+  <div class="nav">
+    <a class="nav-logo" href="loader.html">ZURAI<span>HUB</span></a>
+    <ul class="nav-links">
+      <li><a href="loader.html">Loader</a></li>
+      <li><a href="api.html" class="active">API</a></li>
+      <li><a href="idea.html">Ideas</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="page">
+
+  <section style="margin-bottom:40px">
+    <div class="hero-badge">Internal API Reference</div>
+    <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,5vw,2.8rem);font-weight:700;letter-spacing:.02em;margin-bottom:12px">
+      Zurai Hub <span style="color:var(--acc2)">API</span>
+    </h1>
+    <p style="color:var(--fg2);max-width:580px;margin-bottom:20px">
+      Internal module surface exposed after the hub initialises. All symbols live
+      under the <code style="font-family:var(--font-mono);color:var(--acc3);font-size:.85rem">_ZH</code> global table injected into the executor environment.
+    </p>
+    <span id="envBadge" class="chip chip-purple">DETECTING ENV…</span>
+  </section>
+
+  <!-- ── Core Modules ── -->
+  <div class="section-label">Core Modules</div>
+  <h2 class="section-title" style="margin-bottom:24px">Available Namespaces</h2>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- VM -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <span class="chip chip-purple">_ZH.VM</span>
+        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">Virtual Machine</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.VM.compile(<span style="color:var(--acc4)">src: string</span>) → <span style="color:var(--acc3)">proto</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Lex → parse → 5-pass optimise → return proto table.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.VM.run(<span style="color:var(--acc4)">proto, env?</span>) → <span style="color:var(--acc3)">...any</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Interpret a compiled proto inside an optional environment table.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.VM.loadstring(<span style="color:var(--acc4)">src: string</span>) → <span style="color:var(--acc3)">function</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Convenience: compile + wrap as a callable closure.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Network -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <span class="chip chip-green">_ZH.Net</span>
+        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">Network / Fetch Layer</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Net.get(<span style="color:var(--acc4)">url: string</span>) → <span style="color:var(--acc3)">string?</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">GET with exponential backoff (initial 0.3 s, max 8 s, ±100 ms jitter, 4 retries).</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Net.getWithFallback(<span style="color:var(--acc4)">urls: {string}</span>) → <span style="color:var(--acc3)">string?</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Try each URL in order; return first successful response.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Net.fetchBatch(<span style="color:var(--acc4)">names: {string}</span>) → <span style="color:var(--acc3)">results</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Parallel fetch with 32 s timeout and <code style="font-family:var(--font-mono);color:var(--acc3)">fDone</code> race guard.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <span class="chip chip-red">_ZH.Sec</span>
+        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">Security / Anti-Detection</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Sec.checkEnv() → <span style="color:var(--acc3)">nil</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Scan 24 executor signatures; log detected APIs and executor name.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Sec.antiTamper() → <span style="color:var(--acc3)">nil</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">Check for meta-hook injection, hookfunction API, and excess DescendantAdded connections.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Sec.integrityHash → <span style="color:var(--acc3)">number</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">XOR fold of first 32 keystream bytes; non-zero means keystream is valid.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Crypto -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <span class="chip chip-yellow">_ZH.Crypto</span>
+        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">XChaCha20-style PRNG</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Crypto.xs32(<span style="color:var(--acc4)">x: number</span>) → <span style="color:var(--acc3)">number</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">xorshift32 PRNG step; seed is 0xDEAD_BEEF.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Crypto.xe(<span style="color:var(--acc4)">data: {byte}</span>) → <span style="color:var(--acc3)">{byte}</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">XOR-encrypt a byte table against the keystream.</div>
+        </div>
+
+        <div style="border-left:2px solid var(--border2);padding-left:14px">
+          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
+            _ZH.Crypto.xd(<span style="color:var(--acc4)">data: {byte}</span>) → <span style="color:var(--acc3)">string</span>
+          </div>
+          <div style="font-size:.82rem;color:var(--fg2)">XOR-decrypt a byte table and return the plaintext string.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- Example snippet -->
+  <div class="section-label">Quick Example</div>
+  <h2 class="section-title" style="margin-bottom:18px">Usage Snippet</h2>
+
+  <div class="code-block" style="position:relative">
+    <button class="copy-btn" id="exCopyBtn">Copy</button>
+<pre><span class="cm">-- After Zurai Hub has loaded:</span>
+<span class="kw">local</span> zh = _ZH
+
+<span class="cm">-- Compile and run a string</span>
+<span class="kw">local</span> proto = zh.VM.compile(<span class="str">"return 1 + 1"</span>)
+<span class="kw">local</span> result = zh.VM.run(proto)
+print(result) <span class="cm">-- 2</span>
+
+<span class="cm">-- Fetch with fallback</span>
+<span class="kw">local</span> src = zh.Net.getWithFallback({
+    <span class="str">"https://cdn1.example.com/script.lua"</span>,
+    <span class="str">"https://cdn2.example.com/script.lua"</span>,
+})
+<span class="kw">if</span> src <span class="kw">then</span> zh.VM.loadstring(src)() <span class="kw">end</span></pre>
+  </div>
+
+  <div style="margin-top:40px" data-browser-only>
+    <div class="card" style="border-color:rgba(255,209,102,0.25);background:rgba(255,209,102,0.04)">
+      <p style="font-size:.85rem;color:var(--fg2)">
+        <span style="color:var(--acc4)">ⓘ</span>
+        You are viewing this in a browser. The API is only <em>active</em> inside a
+        Roblox executor environment after the hub script executes.
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0</span>
+  <span class="ver-tag">STABLE</span>
+</footer>
+
+<script src="ap.js"></script>
+<script>
+  document.getElementById('exCopyBtn').addEventListener('click', function() {
+    const pre = this.closest('.code-block').querySelector('pre');
+    const text = pre ? pre.textContent : '';
+    navigator.clipboard.writeText(text).then(() => {
+      this.textContent = 'Copied!';
+      setTimeout(() => { this.textContent = 'Copy'; }, 1800);
+    }).catch(() => {
+      if (pre) {
+        const r = document.createRange();
+        r.selectNodeContents(pre);
+        const s = window.getSelection();
+        if (s) { s.removeAllRanges(); s.addRange(r); }
+      }
+      this.textContent = 'Selected';
+      setTimeout(() => { this.textContent = 'Copy'; }, 1800);
+    });
+  });
+</script>
