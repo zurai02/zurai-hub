@@ -1,225 +1,513 @@
-<title>Zurai Hub — API</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zurai Hub — API Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
+<style>
+  .sidebar-toc {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 80px);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 200px;
+  }
+  .toc-label {
+    font-family: var(--font-mono);
+    font-size: .62rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc-link {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    letter-spacing: .05em;
+    color: var(--fg-3);
+    padding: 5px 10px;
+    border-radius: var(--r-sm);
+    border-left: 2px solid transparent;
+    transition: color .2s, border-color .2s, background .2s;
+    display: block;
+    text-decoration: none;
+  }
+  .toc-link:hover, .toc-link.active {
+    color: var(--purple);
+    border-left-color: var(--purple);
+    background: var(--purple-dim);
+  }
+  .docs-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px;
+    align-items: start;
+  }
+  @media (max-width: 768px) {
+    .docs-layout { grid-template-columns: 1fr; }
+    .sidebar-toc { position: static; }
+  }
 
-<nav>
-  <div class="nav">
-    <a class="nav-logo" href="loader.html">ZURAI<span>HUB</span></a>
+  .api-intro-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    margin-bottom: 40px;
+  }
+  .api-intro-card p { color: var(--fg-2); font-size: .9rem; line-height: 1.7; }
+
+  .method-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+  }
+  .get  { background: rgba(6,214,160,.18); color: var(--cyan); border: 1px solid rgba(6,214,160,.3); }
+  .fn-tag { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(124,106,255,.3); }
+  .mod-tag { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(255,209,102,.3); }
+
+  .param-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 0;
+  }
+  .param-row {
+    display: grid;
+    grid-template-columns: 160px 100px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    font-size: .85rem;
+    padding: 8px 12px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+  }
+  @media (max-width: 480px) { .param-row { grid-template-columns: 1fr; } }
+  .param-name { font-family: var(--font-mono); color: var(--cyan); font-size: .82rem; }
+  .param-type { font-family: var(--font-mono); color: var(--gold); font-size: .78rem; opacity: .85; }
+  .param-desc { color: var(--fg-2); font-size: .83rem; }
+
+  .return-note {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    color: var(--fg-3);
+    padding: 8px 16px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .return-note-label { color: var(--purple); flex-shrink: 0; }
+
+  .note-callout {
+    padding: 14px 18px;
+    background: var(--purple-dim);
+    border: 1px solid rgba(124,106,255,.3);
+    border-radius: var(--r-md);
+    font-size: .85rem;
+    color: var(--fg-2);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 12px;
+  }
+  .note-callout-icon { color: var(--purple); flex-shrink: 0; font-size: 1rem; }
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<div class="nav-wrap">
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">ZURAI<span>HUB</span></a>
     <ul class="nav-links">
-      <li><a href="loader.html">Loader</a></li>
+      <li><a href="index.html">Home</a></li>
       <li><a href="api.html" class="active">API</a></li>
       <li><a href="idea.html">Ideas</a></li>
     </ul>
-  </div>
-</nav>
+    <span id="envBadge" class="chip cp"><span class="env-dot"></span>Detecting…</span>
+  </nav>
+</div>
 
-<main class="page">
+<div class="docs-layout">
 
-  <section style="margin-bottom:40px">
-    <div class="hero-badge">Internal API Reference</div>
-    <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,5vw,2.8rem);font-weight:700;letter-spacing:.02em;margin-bottom:12px">
-      Zurai Hub <span style="color:var(--acc2)">API</span>
-    </h1>
-    <p style="color:var(--fg2);max-width:580px;margin-bottom:20px">
-      Internal module surface exposed after the hub initialises. All symbols live
-      under the <code style="font-family:var(--font-mono);color:var(--acc3);font-size:.85rem">_ZH</code> global table injected into the executor environment.
-    </p>
-    <span id="envBadge" class="chip chip-purple">DETECTING ENV…</span>
-  </section>
+  <!-- ── Sidebar TOC ────────────────────────────────────── -->
+  <aside>
+    <nav class="sidebar-toc" aria-label="API sections">
+      <div class="toc-label">On this page</div>
+      <a href="#overview"   class="toc-link">Overview</a>
+      <a href="#loader"     class="toc-link">Loader</a>
+      <a href="#net"        class="toc-link">Net</a>
+      <a href="#env"        class="toc-link">Env</a>
+      <a href="#vm"         class="toc-link">VM</a>
+      <a href="#crypto"     class="toc-link">Crypto</a>
+      <a href="#modules"    class="toc-link">Modules</a>
+      <a href="#errors"     class="toc-link">Errors</a>
+    </nav>
+  </aside>
 
-  <!-- ── Core Modules ── -->
-  <div class="section-label">Core Modules</div>
-  <h2 class="section-title" style="margin-bottom:24px">Available Namespaces</h2>
+  <!-- ── Main Content ──────────────────────────────────── -->
+  <main>
 
-  <div style="display:flex;flex-direction:column;gap:16px">
+    <section style="margin-bottom:40px">
+      <div class="hero-badge" style="margin-bottom:16px">Reference · v3.3.0</div>
+      <h1 class="page-title">API <span class="glow-purple">Reference</span></h1>
+      <p class="page-sub">Complete documentation for the Zurai Hub Lua runtime API.</p>
+    </section>
+
+    <!-- Overview -->
+    <section id="overview" class="api-section fade-in-up">
+      <div class="api-section-title">Overview</div>
+      <div class="api-intro-card">
+        <p>
+          Zurai Hub exposes a global <code style="font-family:var(--font-mono);color:var(--cyan)">Zurai</code> table the moment
+          the loader executes. All submodules are lazy-loaded on first access — only the code you actually use
+          gets fetched. The loader is delivered via
+          <code style="font-family:var(--font-mono);color:var(--cyan)">loadstring(game:HttpGet(…))()</code>
+          and bootstraps the VM optimizer, environment detector, and polyfill layer before surfacing the public API.
+        </p>
+      </div>
+      <div class="code-block">
+        <pre><span class="cmt">-- One-liner to bootstrap Zurai Hub</span>
+<span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(<span class="str">"https://zurai02.github.io/zurai-hub/loader-api.html"</span>))()</pre>
+      </div>
+    </section>
+
+    <!-- Loader -->
+    <section id="loader" class="api-section fade-in-up">
+      <div class="api-section-title">Loader</div>
+      <p style="color:var(--fg-2);font-size:.9rem;margin-bottom:16px;line-height:1.7">
+        The loader bootstrap sets up the environment, runs the 5-pass VM optimizer,
+        and populates the global <code style="font-family:var(--font-mono);color:var(--cyan)">Zurai</code> table.
+      </p>
+
+      <div style="margin-bottom:20px">
+        <div style="font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;color:var(--fg)">
+          <span class="fn-tag method-badge">fn</span> Zurai.load(moduleId)
+        </div>
+        <div class="param-block">
+          <div class="param-row">
+            <span class="param-name">moduleId</span>
+            <span class="param-type">string</span>
+            <span class="param-desc">Module identifier. One of: <code style="font-family:var(--font-mono);color:var(--gold);font-size:.8em">"esp"</code>, <code style="font-family:var(--font-mono);color:var(--gold);font-size:.8em">"aim"</code>, <code style="font-family:var(--font-mono);color:var(--gold);font-size:.8em">"move"</code>, <code style="font-family:var(--font-mono);color:var(--gold);font-size:.8em">"crypto"</code></span>
+          </div>
+        </div>
+        <div class="return-note">
+          <span class="return-note-label">returns</span>
+          <span>module table or nil on fetch failure</span>
+        </div>
+        <div class="code-block" style="margin-top:12px">
+          <pre><span class="kw">local</span> esp = <span class="fn">Zurai</span>.<span class="fn">load</span>(<span class="str">"esp"</span>)
+esp.<span class="fn">enable</span>({ boxes = <span class="kw">true</span>, names = <span class="kw">true</span> })</pre>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;color:var(--fg)">
+          <span class="fn-tag method-badge">fn</span> Zurai.version()
+        </div>
+        <div class="return-note">
+          <span class="return-note-label">returns</span>
+          <span>string — semver, e.g. <code style="font-family:var(--font-mono);color:var(--gold);font-size:.8em">"3.3.0"</code></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Net -->
+    <section id="net" class="api-section fade-in-up">
+      <div class="api-section-title">Net</div>
+      <p style="color:var(--fg-2);font-size:.9rem;margin-bottom:20px;line-height:1.7">
+        HTTP utilities with built-in retry, fallback chains, and parallel batching.
+      </p>
+
+      <div class="api-table-wrap" style="margin-bottom:24px">
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Function</th>
+              <th>Parameters</th>
+              <th>Returns</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Net.get(url)</td>
+              <td>url: string</td>
+              <td>string | nil</td>
+              <td>HTTP GET with exponential backoff (3 retries, jitter). Returns body or nil.</td>
+            </tr>
+            <tr>
+              <td>Net.getWithFallback(urls)</td>
+              <td>urls: string[]</td>
+              <td>string | nil</td>
+              <td>Iterates fallback URL list, returns first successful body.</td>
+            </tr>
+            <tr>
+              <td>Net.fetchBatch(urls, cb)</td>
+              <td>urls: string[], cb: function</td>
+              <td>void</td>
+              <td>Parallel coroutine fan-out, 32 s timeout, fDone race guard. Calls cb(url, body) per result.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <pre><span class="cmt">-- Parallel fetch example</span>
+<span class="fn">Zurai</span>.<span class="fn">Net</span>.<span class="fn">fetchBatch</span>({
+  <span class="str">"https://cdn1.example.com/mod.lua"</span>,
+  <span class="str">"https://cdn2.example.com/mod.lua"</span>,
+}, <span class="kw">function</span>(url, body)
+  <span class="kw">if</span> body <span class="kw">then</span> <span class="fn">loadstring</span>(body)() <span class="kw">end</span>
+<span class="kw">end</span>)</pre>
+      </div>
+    </section>
+
+    <!-- Env -->
+    <section id="env" class="api-section fade-in-up">
+      <div class="api-section-title">Env</div>
+      <p style="color:var(--fg-2);font-size:.9rem;margin-bottom:20px;line-height:1.7">
+        Executor detection and compatibility layer management.
+      </p>
+
+      <div class="api-table-wrap">
+        <table class="api-table">
+          <thead>
+            <tr><th>Property / Function</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Env.executor</td>
+              <td>string</td>
+              <td>Detected executor name. One of: syn, krnl, fluxus, wave, oxygen, electron, unknown.</td>
+            </tr>
+            <tr>
+              <td>Env.sigCount</td>
+              <td>number</td>
+              <td>Number of positive signature matches found during the 32-sig scan.</td>
+            </tr>
+            <tr>
+              <td>Env.hasPolyfill</td>
+              <td>boolean</td>
+              <td>True if the polyfill layer was applied for missing globals.</td>
+            </tr>
+            <tr>
+              <td>Env.identify()</td>
+              <td>→ string</td>
+              <td>Re-runs the signature scan and returns the executor name string.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
     <!-- VM -->
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-        <span class="chip chip-purple">_ZH.VM</span>
-        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">Virtual Machine</span>
+    <section id="vm" class="api-section fade-in-up">
+      <div class="api-section-title">VM</div>
+      <p style="color:var(--fg-2);font-size:.9rem;margin-bottom:20px;line-height:1.7">
+        The 5-pass optimizer pipeline runs automatically at load time.
+        These controls let you tune or re-run it manually.
+      </p>
+
+      <div class="api-table-wrap" style="margin-bottom:20px">
+        <table class="api-table">
+          <thead>
+            <tr><th>Pass</th><th>ID</th><th>Effect</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 — cfold</td><td>"cfold"</td><td>Constant folding: evaluates constant sub-expressions at compile time.</td></tr>
+            <tr><td>2 — dce</td><td>"dce"</td><td>Dead code elimination: removes unreachable branches.</td></tr>
+            <tr><td>3 — peep</td><td>"peep"</td><td>Peephole: replaces instruction sequences with shorter equivalents.</td></tr>
+            <tr><td>4 — jthread</td><td>"jthread"</td><td>JIT thread hints: marks hot loops for preferential scheduling.</td></tr>
+            <tr><td>5 — inline_moves</td><td>"inline_moves"</td><td>Inline move coalescing: collapses redundant register transfers.</td></tr>
+          </tbody>
+        </table>
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
 
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.VM.compile(<span style="color:var(--acc4)">src: string</span>) → <span style="color:var(--acc3)">proto</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Lex → parse → 5-pass optimise → return proto table.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.VM.run(<span style="color:var(--acc4)">proto, env?</span>) → <span style="color:var(--acc3)">...any</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Interpret a compiled proto inside an optional environment table.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.VM.loadstring(<span style="color:var(--acc4)">src: string</span>) → <span style="color:var(--acc3)">function</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Convenience: compile + wrap as a callable closure.</div>
-        </div>
-
+      <div class="code-block">
+        <pre><span class="cmt">-- Run optimizer with specific passes only</span>
+<span class="fn">Zurai</span>.<span class="fn">VM</span>.<span class="fn">optimize</span>({
+  passes = { <span class="str">"cfold"</span>, <span class="str">"dce"</span>, <span class="str">"peep"</span> },
+  verbose = <span class="kw">false</span>,
+})</pre>
       </div>
-    </div>
-
-    <!-- Network -->
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-        <span class="chip chip-green">_ZH.Net</span>
-        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">Network / Fetch Layer</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Net.get(<span style="color:var(--acc4)">url: string</span>) → <span style="color:var(--acc3)">string?</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">GET with exponential backoff (initial 0.3 s, max 8 s, ±100 ms jitter, 4 retries).</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Net.getWithFallback(<span style="color:var(--acc4)">urls: {string}</span>) → <span style="color:var(--acc3)">string?</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Try each URL in order; return first successful response.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Net.fetchBatch(<span style="color:var(--acc4)">names: {string}</span>) → <span style="color:var(--acc3)">results</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Parallel fetch with 32 s timeout and <code style="font-family:var(--font-mono);color:var(--acc3)">fDone</code> race guard.</div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Security -->
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-        <span class="chip chip-red">_ZH.Sec</span>
-        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">Security / Anti-Detection</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Sec.checkEnv() → <span style="color:var(--acc3)">nil</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Scan 24 executor signatures; log detected APIs and executor name.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Sec.antiTamper() → <span style="color:var(--acc3)">nil</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">Check for meta-hook injection, hookfunction API, and excess DescendantAdded connections.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Sec.integrityHash → <span style="color:var(--acc3)">number</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">XOR fold of first 32 keystream bytes; non-zero means keystream is valid.</div>
-        </div>
-
-      </div>
-    </div>
+    </section>
 
     <!-- Crypto -->
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-        <span class="chip chip-yellow">_ZH.Crypto</span>
-        <span style="color:var(--fg3);font-size:.8rem;font-family:var(--font-mono)">XChaCha20-style PRNG</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Crypto.xs32(<span style="color:var(--acc4)">x: number</span>) → <span style="color:var(--acc3)">number</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">xorshift32 PRNG step; seed is 0xDEAD_BEEF.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Crypto.xe(<span style="color:var(--acc4)">data: {byte}</span>) → <span style="color:var(--acc3)">{byte}</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">XOR-encrypt a byte table against the keystream.</div>
-        </div>
-
-        <div style="border-left:2px solid var(--border2);padding-left:14px">
-          <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--acc2);margin-bottom:3px">
-            _ZH.Crypto.xd(<span style="color:var(--acc4)">data: {byte}</span>) → <span style="color:var(--acc3)">string</span>
-          </div>
-          <div style="font-size:.82rem;color:var(--fg2)">XOR-decrypt a byte table and return the plaintext string.</div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-
-  <hr class="divider">
-
-  <!-- Example snippet -->
-  <div class="section-label">Quick Example</div>
-  <h2 class="section-title" style="margin-bottom:18px">Usage Snippet</h2>
-
-  <div class="code-block" style="position:relative">
-    <button class="copy-btn" id="exCopyBtn">Copy</button>
-<pre><span class="cm">-- After Zurai Hub has loaded:</span>
-<span class="kw">local</span> zh = _ZH
-
-<span class="cm">-- Compile and run a string</span>
-<span class="kw">local</span> proto = zh.VM.compile(<span class="str">"return 1 + 1"</span>)
-<span class="kw">local</span> result = zh.VM.run(proto)
-print(result) <span class="cm">-- 2</span>
-
-<span class="cm">-- Fetch with fallback</span>
-<span class="kw">local</span> src = zh.Net.getWithFallback({
-    <span class="str">"https://cdn1.example.com/script.lua"</span>,
-    <span class="str">"https://cdn2.example.com/script.lua"</span>,
-})
-<span class="kw">if</span> src <span class="kw">then</span> zh.VM.loadstring(src)() <span class="kw">end</span></pre>
-  </div>
-
-  <div style="margin-top:40px" data-browser-only>
-    <div class="card" style="border-color:rgba(255,209,102,0.25);background:rgba(255,209,102,0.04)">
-      <p style="font-size:.85rem;color:var(--fg2)">
-        <span style="color:var(--acc4)">ⓘ</span>
-        You are viewing this in a browser. The API is only <em>active</em> inside a
-        Roblox executor environment after the hub script executes.
+    <section id="crypto" class="api-section fade-in-up">
+      <div class="api-section-title">Crypto</div>
+      <p style="color:var(--fg-2);font-size:.9rem;margin-bottom:20px;line-height:1.7">
+        Cryptographic utilities for integrity checking and obfuscation.
+        Based on XChaCha20-style keystream with xorshift32 seeding and SBox mixing.
       </p>
-    </div>
-  </div>
 
-</main>
+      <div class="api-table-wrap">
+        <table class="api-table">
+          <thead>
+            <tr><th>Function</th><th>Parameters</th><th>Returns</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Crypto.xorKey(data, key)</td>
+              <td>data: string, key: number</td>
+              <td>string</td>
+              <td>XOR each byte of data against the keystream derived from key.</td>
+            </tr>
+            <tr>
+              <td>Crypto.hash(data)</td>
+              <td>data: string</td>
+              <td>number</td>
+              <td>XOR-fold hash of data. Used internally as _ICH_VAL integrity check.</td>
+            </tr>
+            <tr>
+              <td>Crypto.rand(min, max)</td>
+              <td>min: number, max: number</td>
+              <td>number</td>
+              <td>Deterministic PRNG value in [min, max] from xorshift32 state.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-callout" style="margin-top:16px">
+        <span class="note-callout-icon">ⓘ</span>
+        <span>
+          Crypto is automatically used by the anti-tamper integrity check at loader init.
+          The <code style="font-family:var(--font-mono);color:var(--cyan);font-size:.82em">_ICH_VAL</code> guard will abort execution if the loader source has been modified.
+        </span>
+      </div>
+    </section>
+
+    <!-- Modules -->
+    <section id="modules" class="api-section fade-in-up">
+      <div class="api-section-title">Modules</div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:24px">
+        <div class="glass-card" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span class="mod-tag method-badge">MOD</span>
+            <span style="font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">ESP</span>
+          </div>
+          <p style="font-size:.83rem;color:var(--fg-2);line-height:1.6">
+            Box, skeleton, name, health overlays. Per-team color support. v2 rewrite with configurable render distance.
+          </p>
+        </div>
+        <div class="glass-card" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span class="mod-tag method-badge">MOD</span>
+            <span style="font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Aimbot</span>
+          </div>
+          <p style="font-size:.83rem;color:var(--fg-2);line-height:1.6">
+            Silent aim, configurable FOV circle, smoothing factor, bone targeting (head/torso), team-check filter.
+          </p>
+        </div>
+        <div class="glass-card" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span class="mod-tag method-badge">MOD</span>
+            <span style="font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Movement</span>
+          </div>
+          <p style="font-size:.83rem;color:var(--fg-2);line-height:1.6">
+            Fly mode, speed multiplier, noclip. Powered by BodyVelocity + BodyGyro. Toggle-safe cleanup on disable.
+          </p>
+        </div>
+        <div class="glass-card" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span class="mod-tag method-badge">MOD</span>
+            <span style="font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Crypto</span>
+          </div>
+          <p style="font-size:.83rem;color:var(--fg-2);line-height:1.6">
+            XChaCha20-style keystream, XOR encryption, integrity hash guard for anti-tamper protection.
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <pre><span class="cmt">-- Load and configure the movement module</span>
+<span class="kw">local</span> move = <span class="fn">Zurai</span>.<span class="fn">load</span>(<span class="str">"move"</span>)
+move.<span class="fn">fly</span>({ speed = <span class="num">80</span>, enabled = <span class="kw">true</span> })
+move.<span class="fn">noclip</span>(<span class="kw">true</span>)
+
+<span class="cmt">-- Disable and clean up</span>
+move.<span class="fn">disable</span>()</pre>
+      </div>
+    </section>
+
+    <!-- Errors -->
+    <section id="errors" class="api-section fade-in-up">
+      <div class="api-section-title">Error Codes</div>
+
+      <div class="api-table-wrap">
+        <table class="api-table">
+          <thead>
+            <tr><th>Code</th><th>Constant</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>E001</td><td>ERR_NET_FAIL</td><td>All CDN fallbacks exhausted. Check network connectivity or try a different executor.</td></tr>
+            <tr><td>E002</td><td>ERR_ICH_FAIL</td><td>Integrity check failed. Loader source has been tampered with. Re-fetch the loader.</td></tr>
+            <tr><td>E003</td><td>ERR_NO_EXEC</td><td>No executor environment detected. Run inside a supported Roblox executor.</td></tr>
+            <tr><td>E004</td><td>ERR_MOD_LOAD</td><td>Module fetch returned nil or failed to parse. Check moduleId spelling.</td></tr>
+            <tr><td>E005</td><td>ERR_POLYFILL</td><td>Polyfill could not shim a required global. Executor may be too outdated.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
 
 <footer class="footer">
-  <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0</span>
-  <span class="ver-tag">STABLE</span>
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0 · zurai02.github.io/zurai-hub</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="api.html">API</a>
+      <a href="idea.html">Ideas</a>
+    </div>
+    <span class="ver-tag">STABLE</span>
+  </div>
 </footer>
 
 <script src="ap.js"></script>
 <script>
-  document.getElementById('exCopyBtn').addEventListener('click', function() {
-    const pre = this.closest('.code-block').querySelector('pre');
-    const text = pre ? pre.textContent : '';
-    navigator.clipboard.writeText(text).then(() => {
-      this.textContent = 'Copied!';
-      setTimeout(() => { this.textContent = 'Copy'; }, 1800);
-    }).catch(() => {
-      if (pre) {
-        const r = document.createRange();
-        r.selectNodeContents(pre);
-        const s = window.getSelection();
-        if (s) { s.removeAllRanges(); s.addRange(r); }
+/* Highlight active TOC link on scroll */
+(function () {
+  var links   = document.querySelectorAll('.toc-link');
+  var sections = document.querySelectorAll('.api-section[id]');
+  if (!window.IntersectionObserver || !sections.length) return;
+
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        links.forEach(function (l) { l.classList.remove('active'); });
+        var active = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+        if (active) active.classList.add('active');
       }
-      this.textContent = 'Selected';
-      setTimeout(() => { this.textContent = 'Copy'; }, 1800);
     });
-  });
+  }, { rootMargin: '-10% 0px -60% 0px' });
+
+  sections.forEach(function (s) { obs.observe(s); });
+})();
 </script>
+
+</body>
+</html>
