@@ -1,0 +1,80 @@
+--[[
+Zurai Hub v3.3.0 — https://zurai02.github.io/zurai-hub/
+Lua sees this as a multi-line comment and skips it.
+HTML below is wrapped in another block comment so Lua ignores it.
+]]
+
+-- [PASTE-CODE-HERE]
+
+--[[ HTML below — Lua ignores everything past this point
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zurai Hub — Loader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="nav-wrap">
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">ZURAI<span>HUB</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="api.html">API</a></li>
+      <li><a href="idea.html">Ideas</a></li>
+    </ul>
+    <span id="envBadge" class="chip cp"><span class="env-dot"></span>Detecting…</span>
+  </nav>
+</div>
+
+<main class="page">
+
+  <section style="margin-bottom:32px">
+    <div class="hero-badge">Loader · v3.3.0</div>
+    <h1 class="page-title">Zurai Hub <span style="color:var(--cyan)">Loader</span></h1>
+    <p class="page-sub">Execute the one-liner below inside your Roblox executor to load the hub.</p>
+  </section>
+
+  <!-- Shown only inside a Roblox executor -->
+  <div data-exec-only hidden style="margin-bottom:32px">
+    <div class="slabel">One-Line Loader</div>
+    <h2 class="stitle" style="margin-bottom:14px">Copy &amp; Execute</h2>
+    <p style="color:var(--fg2);font-size:.85rem;margin-bottom:14px">
+      Paste into your executor console and hit Execute.
+    </p>
+    <div class="loader-box">
+      <button class="copy-btn" id="loaderCopyBtn">Copy</button>
+      <pre id="loaderPre"></pre>
+    </div>
+  </div>
+
+  <!-- Shown only in a browser -->
+  <div data-browser-only style="margin-bottom:28px">
+    <div class="browser-warn">
+      <span style="font-size:1.3rem">🚫</span>
+      <span>
+        <strong>Access Denied.</strong> This loader is only served inside a
+        <strong>Roblox executor</strong>. Open this page from your executor's
+        built-in browser to retrieve the script.
+      </span>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0 · zurai02.github.io/zurai-hub</span>
+  <span class="ver-tag">STABLE</span>
+</footer>
+
+<script src="ap.js"></script>
+
+</body>
+</html>
+]]
