@@ -1,213 +1,260 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Zurai Hub — Ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
-
 <style>
-  /* Idea-specific: kanban-like status rows */
-  .idea-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .idea-item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: start;
-    gap: 14px;
-    padding: 16px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    transition: border-color .18s;
-  }
-
-  .idea-item:hover { border-color: var(--border2); }
-
-  .idea-num {
-    font-family: var(--font-mono);
-    font-size: .72rem;
-    color: var(--fg3);
-    padding-top: 2px;
-    font-variant-numeric: tabular-nums;
-    min-width: 22px;
-  }
-
-  .idea-body h3 {
-    font-family: var(--font-display);
-    font-size: .98rem;
-    font-weight: 600;
-    color: var(--fg);
-    letter-spacing: .03em;
-    margin-bottom: 3px;
-  }
-
-  .idea-body p {
-    font-size: .82rem;
-    color: var(--fg2);
-    line-height: 1.5;
-  }
-
-  .idea-status { padding-top: 2px; }
-
-  /* Filter bar */
-  .filter-bar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-
-  .filter-btn {
-    font-family: var(--font-mono);
-    font-size: .72rem;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    border-radius: 3px;
-    border: 1px solid var(--border2);
-    background: transparent;
-    color: var(--fg3);
-    cursor: pointer;
-    transition: color .15s, border-color .15s, background .15s;
-  }
-
-  .filter-btn:hover,
-  .filter-btn.active {
-    color: var(--acc2);
-    border-color: var(--acc);
-    background: var(--bg3);
-  }
+  .idea-item:nth-child(1)  { animation-delay: .04s; }
+  .idea-item:nth-child(2)  { animation-delay: .08s; }
+  .idea-item:nth-child(3)  { animation-delay: .12s; }
+  .idea-item:nth-child(4)  { animation-delay: .16s; }
+  .idea-item:nth-child(5)  { animation-delay: .20s; }
+  .idea-item:nth-child(6)  { animation-delay: .24s; }
+  .idea-item:nth-child(7)  { animation-delay: .28s; }
+  .idea-item:nth-child(8)  { animation-delay: .32s; }
+  .idea-item:nth-child(9)  { animation-delay: .36s; }
+  .idea-item:nth-child(10) { animation-delay: .40s; }
+  .idea-item:nth-child(11) { animation-delay: .44s; }
+  .idea-item:nth-child(12) { animation-delay: .48s; }
+  .idea-item:nth-child(13) { animation-delay: .52s; }
+  .idea-item:nth-child(14) { animation-delay: .56s; }
+  .idea-item:nth-child(15) { animation-delay: .60s; }
+  .idea-item:nth-child(16) { animation-delay: .64s; }
+  .idea-item:nth-child(17) { animation-delay: .68s; }
+  .idea-item:nth-child(18) { animation-delay: .72s; }
+  .idea-item:nth-child(19) { animation-delay: .76s; }
+  .idea-item:nth-child(20) { animation-delay: .80s; }
 </style>
+</head>
+<body>
 
-<nav>
-  <div class="nav">
-    <a class="nav-logo" href="loader.html">ZURAI<span>HUB</span></a>
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<div class="nav-wrap">
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">ZURAI<span>HUB</span></a>
     <ul class="nav-links">
-      <li><a href="loader.html">Loader</a></li>
+      <li><a href="index.html">Home</a></li>
       <li><a href="api.html">API</a></li>
       <li><a href="idea.html" class="active">Ideas</a></li>
     </ul>
-  </div>
-</nav>
+    <span id="envBadge" class="chip cp"><span class="env-dot"></span>Detecting…</span>
+  </nav>
+</div>
 
 <main class="page">
 
-  <section style="margin-bottom:36px">
-    <div class="hero-badge">Feature Roadmap</div>
-    <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,5vw,2.8rem);font-weight:700;letter-spacing:.02em;margin-bottom:12px">
-      Idea <span style="color:var(--acc2)">Board</span>
-    </h1>
-    <p style="color:var(--fg2);max-width:560px;margin-bottom:22px">
-      Planned features, active development items, and community suggestions for
-      Zurai Hub v3.x. Status reflects the current build at <span style="color:var(--acc3);font-family:var(--font-mono)">v3.3.0</span>.
-    </p>
-    <span id="envBadge" class="chip chip-purple">DETECTING ENV…</span>
+  <!-- ── Page Header ──────────────────────────────────────── -->
+  <section style="margin-bottom:0">
+    <div class="hero-badge" style="margin-bottom:16px">Community · v3.3.0</div>
+    <h1 class="page-title">Zurai Hub <span class="glow-cyan">Ideas</span></h1>
+    <p class="page-sub">Planned features and community suggestions for upcoming releases.</p>
   </section>
 
-  <!-- Stats -->
-  <div class="stats-row" style="margin-block:0 36px">
+  <!-- ── Stats ────────────────────────────────────────────── -->
+  <div class="stats-row fade-in-up">
     <div class="stat-cell">
-      <div class="stat-num" id="doneCount">—</div>
-      <div class="stat-label">Shipped</div>
+      <div class="stat-num">20</div>
+      <div class="stat-lbl">Total</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-num" id="wipCount">—</div>
-      <div class="stat-label">In Progress</div>
+      <div class="stat-num" style="color:var(--gold);text-shadow:0 0 20px var(--gold-glow)">7</div>
+      <div class="stat-lbl">Planned</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-num" id="todoCount">—</div>
-      <div class="stat-label">Planned</div>
+      <div class="stat-num">5</div>
+      <div class="stat-lbl">In Dev</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-num" id="totalCount">—</div>
-      <div class="stat-label">Total</div>
+      <div class="stat-num cyan">5</div>
+      <div class="stat-lbl">Done</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" style="color:var(--red);text-shadow:0 0 20px rgba(255,77,109,.3)">3</div>
+      <div class="stat-lbl">Review</div>
     </div>
   </div>
 
-  <!-- Filter -->
+  <!-- ── Filter Bar ───────────────────────────────────────── -->
   <div class="filter-bar">
     <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="shipped">Shipped</button>
-    <button class="filter-btn" data-filter="wip">In Progress</button>
     <button class="filter-btn" data-filter="planned">Planned</button>
+    <button class="filter-btn" data-filter="in-dev">In Dev</button>
+    <button class="filter-btn" data-filter="done">Done</button>
+    <button class="filter-btn" data-filter="review">Review</button>
   </div>
 
-  <!-- Ideas list -->
-  <div class="idea-list" id="ideaList"></div>
+  <!-- ── Ideas List ───────────────────────────────────────── -->
+  <div class="idea-list" id="ideaList">
+
+    <div class="idea-item" data-tag="in-dev">
+      <div class="idea-num">01</div>
+      <div class="idea-body"><h3>VM Bytecode Cache</h3><p>Cache compiled protos to disk so repeated loadstring calls skip the lex+parse phases entirely.</p></div>
+      <div class="idea-status"><span class="chip cp">In Dev</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">02</div>
+      <div class="idea-body"><h3>Module Hot-Reload</h3><p>Watch module URLs for changes and re-fetch + re-run without restarting the hub.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="done">
+      <div class="idea-num">03</div>
+      <div class="idea-body"><h3>Exponential Backoff on Net.get</h3><p>Retry failed HTTP calls with jitter to avoid hammering CDN on transient errors.</p></div>
+      <div class="idea-status"><span class="chip cg">Done</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="in-dev">
+      <div class="idea-num">04</div>
+      <div class="idea-body"><h3>ESP Module v2</h3><p>Rewritten ESP with configurable box/skeleton/name/health overlays and per-team colouring.</p></div>
+      <div class="idea-status"><span class="chip cp">In Dev</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">05</div>
+      <div class="idea-body"><h3>GUI Builder DSL</h3><p>Declarative mini-language for building in-game UIs that compiles down to Roblox Instance trees.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="done">
+      <div class="idea-num">06</div>
+      <div class="idea-body"><h3>XChaCha20-style PRNG</h3><p>Deterministic keystream used across Crypto module; seeded from xorshift32 with SBox mixing.</p></div>
+      <div class="idea-status"><span class="chip cg">Done</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="review">
+      <div class="idea-num">07</div>
+      <div class="idea-body"><h3>Anti-Kick Watchdog</h3><p>Reconnect script that monitors RemoteEvent kick patterns and soft-disconnects before detection.</p></div>
+      <div class="idea-status"><span class="chip cr">Review</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">08</div>
+      <div class="idea-body"><h3>Network Spy Module</h3><p>Hook all RemoteEvent / RemoteFunction calls and log them to the executor console with type info.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="in-dev">
+      <div class="idea-num">09</div>
+      <div class="idea-body"><h3>5-Pass Optimiser</h3><p>cfold → dce → peep → jthread → inline_moves pipeline for the VM compile step.</p></div>
+      <div class="idea-status"><span class="chip cp">In Dev</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="done">
+      <div class="idea-num">10</div>
+      <div class="idea-body"><h3>Old-Executor Polyfill Layer</h3><p>Shims for missing loadstring, game.HttpGet, warn and task on legacy exploit builds.</p></div>
+      <div class="idea-status"><span class="chip cg">Done</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">11</div>
+      <div class="idea-body"><h3>Config Persistence</h3><p>Save user settings (ESP colours, toggle states) across sessions using writefile polyfill.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="review">
+      <div class="idea-num">12</div>
+      <div class="idea-body"><h3>Server-Side Latency Spoof</h3><p>Modify network latency values sent to the server to affect hit registration calculations.</p></div>
+      <div class="idea-status"><span class="chip cr">Review</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="in-dev">
+      <div class="idea-num">13</div>
+      <div class="idea-body"><h3>Parallel Batch Fetch</h3><p>fetchBatch with coroutine fan-out, 32 s timeout, fDone race guard to prevent double-execution.</p></div>
+      <div class="idea-status"><span class="chip cp">In Dev</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="done">
+      <div class="idea-num">14</div>
+      <div class="idea-body"><h3>Executor Signature Scan</h3><p>Identify active executor by probing 24 known global APIs and reporting name to console.</p></div>
+      <div class="idea-status"><span class="chip cg">Done</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">15</div>
+      <div class="idea-body"><h3>Aimbot Module</h3><p>Silent aim with configurable FOV, smoothing, bone targeting and team-check.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="in-dev">
+      <div class="idea-num">16</div>
+      <div class="idea-body"><h3>Anti-Tamper Integrity Check</h3><p>XOR-fold keystream hash guard (_ICH_VAL) plus meta-hook and hookfunction detection.</p></div>
+      <div class="idea-status"><span class="chip cp">In Dev</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">17</div>
+      <div class="idea-body"><h3>Fly / Speed / Noclip</h3><p>Movement module with toggleable fly, speed multiplier and noclip using BodyVelocity + BodyGyro.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="review">
+      <div class="idea-num">18</div>
+      <div class="idea-body"><h3>Chat Broadcaster</h3><p>Mass-send custom chat messages through FireServer hooks with anti-flood interval.</p></div>
+      <div class="idea-status"><span class="chip cr">Review</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="done">
+      <div class="idea-num">19</div>
+      <div class="idea-body"><h3>Fallback URL Chain</h3><p>getWithFallback iterates a list of CDN mirrors and returns the first successful body.</p></div>
+      <div class="idea-status"><span class="chip cg">Done</span></div>
+    </div>
+
+    <div class="idea-item" data-tag="planned">
+      <div class="idea-num">20</div>
+      <div class="idea-body"><h3>Module Marketplace</h3><p>In-hub browser listing community-submitted modules with one-click load via Net.get.</p></div>
+      <div class="idea-status"><span class="chip cy">Planned</span></div>
+    </div>
+
+  </div>
 
 </main>
 
 <footer class="footer">
-  <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0</span>
-  <span class="ver-tag">STABLE</span>
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0 · zurai02.github.io/zurai-hub</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="api.html">API</a>
+      <a href="idea.html">Ideas</a>
+    </div>
+    <span class="ver-tag">STABLE</span>
+  </div>
 </footer>
 
 <script src="ap.js"></script>
 <script>
-const IDEAS = [
-  // ── Shipped ──────────────────────────────────────────────────────────────
-  { status:'shipped', title:'XChaCha20-style keystream encryption',     desc:'xorshift32 PRNG, SBox/ISBox tables, per-URL byte-array constants, ICH_VAL integrity guard.' },
-  { status:'shipped', title:'52-opcode Luau VM with 5-pass optimiser',  desc:'cfold, dce, peep, jthread, inline_moves. ABx/AsBx/ABC encoding. repeat…until dispatch loop.' },
-  { status:'shipped', title:'CALL B==1 zero-arg fast-path',             desc:'Eliminates args table allocation when a function is called with no arguments.' },
-  { status:'shipped', title:'Exponential backoff + jitter in Net.get',  desc:'Initial 0.3 s, doubles per retry, capped at 8 s, ±100 ms jitter; 4 retries total.' },
-  { status:'shipped', title:'fDone race guard in fetchBatch',           desc:'First successful parallel fetch sets fDone; remaining workers abort early.' },
-  { status:'shipped', title:'24-signature executor fingerprinting',     desc:'Covers syn, krnl, fluxus, oxygen, electron, wave, proto, xeno, Drawing, Synapse and more.' },
-  { status:'shipped', title:'_antiTamper() boot check',                 desc:'Detects meta-hook injection on _G, hookfunction API presence, and excess DescendantAdded connections.' },
-  { status:'shipped', title:'5-particle orbital loader UI',             desc:'Sine-oscillator orbits, per-particle color (acc/acc2/acc3/mint/gold), transparency pulse.' },
-  { status:'shipped', title:'Animated status ellipsis ticker',          desc:'Status bar dots animate at 0.46 s intervals; matches "ing" and ".." suffixes.' },
-  { status:'shipped', title:'Bar completion triple flash',              desc:'BarGlow ImageTransparency pulses 3× when progress reaches ≥ 99.9%.' },
+  var btns  = document.querySelectorAll('.filter-btn');
+  var items = document.querySelectorAll('.idea-item');
 
-  // ── In Progress ──────────────────────────────────────────────────────────
-  { status:'wip', title:'Lua 5.4 upvalue optimiser',                   desc:'Track upvalue read/write counts; inline constants and promote hot upvalues to registers.' },
-  { status:'wip', title:'Network response caching (LRU)',               desc:'Bounded LRU cache on the Net layer; TTL-aware eviction for CDN responses.' },
-  { status:'wip', title:'GUI tab system',                               desc:'Multi-tab hub UI with per-tab script state, keybind toggle, and drag-handle resizing.' },
-  { status:'wip', title:'WebSocket keep-alive channel',                 desc:'Persistent WS to CDN for hot-reload of module updates without re-fetching full source.' },
-
-  // ── Planned ──────────────────────────────────────────────────────────────
-  { status:'planned', title:'Bytecode diff patching',                  desc:'Delta-patch VM bytecode from server; only changed ops are transmitted, not full source.' },
-  { status:'planned', title:'Module registry',                         desc:'Named module system: require("zurai:esp"), require("zurai:aimbot") with lazy loading.' },
-  { status:'planned', title:'WASM JIT back-end experiment',            desc:'Explore compiling hot loops to WASM for native-speed execution inside the executor sandbox.' },
-  { status:'planned', title:'Persistent config via datastore proxy',   desc:'Sync user settings across sessions via a lightweight Roblox datastore proxy server.' },
-  { status:'planned', title:'Plugin API surface',                      desc:'Allow third-party script authors to register tabs and callbacks against the hub runtime.' },
-  { status:'planned', title:'Auto-update notify toast',                desc:'Version-check on boot; show a non-blocking toast when a newer release is available.' },
-];
-
-const CHIP = {
-  shipped: '<span class="chip chip-green" style="white-space:nowrap">Shipped</span>',
-  wip:     '<span class="chip chip-yellow" style="white-space:nowrap">In&nbsp;Progress</span>',
-  planned: '<span class="chip chip-purple" style="white-space:nowrap">Planned</span>',
-};
-
-function renderList(filter) {
-  const list = document.getElementById('ideaList');
-  const items = filter === 'all' ? IDEAS : IDEAS.filter(i => i.status === filter);
-  list.innerHTML = items.map((idea, idx) => `
-    <div class="idea-item" data-status="${idea.status}">
-      <div class="idea-num">${String(idx + 1).padStart(2,'0')}</div>
-      <div class="idea-body">
-        <h3>${idea.title}</h3>
-        <p>${idea.desc}</p>
-      </div>
-      <div class="idea-status">${CHIP[idea.status] || ''}</div>
-    </div>
-  `).join('');
-}
-
-function updateStats() {
-  const shipped = IDEAS.filter(i => i.status === 'shipped').length;
-  const wip     = IDEAS.filter(i => i.status === 'wip').length;
-  const planned = IDEAS.filter(i => i.status === 'planned').length;
-  document.getElementById('doneCount').textContent  = shipped;
-  document.getElementById('wipCount').textContent   = wip;
-  document.getElementById('todoCount').textContent  = planned;
-  document.getElementById('totalCount').textContent = IDEAS.length;
-}
-
-// Filter buttons
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderList(btn.dataset.filter);
+  btns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var f = btn.dataset.filter;
+      var delay = 0;
+      items.forEach(function (item) {
+        var show = (f === 'all' || item.dataset.tag === f);
+        if (show) {
+          item.style.display = '';
+          item.style.animationDelay = delay + 's';
+          item.style.animation = 'none';
+          void item.offsetWidth; // reflow
+          item.style.animation = '';
+          delay += 0.04;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
   });
-});
-
-renderList('all');
-updateStats();
 </script>
+
+</body>
+</html>
