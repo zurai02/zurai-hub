@@ -3,6 +3,9 @@ name: Update Games Registry
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'Scr/games/**/*.lua'
+      - 'Scr/games/**/*.luau'
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
