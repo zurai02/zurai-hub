@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zurai Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Index-specific enhancements */
+  .hero-title-accent {
+    display: block;
+    background: linear-gradient(90deg, var(--purple) 0%, var(--cyan) 60%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 24px rgba(124,106,255,0.4));
+  }
+
+  .hero-divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple), var(--cyan), transparent);
+    margin: 4px auto;
+  }
+
+  .exec-section {
+    padding: 80px 24px;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 50%, var(--bg) 100%);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .exec-section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+
+  /* Animated gradient ring on premium card */
+  @keyframes ring-rotate {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<div class="nav-wrap">
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">ZURAI<span>HUB</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="api.html">API</a></li>
+      <li><a href="idea.html">Ideas</a></li>
+    </ul>
+    <span id="envBadge" class="chip cp"><span class="env-dot"></span>Detecting…</span>
+  </nav>
+</div>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<section class="hero">
+  <canvas id="particleCanvas" aria-hidden="true"></canvas>
+  <div class="hero-bg-gradient" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">Community · v3.3.0 · Stable Release</div>
+
+    <div class="hero-title-wrap">
+      <div class="display-xl">
+        <span class="hero-title-accent">ZURAI</span><span style="color:var(--fg);text-shadow:0 0 40px var(--purple-glow)">HUB</span>
+      </div>
+      <div class="hero-divider"></div>
+    </div>
+
+    <p class="hero-sub">
+      The premier Roblox script hub — engineered for speed, built for reliability.
+      Anti-detection, VM optimization, and a modular loader in one tight package.
+    </p>
+
+    <div class="hero-cta-row">
+      <a href="#get-started" class="btn btn-primary">Get Started</a>
+      <a href="api.html" class="btn btn-secondary">View API Docs</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Executor Loader (executor-only) ────────────────────── -->
+<section class="exec-section" id="get-started">
+  <div class="exec-section-inner">
+
+    <div class="section-header" style="margin-bottom:0">
+      <span class="section-eyebrow">Quick Start</span>
+      <h2 class="section-title">Execute <span class="glow-purple">Zurai Hub</span></h2>
+    </div>
+
+    <!-- Executor-gated loader -->
+    <div data-exec-only hidden>
+      <div class="loader-box fade-in-up">
+        <div class="loader-label">// Loader · paste into executor console</div>
+        <div class="loader-pre-wrap">
+          <code id="loaderPre"></code>
+          <button id="loaderCopyBtn" type="button">Copy</button>
+        </div>
+        <p style="font-size:.8rem;color:var(--fg-3);font-family:var(--font-mono);letter-spacing:.04em">
+          ✓ Verified safe · Anti-tamper integrity check enabled · Auto-detects executor API
+        </p>
+      </div>
+    </div>
+
+    <!-- Browser-only warning -->
+    <div data-browser-only hidden>
+      <div class="browser-warn fade-in-up">
+        <div class="browser-warn-icon">⚠</div>
+        <div>
+          <h3>Executor Required</h3>
+          <p>
+            Open Zurai Hub inside your Roblox executor's built-in browser.
+            The loader script will appear here once an executor environment is detected.
+            Supported: <code>Synapse X</code>, <code>KRNL</code>, <code>Fluxus</code>, <code>Wave</code>, and 28 more.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Why Zurai Hub ──────────────────────────────────────── -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-header fade-in-up">
+      <span class="section-eyebrow">Built Different</span>
+      <h2 class="section-title">Why <span class="glow-cyan">Zurai Hub</span>?</h2>
+      <p class="page-sub" style="text-align:center">
+        Every line engineered for performance, stability, and staying undetected.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+
+      <div class="glass-card feature-card fade-in-up">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">VM Bytecode Optimizer</div>
+        <p class="feature-desc">
+          Five-pass compile pipeline: constant folding, dead code elimination, peephole,
+          JIT thread hints, and inline moves for maximum script throughput.
+        </p>
+      </div>
+
+      <div class="glass-card glass-card-cyan feature-card fade-in-up">
+        <div class="feature-icon cyan">🛡</div>
+        <div class="feature-title">Anti-Detection Layer</div>
+        <p class="feature-desc">
+          XOR-fold keystream integrity guard, meta-hook detection, and
+          hookfunction scanning to keep your session clean across 24 sig checks.
+        </p>
+      </div>
+
+      <div class="glass-card feature-card fade-in-up">
+        <div class="feature-icon gold">📦</div>
+        <div class="feature-title">Modular Architecture</div>
+        <p class="feature-desc">
+          Four independent modules — ESP, Aimbot, Movement, Crypto — each hot-swappable
+          via the parallel batch fetcher with 32s timeout and race guard.
+        </p>
+      </div>
+
+      <div class="glass-card glass-card-cyan feature-card fade-in-up">
+        <div class="feature-icon cyan">🌐</div>
+        <div class="feature-title">Priority CDN Network</div>
+        <p class="feature-desc">
+          Fallback URL chain across multiple mirrors with exponential backoff and jitter.
+          If one CDN node fails, the next kicks in within milliseconds.
+        </p>
+      </div>
+
+      <div class="glass-card feature-card fade-in-up">
+        <div class="feature-icon">🔁</div>
+        <div class="feature-title">Executor Polyfill</div>
+        <p class="feature-desc">
+          Shims for missing <code style="font-family:var(--font-mono);color:var(--cyan);font-size:.8em">loadstring</code>,
+          <code style="font-family:var(--font-mono);color:var(--cyan);font-size:.8em">HttpGet</code>,
+          <code style="font-family:var(--font-mono);color:var(--cyan);font-size:.8em">task</code>,
+          and <code style="font-family:var(--font-mono);color:var(--cyan);font-size:.8em">warn</code>
+          on legacy executors. Write once, run anywhere.
+        </p>
+      </div>
+
+      <div class="glass-card feature-card fade-in-up">
+        <div class="feature-icon gold">🔮</div>
+        <div class="feature-title">32 Sig Environment Scan</div>
+        <p class="feature-desc">
+          Identifies your active executor by probing 32 known global APIs, reports
+          the name, and applies the correct compatibility layer automatically.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Row ──────────────────────────────────────────── -->
+<section class="section" style="padding-top:0">
+  <div class="section-inner">
+    <div class="stats-row fade-in-up">
+      <div class="stat-cell">
+        <div class="stat-num">4</div>
+        <div class="stat-lbl">Core Modules</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num cyan">24</div>
+        <div class="stat-lbl">Sig Scans</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">5</div>
+        <div class="stat-lbl">Opt Passes</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num gold">500+</div>
+        <div class="stat-lbl">Active Users</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────────────── -->
+<section class="section" style="background:var(--bg-2)">
+  <div class="section-inner">
+    <div class="section-header fade-in-up">
+      <span class="section-eyebrow">Tiers</span>
+      <h2 class="section-title">Choose Your <span class="glow-gold">Plan</span></h2>
+      <p class="page-sub" style="text-align:center">
+        Start free. Upgrade for the full arsenal.
+      </p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <!-- Free Tier -->
+      <div class="glass-card pricing-card fade-in-up">
+        <div>
+          <div class="tier-name">Free</div>
+          <div class="tier-price">
+            <span class="tier-price-amount">$0</span>
+            <span class="tier-price-period">/ forever</span>
+          </div>
+        </div>
+        <ul class="tier-features">
+          <li class="tier-feature">
+            <span class="tier-feature-check">✓</span>
+            Basic module set (ESP v1, Movement)
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check">✓</span>
+            Community support via Discord
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check">✓</span>
+            Standard CDN load speed
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check">✓</span>
+            Executor polyfill layer
+          </li>
+          <li class="tier-feature" style="opacity:.45">
+            <span class="tier-feature-check" style="color:var(--fg-3)">✗</span>
+            Anti-detection layer
+          </li>
+          <li class="tier-feature" style="opacity:.45">
+            <span class="tier-feature-check" style="color:var(--fg-3)">✗</span>
+            Priority CDN failover
+          </li>
+          <li class="tier-feature" style="opacity:.45">
+            <span class="tier-feature-check" style="color:var(--fg-3)">✗</span>
+            VM bytecode optimizer
+          </li>
+        </ul>
+        <a href="#get-started" class="btn btn-secondary" style="text-align:center;justify-content:center">Start Free</a>
+      </div>
+
+      <!-- Premium Tier -->
+      <div class="glass-card pricing-card pricing-card-premium fade-in-up">
+        <div>
+          <div class="popular-badge">Most Popular</div>
+          <div class="tier-name glow-purple" style="margin-top:12px">Premium</div>
+          <div class="tier-price">
+            <span class="tier-price-amount" style="color:var(--purple)">$9</span>
+            <span class="tier-price-period">/ month</span>
+          </div>
+        </div>
+        <ul class="tier-features">
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            All modules (ESP v2, Aimbot, Movement, Crypto)
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            Priority CDN with global failover chain
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            Full anti-detection layer + integrity guard
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            5-pass VM bytecode optimizer
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            24/7 priority support
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            Early access to new modules
+          </li>
+          <li class="tier-feature">
+            <span class="tier-feature-check gold">★</span>
+            Config persistence across sessions
+          </li>
+        </ul>
+        <a href="#get-started" class="btn btn-primary" style="text-align:center;justify-content:center">Go Premium</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 ZURAI HUB · v3.3.0 · zurai02.github.io/zurai-hub</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="api.html">API</a>
+      <a href="idea.html">Ideas</a>
+    </div>
+    <span class="ver-tag">STABLE</span>
+  </div>
+</footer>
+
+<script src="ap.js"></script>
+<script>
+/* ── Particle Canvas ─────────────────────────────────────── */
+(function () {
+  var canvas = document.getElementById('particleCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H, particles = [];
+  var PARTICLE_COUNT = 80;
+  var MAX_DIST = 140;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function Particle() {
+    this.x  = Math.random() * W;
+    this.y  = Math.random() * H;
+    this.vx = (Math.random() - .5) * .5;
+    this.vy = (Math.random() - .5) * .5;
+    this.r  = Math.random() * 1.5 + .5;
+  }
+
+  Particle.prototype.update = function () {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.x < 0 || this.x > W) this.vx *= -1;
+    if (this.y < 0 || this.y > H) this.vy *= -1;
+  };
+
+  function init() {
+    particles = [];
+    for (var i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.update();
+
+      // Dot
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(124,106,255,0.55)';
+      ctx.fill();
+
+      // Lines to nearby particles
+      for (var j = i + 1; j < particles.length; j++) {
+        var q = particles[j];
+        var dx = p.x - q.x, dy = p.y - q.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MAX_DIST) {
+          var alpha = (1 - dist / MAX_DIST) * 0.18;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = 'rgba(124,106,255,' + alpha + ')';
+          ctx.lineWidth = .6;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', function () { resize(); init(); });
+  resize();
+  init();
+  draw();
+})();
+</script>
+
+</body>
+</html>
