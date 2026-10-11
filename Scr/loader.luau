@@ -1,6 +1,7 @@
 --!optimise 2
 --!strict
 --!native
+
 --]===========================================================]
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣿⣿⣿⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡭⣿⣿⡿⣷⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⣿⣿⣿⣿⣿⣿
@@ -87,6 +88,35 @@ local slen  = string.len
 local sbyte = string.byte
 local schar = string.char
 
+-- FIX: stdlib aliases moved above _bs so tcr/tcat exist when _bs is called on the lines below
+local tins  = table.insert
+local trem  = table.remove
+local tcat  = table.concat
+local tcr   = table.create
+local tfr   = table.freeze
+local tmov  = table.move
+
+local mmin  = math.min
+local mmax  = math.max
+local mflr  = math.floor
+local msin  = math.sin
+local mrnd  = math.random
+local mabs  = math.abs
+
+local b32x  = bit32.bxor
+local b32a  = bit32.band
+local b32o  = bit32.bor
+local b32n  = bit32.bnot
+local b32r  = bit32.rshift
+local b32l  = bit32.lshift
+
+local tspawn = task.spawn
+local tdelay = task.delay
+local twait  = task.wait
+local clock  = os.clock
+local ostime = os.time
+local newI   = Instance.new
+
 local function _bs(...)
 	local t={...};local r=tcr(#t)
 	for i=1,#t do r[i]=schar(t[i]) end
@@ -140,34 +170,6 @@ local rawget   = rawget
 local setmt    = setmetatable
 local getmt    = getmetatable
 local unpack   = table.unpack
-
-local tins  = table.insert
-local trem  = table.remove
-local tcat  = table.concat
-local tcr   = table.create
-local tfr   = table.freeze
-local tmov  = table.move
-
-local mmin  = math.min
-local mmax  = math.max
-local mflr  = math.floor
-local msin  = math.sin
-local mrnd  = math.random
-local mabs  = math.abs
-
-local b32x  = bit32.bxor
-local b32a  = bit32.band
-local b32o  = bit32.bor
-local b32n  = bit32.bnot
-local b32r  = bit32.rshift
-local b32l  = bit32.lshift
-
-local tspawn = task.spawn
-local tdelay = task.delay
-local twait  = task.wait
-local clock  = os.clock
-local ostime = os.time
-local newI   = Instance.new
 
 local S = tfr({
 	hs=_g:GetService("HttpService"),
@@ -285,8 +287,9 @@ local function _fw()
 		while #LQ>0 do
 			local sz=mmin(15,#LQ)
 			for i=1,sz do LBK[i]=trem(LQ,1) end
+			for i=sz+1,#LBK do LBK[i]=nil end -- FIX: clear stale entries from previous batch
 			local ct=tcat(LBK,"\n",1,sz)
-			if slen(ct)>1900 then ct=ssub(ct,1,1900).."…" end
+			if slen(ct)>1900 then ct=ssub(ct,1,1900).."鈥�" end
 			pcall(hs.RequestAsync,hs,{
 				Url=w,Method="POST",
 				Headers=tfr({["Content-Type"]="application/json"}),
@@ -296,10 +299,10 @@ local function _fw()
 						title=sfmt("Zurai Hub v%s",_VER),color=0x5865F2,
 						thumbnail={url=AVA},
 						fields=tfr({
-							{name="👤",value=sfmt("`%s`",_pi()),inline=false},
-							{name="🌐",value=sfmt("`%s`",_si()),inline=false},
-							{name="🔐",value=sfmt("`%s·%s·%X`",_VER,_BLD,_SEED),inline=false},
-							{name="📋",value=sfmt("```ansi\n%s\n```",ct),inline=false},
+							{name="馃懁",value=sfmt("`%s`",_pi()),inline=false},
+							{name="馃寪",value=sfmt("`%s`",_si()),inline=false},
+							{name="馃攼",value=sfmt("`%s路%s路%X`",_VER,_BLD,_SEED),inline=false},
+							{name="馃搵",value=sfmt("```ansi\n%s\n```",ct),inline=false},
 						}),
 						footer={text=sfmt("up=%s t=%s",_el(),_ts()),icon_url=AVA},
 						timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ"),
@@ -1178,7 +1181,10 @@ local function interpret(proto,env,uvs,varargs)
 		if B==1 then
 			if C2==1 then pcall(fn)
 			elseif C2==2 then local ok,v1=pcall(fn);R[A+1]=ok and v1 or nil
-			else local ok,v1,v2,v3=pcall(fn);if ok then R[A+1]=v1;R[A+2]=v2;R[A+3]=v3 end end
+			else -- FIX: handle up to 6 returns for zero-arg calls, same as the B>1 branch
+				local ok,v1,v2,v3,v4,v5,v6=pcall(fn)
+				if ok then local vals={v1,v2,v3,v4,v5,v6};for j=1,C2-1 do R[A+j]=vals[j] end end
+			end
 		else
 			local args=tcr(mmax(0,B-1));for j=1,B-1 do args[j]=R[A+1+j] end
 			if C2==1 then pcall(fn,unpack(args,1,B-1))
@@ -1535,7 +1541,7 @@ local function mkLoader()
 	local BarGlow=mk("ImageLabel",{Size=U2(1,0,8,0),Position=U2(0,0,0.5,-20),BackgroundTransparency=1,Image="rbxassetid://5028857472",ImageColor3=ACC2,ImageTransparency=0.38,ZIndex=13},Bar)
 	local Stat=mk("TextLabel",{Size=U2(0.66,0,0,18),Position=U2(0,14,0,99),BackgroundTransparency=1,TextColor3=TXTS,TextScaled=true,Font=Enum.Font.Gotham,Text="Initialising...",TextXAlignment=Enum.TextXAlignment.Left,ZIndex=13},Panel)
 	local Pct=mk("TextLabel",{Size=U2(0.34,-14,0,18),Position=U2(0.66,0,0,99),BackgroundTransparency=1,TextColor3=WHITE,TextScaled=true,Font=Enum.Font.GothamBold,Text="0%",TextXAlignment=Enum.TextXAlignment.Right,ZIndex=13},Panel)
-	mk("TextLabel",{Size=U2(1,-28,0,15),Position=U2(0,14,0,138),BackgroundTransparency=1,TextColor3=TXTP,TextScaled=true,Font=Enum.Font.Gotham,Text=sfmt("@%s · %s · uid %s",LP.Name,LP.DisplayName,_PU),TextXAlignment=Enum.TextXAlignment.Left,ZIndex=13},Panel)
+	mk("TextLabel",{Size=U2(1,-28,0,15),Position=U2(0,14,0,138),BackgroundTransparency=1,TextColor3=TXTP,TextScaled=true,Font=Enum.Font.Gotham,Text=sfmt("@%s 路 %s 路 uid %s",LP.Name,LP.DisplayName,_PU),TextXAlignment=Enum.TextXAlignment.Left,ZIndex=13},Panel)
 
 	local alive,PCS=true,nil
 	local function kill()
