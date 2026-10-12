@@ -1,0 +1,10 @@
+{
+  "lua": {
+    "paths": ["Scr"],
+    "exclude": ["Scr/games"],
+    "blocking": false
+  },
+  "json": {
+    "exclude": [".git", "node_modules"]
+  }
+}

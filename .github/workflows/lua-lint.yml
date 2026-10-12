@@ -1,0 +1,48 @@
+name: Lua Lint
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install luacheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq luarocks
+          sudo luarocks install luacheck
+
+      - name: Run luacheck using lint.json
+        run: |
+          python3 - <<'PY'
+          import glob, json, os, subprocess, sys
+          cfg = json.load(open("lint.json", encoding="utf-8"))["lua"]
+          excluded = tuple(os.path.normpath(e) for e in cfg.get("exclude", []))
+          files = []
+          for root in cfg["paths"]:
+              for path in glob.glob(os.path.join(root, "**", "*.lua*"), recursive=True):
+                  if not path.endswith((".lua", ".luau")):
+                      continue
+                  norm = os.path.normpath(path)
+                  if any(norm == e or norm.startswith(e + os.sep) for e in excluded):
+                      continue
+                  files.append(path)
+          if not files:
+              print("No Lua files to lint.")
+              sys.exit(0)
+          print(f"Linting {len(files)} files")
+          result = subprocess.run(["luacheck", *files])
+          if result.returncode != 0 and cfg.get("blocking", False):
+              sys.exit(result.returncode)
+          if result.returncode != 0:
+              print("luacheck reported issues, but lint.json has blocking=false.")
+          PY

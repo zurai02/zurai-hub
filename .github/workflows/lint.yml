@@ -32,18 +32,3 @@ jobs:
               sys.exit(1)
           print("All JSON files are valid.")
           EOF
-
-  luau:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install luacheck
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq luarocks && sudo luarocks install luacheck
-
-      - name: Run luacheck on top-level Scr scripts
-        # Non-blocking for now: Roblox scripts use many engine globals and
-        # existing code has not been cleaned up yet.
-        continue-on-error: true
-        run: luacheck Scr/*.lua Scr/*.luau
