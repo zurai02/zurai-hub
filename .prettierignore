@@ -1,0 +1,4 @@
+# Prettier ignore rules for zurai-hub
+package.json
+package-lock.json
+rules.json
