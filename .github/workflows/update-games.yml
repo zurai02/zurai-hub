@@ -16,6 +16,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     concurrency:
       group: update-games-registry
       cancel-in-progress: false
@@ -103,6 +104,18 @@ jobs:
           with open(OUT_FILE, "w", encoding="utf-8") as f:
               json.dump(output, f, indent=4, ensure_ascii=False)
           print(f"Wrote {len(games_map)} entries to {OUT_FILE}")
+          EOF
+
+            python3 - << 'EOF'
+          import json, os, sys
+          data = json.load(open("Scr/games.json", encoding="utf-8"))
+          games = data.get("games", {})
+          if not games:
+              sys.exit("Manifest has no entries; refusing to commit an empty registry.")
+          missing = [g["path"] for g in games.values() if not os.path.exists(g["path"])]
+          if missing:
+              sys.exit(f"Manifest points at missing files: {missing[:5]}")
+          print(f"Validated {len(games)} entries.")
           EOF
 
             git add Scr/games.json
