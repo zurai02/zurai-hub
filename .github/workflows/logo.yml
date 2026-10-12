@@ -1,10 +1,9 @@
+# Disabled automatic runs: this workflow rewrote every changed Lua file in
+# the repo (including Scr/games/) and its YAML was invalid. Run manually only.
 name: Luau and Lua Script Checker
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   filter-and-process:
