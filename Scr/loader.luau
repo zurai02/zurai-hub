@@ -1321,7 +1321,7 @@ local function get(u:string):string?
 		end
 		if i<C.rt then twait(delay+(mrnd(0,100)/1000));delay=mmin(delay*2,8) end
 	end
-	err("GET","exhausted "..u);return nil
+	err("GET","exhausted "..C.rt.." retries: "..u);return nil
 end
 local function getWithFallback(urls:{string}):string?
 	for _,u in ipairs(urls) do local r=get(u);if r then return r end end
@@ -1681,6 +1681,27 @@ tspawn(function()
 	local afke=bt["anti-afk"]
 	if afke then vmExec(afke.src,afke.ext,"anti-afk")
 	else local as,ae=fetchP(S_AFK);vmExec(as,ae,"anti-afk") end
+
+	-- reporter.luau: fetch and run in isolated task with pcall protection
+	tspawn(function()
+		local rs,re=fetchP("reporter")
+		if rs and re then
+			local ok,src=pcall(function() return rs end)
+			if ok and src then
+				tspawn(function()
+					local ok2,e2=pcall(loadstring and loadstring(src) or function()
+						vmExec(src,re,"reporter")
+					end)
+					if not ok2 then err("REPORTER","run "..tostring(e2)) end
+				end)
+			else
+				err("REPORTER","fetch failed")
+			end
+		else
+			dbg("REPORTER","not found — skipping")
+		end
+	end)
+
 	log("BOOT","ready ".._el())
 	tdelay(10,function()if _LA and ld then ld.destroy()end end)
 	saveCFG()
