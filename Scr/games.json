@@ -1,5 +1,5 @@
 {
-    "timestamp": 1792031317,
+    "timestamp": 1792117378,
     "games": {
         "100964511576728": {
             "name": "Smash Crate For Brainrots!",
@@ -174,7 +174,7 @@
             "path": "Scr/games/192800.lua"
         },
         "2317712696": {
-            "name": "Place 2317712696",
+            "name": "The Wild West",
             "path": "Scr/games/2317712696.lua"
         },
         "2753915549": {
@@ -190,7 +190,7 @@
             "path": "Scr/games/2916899287.lua"
         },
         "31490825": {
-            "name": "Warfare Tycoon [NEW JET]",
+            "name": "Warfare Tycoon",
             "path": "Scr/games/31490825.lua"
         },
         "3623096087": {
