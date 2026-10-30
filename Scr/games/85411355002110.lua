@@ -99,17 +99,19 @@ env.Farming = false
 local endPos = Vector3.new(-74, 63, 15784)
 local colPos = Vector3.new(-74, 20, -447)
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 
-local Window = Rayfield:CreateWindow({
-    Name = "+1 Dash for Brainrots",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Interface",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "zurai-hub",
-        FileName = "Config"
-    }
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
+   }
 })
 
 local Tab = Window:CreateTab("Main", 4483362458)
@@ -179,4 +181,4 @@ Tab:CreateToggle({
     end,
 })
 
-Rayfield:LoadConfiguration()
+keoirn:LoadConfiguration()

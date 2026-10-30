@@ -83,16 +83,18 @@ getgenv().AutoCollect = false
 getgenv().WalkSpeed = 16
 getgenv().JumpPower = 50
 
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 
-local Window = Rayfield:CreateWindow({
-   Name = "Rizz Tower",
-   LoadingTitle = "Loading Script...",
-   LoadingSubtitle = "Rizz Tower Utility",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "BrainrotPolice",
-      FileName = "RizzTowerConfig"
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
    }
 })
 

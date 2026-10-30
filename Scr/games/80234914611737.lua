@@ -82,19 +82,20 @@ local env = getgenv()
 
 env.Farming = false
 
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 
-local Window = Rayfield:CreateWindow({
-   Name = "zurai02",
-   LoadingTitle = "Loading Script...",
-   LoadingSubtitle = "by zurai02",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "zurai02 hub",
-      FileName = "JetpackForBrainrotsConfig"
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
    }
 })
-
 local MainTab = Window:CreateTab("Main", 4483362458)
 local PlayerTab = Window:CreateTab("Player", 4483362458)
 

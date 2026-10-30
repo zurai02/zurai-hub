@@ -85,16 +85,18 @@ env.AutoBuy = false
 env.collect = false
 env.stealfromall = false
 
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 
-local Window = Rayfield:CreateWindow({
-   Name = "zurai02",
-   LoadingTitle = "Loading Script...",
-   LoadingSubtitle = "by zurai02",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "BrainrotPolice",
-      FileName = "DumpConfig"
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
    }
 })
 

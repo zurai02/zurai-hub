@@ -76,16 +76,23 @@
 --]===========================================================]
 
 
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/gen2"))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 local Players = game:GetService("Players")
 local localPlayer = Players.LocalPlayer
 local userId = localPlayer.UserId
 
 
-local Window = Rayfield:CreateWindow({
-   Name = "Zurai Hub | Toilet Tower Defense",
-    LoadingSubtitle = "Welcome " .. userId,
-   ConfigurationSaving = { Enabled = true, FolderName = "ZuraiHub_TTD", FileName = "Config" },
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "Welcome " .. userId,
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
+   }
 })
 
 getgenv().AutoEverything = false

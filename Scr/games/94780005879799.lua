@@ -99,17 +99,19 @@ env.AddingSpins = false
 env.AutoSleepy = false
 env.AutoOg = false
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 
-local Window = Rayfield:CreateWindow({
-    Name = "Scream for Brainrots",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "zurai-hub",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "zurai-hub",
-        FileName = "Config"
-    }
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
+   }
 })
 
 local Tab = Window:CreateTab("Main", 4483362458)

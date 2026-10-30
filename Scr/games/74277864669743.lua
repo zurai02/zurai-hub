@@ -115,7 +115,7 @@ if not env.setconfig then
     end
 end
 
-local UI, elements, Rayfield, Window, Tab, section
+local UI, elements, keoirn, Window, Tab, section
 local success = pcall(function()
     local path = getgitpath("src")
     UI = loadstring(game:HttpGet(path .. "UI.lua"))()
@@ -127,17 +127,20 @@ if success and elements then
     section = Window:CreateSection("Main")
     elements:Label("Auto rejoin on kick recommended. (Settings tab)", section)
 else
-    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-    Window = Rayfield:CreateWindow({
-        Name = "Brainrot Police",
-        LoadingTitle = "Brainrot Police",
-        LoadingSubtitle = "by System",
-        ConfigurationSaving = {
-            Enabled = true,
-            FolderName = "BrainrotPolice",
-            FileName = "Config"
-        }
-    })
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
+
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
+   }
+})
     Tab = Window:CreateTab("Main", 4483362458)
     section = Tab
 end
@@ -145,7 +148,7 @@ end
 local function createToggle(name, default, callback)
     if elements and section then
         elements:Toggle(name, section, default, callback)
-    elseif Rayfield and section then
+    elseif keoirn and section then
         section:CreateToggle({
             Name = name,
             CurrentValue = default,

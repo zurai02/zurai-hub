@@ -109,17 +109,19 @@ local function grabem(where)
     end
 end
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local keoirn = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/Keoirn.lua"))()
 
-local Window = Rayfield:CreateWindow({
-    Name = "Survive Flood - Brainrots",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Interface",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "BrainrotPolice",
-        FileName = "Config"
-    }
+local Window = keoirn:CreateWindow({
+   Name = "zurai-hub",
+   Theme = "amethyst",
+   Subtitle = "zurai-hub",
+   SidebarLayout = true,
+   Configuration = {
+      autoSave = true,
+      autoLoad = true,
+      customFolder = "zurai-hub",
+      fileName = "Config"
+   }
 })
 
 local Tab = Window:CreateTab("Main", 4483362458)
