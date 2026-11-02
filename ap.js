@@ -38,7 +38,7 @@
   var IS_EXEC = detect();
 
   /* ── Loader script (shown to executors only) ──────────────── */
-  var LOADER = 'loadstring(game:HttpGet("https://zurai02.github.io/zurai-hub/loader-api"))()';
+  var LOADER = 'loadstring(game:HttpGet("https://zurai02.github.io/zurai-hub/loader-api, true"))()';
 
   /* ── Gating ───────────────────────────────────────────────── */
   function applyGating() {
