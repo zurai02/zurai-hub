@@ -78,9 +78,9 @@
 ⣽⢸⢧⡻⣝⠾⣼⣛⣮⢿⣽⣳⢿⣻⣿⢿⣽⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⢿⣾⣻⢾⡽⣯⢟⣶⢻⡝⣮⢭⡳⢥⡛⡴⣋⡜⣣⠇⡞⢤⢣⡙⣌⠓⠬⠱⠜⡲⣑⢎⠳⡌⣷⡩⢆⡝⣢⢃⡞⣤⠳⡜⠦⢛⢠⠻⣝⠲⣌⠳⣌⢻⣜⡳⣝⢾⡹⣧⣟⢾⣳⣟⡾⣿⣻⣽⣿⣻⣽⣿⣿⣿⣿⣿⣿⣿⣿⣯⣷⣿⢿⣽⣾⣳⢿⣹⣞
 ⣞⢸⢧⡻⣜⣻⡵⣻⣞⢿⡾⣽⣻⣯⣿⢿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⢯⣟⣯⢿⣝⣻⡼⣳⢻⡜⣧⣛⢦⡙⢶⡱⢎⡕⡫⢜⠣⠖⡉⣄⠚⠬⣑⠲⡐⠤⡊⢍⡩⡙⡍⣋⠜⡩⢍⡩⠔⠣⠜⣐⠣⢢⠱⢠⠒⡌⠱⢎⡳⢎⡷⣹⢎⡷⣳⢞⣯⢷⣯⢿⡽⣟⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⣻⡾⣽⢯⡷⣞
 --]===========================================================]
+
 local _g  = game
 local _E0 = getfenv and getfenv(0) or _ENV
-
 local sfmt    = string.format
 local ssub    = string.sub
 local slen    = string.len
@@ -90,7 +90,6 @@ local sfind   = string.find
 local srep    = string.rep
 local sgsub   = string.gsub
 local sgmatch = string.gmatch
-
 local tins  = table.insert
 local trem  = table.remove
 local tcat  = table.concat
@@ -98,7 +97,6 @@ local tcr   = table.create
 local tfr   = table.freeze
 local tmov  = table.move
 local tsort = table.sort
-
 local mmin  = math.min
 local mmax  = math.max
 local mflr  = math.floor
@@ -109,31 +107,24 @@ local mrnd  = math.random
 local mabs  = math.abs
 local msqrt = math.sqrt
 local mpi   = math.pi
-
 local b32x  = bit32.bxor
 local b32a  = bit32.band
 local b32o  = bit32.bor
 local b32n  = bit32.bnot
 local b32r  = bit32.rshift
 local b32l  = bit32.lshift
-
 local tspawn = task.spawn
 local tdelay = task.delay
 local twait  = task.wait
 local clock  = os.clock
 local ostime = os.time
 local newI   = Instance.new
-
--- ──────────────────────────────────────────────────────────
--- § 1  OBFUSCATED STRING BUILDER
--- ──────────────────────────────────────────────────────────
 local function _bs(...)
 	local t = {...}
 	local r = tcr(#t)
 	for i = 1, #t do r[i] = schar(t[i]) end
 	return tcat(r)
 end
-
 local S_O   = _bs(122,117,114,97,105,48,50)
 local S_R   = _bs(122,117,114,97,105,45,104,117,98)
 local S_B   = _bs(109,97,105,110)
@@ -165,7 +156,6 @@ local S_RPX = _bs(
 local S_UNI = _bs(47,117,110,105,118,101,114,115,101)
 local S_AFK = _bs(83,99,114,47,103,97,109,101,115,47,97,110,116,105,45,97,102,107)
 local S_RFMT = S_RAW .. "%s/%s/%s/"
-
 local pairs    = pairs
 local ipairs   = ipairs
 local pcall    = pcall
@@ -177,34 +167,24 @@ local rawget   = rawget
 local setmt    = setmetatable
 local getmt    = getmetatable
 local unpack   = table.unpack
-
--- ──────────────────────────────────────────────────────────
--- § 2  SERVICES (frozen table, no repeated GetService calls)
--- ──────────────────────────────────────────────────────────
 local S = tfr({
 	hs  = _g:GetService("HttpService"),
 	plr = _g:GetService("Players"),
 	tw  = _g:GetService("TweenService"),
 	rs  = _g:GetService("RunService"),
-	uis = _g:GetService("UserInputService"),    -- NEW: for key-bind support
-	ts  = _g:GetService("TextService"),          -- NEW: for text-size queries
+	uis = _g:GetService("UserInputService"),
+	ts  = _g:GetService("TextService"),
 })
-
 local LP    = S.plr.LocalPlayer
 local _VER  = "3.4.0"
 local _BLD  = sfmt("%04X", mrnd(0, 0xFFFF))
 local _SEED = mrnd(1, 0x7FFFFFFF)
-
--- ──────────────────────────────────────────────────────────
--- § 3  XOR-STREAM CIPHER  (xoshiro32** core, unchanged API)
--- ──────────────────────────────────────────────────────────
 local function xs32(s: number): (number, number)
 	s = b32x(s, b32l(s, 13))
 	s = b32x(s, b32r(s, 17))
 	s = b32x(s, b32l(s, 5))
 	return b32a(s, 0xFF), s
 end
-
 local KS = tcr(32)
 do
 	local st = _SEED
@@ -213,14 +193,12 @@ do
 	end
 end
 tfr(KS)
-
 local _ICH_VAL = (function()
 	local h = 0
 	for i = 1, 32 do h = b32x(h, KS[i]) end
 	if h == 0 then warn("zurai:ks_zero") end
 	return h
 end)()
-
 local SB  = tcr(256)
 local ISB = tcr(256)
 do
@@ -232,10 +210,7 @@ do
 	end
 	for i = 0, 255 do ISB[SB[i]] = i end
 end
-
--- Shared encrypt / decrypt buffer – grows on demand, never shrinks
 local _CRYPT_BUF = tcr(4096)
-
 local function _xe(s: string): string
 	local n = slen(s)
 	if n > #_CRYPT_BUF then _CRYPT_BUF = tcr(n + 256) end
@@ -250,7 +225,6 @@ local function _xe(s: string): string
 	end
 	return tcat(_CRYPT_BUF, 1, n)
 end
-
 local function _xd(s: string): string
 	local n = slen(s)
 	if n > #_CRYPT_BUF then _CRYPT_BUF = tcr(n + 256) end
@@ -265,10 +239,6 @@ local function _xd(s: string): string
 	end
 	return tcat(_CRYPT_BUF, 1, n)
 end
-
--- ──────────────────────────────────────────────────────────
--- § 4  CONFIG  (encrypted at rest, plaintext only in memory)
--- ──────────────────────────────────────────────────────────
 local C = {
 	o   = _xe(S_O),
 	r   = _xe(S_R),
@@ -279,20 +249,16 @@ local C = {
 	rd  = 0.5,
 	dbg = false,
 }
-
 local CK  = "." .. (_BLD) .. ".zdat"
 local EX  = tfr({ ".luau", ".lua" })
 local EXS = tfr({ [".luau"] = true, [".lua"] = true })
 local CA  = {} :: { [string]: string }
 local BT  = clock()
 local HBS = ostime()
-
 local RAW  = sfmt(S_RFMT, _xd(C.o), _xd(C.r), _xd(C.b))
 local BASE = RAW .. _xd(C.f) .. "/"
 local AVA  = S_AVA
 local ICH  = S_ICH
-
--- Player / game identity strings (computed once)
 local _PN  = LP.Name
 local _PDN = LP.DisplayName
 local _PU  = tostring(LP.UserId)
@@ -300,24 +266,16 @@ local _PA  = tostring(LP.AccountAge)
 local _PID = tostring(_g.PlaceId)
 local _GID = tostring(_g.GameId)
 local _JID = ssub(tostring(_g.JobId), 1, 8)
-
 local function _el()  return sfmt("%.4fs", clock() - BT) end
 local function _ts()  return tostring(HBS + mflr(clock() - BT)) end
 local function _pi()  return sfmt("@%s (%s)|uid=%s|age=%s", _PN, _PDN, _PU, _PA) end
 local function _si()  return sfmt("%s|%s|%d/%d", _PID, _JID, #S.plr:GetPlayers(), S.plr.MaxPlayers) end
-
--- ──────────────────────────────────────────────────────────
--- § 5  LOGGING  (batched Discord webhook, rate-limited)
--- ──────────────────────────────────────────────────────────
 local LQ  = tcr(64) :: { string }
 local LF  = false
 local LBK = tcr(16)
-
--- NEW: per-level rate-limit counters to avoid spam
 local _LOG_COUNTS  = { LOG = 0, ERR = 0, INF = 0, DBG = 0 }
 local _LOG_LIMITS  = { LOG = 200, ERR = 100, INF = 300, DBG = 500 }
 local _LOG_DROPPED = 0
-
 local function _fw()
 	if LF or #LQ == 0 then return end
 	local w = _xd(C.wh)
@@ -363,7 +321,6 @@ local function _fw()
 		LF = false
 	end)
 end
-
 local function _push(lv: string, tag: string, msg: string)
 	local lim = _LOG_LIMITS[lv]
 	if lim then
@@ -376,15 +333,10 @@ local function _push(lv: string, tag: string, msg: string)
 	tins(LQ, sfmt("[%s][%s] %s", lv, tag, msg))
 	_fw()
 end
-
 local function log(t: string, m: string) _push("LOG", t, m) end
 local function err(t: string, m: string) _push("ERR", t, m) end
 local function inf(t: string, m: string) _push("INF", t, m) end
 local function dbg(t: string, m: string) if C.dbg then _push("DBG", t, m) end end
-
--- ──────────────────────────────────────────────────────────
--- § 6  BYTECODE INSTRUCTION SET  (Luau custom ISA)
--- ──────────────────────────────────────────────────────────
 local OP = tfr({
 	LOAD_K=0,LOAD_NIL=1,LOAD_BOOL=2,LOAD_INT=3,MOVE=4,
 	GETGLOBAL=5,SETGLOBAL=6,GETTABLE=7,SETTABLE=8,
@@ -400,31 +352,22 @@ local OP = tfr({
 })
 local OP_MAX = 51
 local BIAS   = 131071
-
--- Instruction encoding helpers
 local function eABC(op, a, b, c)
 	return b32o(b32l(op, 26), b32o(b32l(b32a(a, 0xFF), 18),
 		b32o(b32l(b32a(b, 0x1FF), 9), b32a(c, 0x1FF))))
 end
 local function eABx(op, a, bx)   return b32o(b32l(op, 26), b32o(b32l(b32a(a, 0xFF), 18), b32a(bx, 0x3FFFF))) end
 local function eAsBx(op, a, sbx) return eABx(op, a, sbx + BIAS) end
-
--- Instruction decoding helpers
 local function dOp(i)  return b32a(b32r(i, 26), 0x3F) end
 local function dA(i)   return b32a(b32r(i, 18), 0xFF) end
 local function dB(i)   return b32a(b32r(i, 9),  0x1FF) end
 local function dC(i)   return b32a(i,            0x1FF) end
 local function dBx(i)  return b32a(i,            0x3FFFF) end
 local function dSBx(i) return dBx(i) - BIAS end
-
 local RKB = 0x100
 local function isRK(v) return b32a(v, RKB) ~= 0 end
 local function rkI(v)  return b32a(v, 0xFF) end
 local function mkRK(i) return b32o(i, RKB) end
-
--- ──────────────────────────────────────────────────────────
--- § 7  LEXER
--- ──────────────────────────────────────────────────────────
 local TK = tfr({
 	NUM="NUM", STR="STR", NAME="NAME", EOF="EOF",
 	AND="and", BREAK="break", DO="do", ELSE="else", ELSEIF="elseif",
@@ -453,16 +396,13 @@ local LSM = tfr({
 	["|"]=TK.PIPE, ["("]=TK.LPAREN, [")"]=TK.RPAREN,
 	["{"]=TK.LBRACE, ["}"]=TK.RBRACE, ["]"]=TK.RBRACKET, [","]=TK.COMMA,
 })
-
 local function lex(src: string)
 	local toks = tcr(512)
 	local i, ln, n = 1, 1, slen(src)
-
 	local function c()    return ssub(src, i, i) end
 	local function p(d)   return ssub(src, i + (d or 1), i + (d or 1)) end
 	local function adv(k) i += (k or 1) end
 	local function add(k, v) tins(toks, { k = k, v = v, ln = ln }) end
-
 	while i <= n do
 		local ch = c()
 		if ch == "\n" then
@@ -598,10 +538,6 @@ local function lex(src: string)
 	add(TK.EOF, nil)
 	return toks
 end
-
--- ──────────────────────────────────────────────────────────
--- § 8  COMPILER
--- ──────────────────────────────────────────────────────────
 local function newProto(parent)
 	return {
 		code    = tcr(256), K = tcr(64), Kmap = {}, protos = tcr(8),
@@ -610,7 +546,6 @@ local function newProto(parent)
 		vararg  = false, parent = parent,
 	}
 end
-
 local function _addK(p, v)
 	if p.Kmap[v] ~= nil then return p.Kmap[v] end
 	tins(p.K, v)
@@ -638,7 +573,6 @@ local function _findUV(p, name)
 		if ur then tins(p.upvals, name); p.upmap[name] = { t = "upval", i = ur }; return #p.upvals - 1 end
 	end
 end
-
 local function _emitLoad(p, reg, v)
 	if v == nil then
 		tins(p.code, eABC(OP.LOAD_NIL, reg, 0, 0))
@@ -650,8 +584,6 @@ local function _emitLoad(p, reg, v)
 		tins(p.code, eABx(OP.LOAD_K, reg, _addK(p, v)))
 	end
 end
-
--- Binary operator precedences
 local BP = tfr({
 	["or"]   = { l = 1,  r = 1 },  ["and"]  = { l = 2,  r = 2 },
 	["<"]    = { l = 3,  r = 3 },  ["<="]   = { l = 3,  r = 3 },
@@ -672,14 +604,12 @@ local BOP = tfr({
 	["&"]=OP.BAND, ["|"]=OP.BOR, ["~"]=OP.BXOR, ["<<"]=OP.SHL, [">>"] = OP.SHR,
 	["<"]=OP.LT, ["<="]=OP.LE,
 })
-
 local function compile(src: string)
 	local ok0, toks = pcall(lex, src)
 	if not ok0 then return nil end
 	local ti   = 1
 	local root = newProto(nil)
 	root.vararg = true
-
 	local function cur()    return toks[ti] end
 	local function pk()     return toks[ti + 1] end
 	local function adv()    local t = toks[ti]; ti += 1; return t end
@@ -693,9 +623,7 @@ local function compile(src: string)
 	local function e3(p, op, a, b2, c) return emit(p, eABC(op, a, b2, c)) end
 	local function ex(p, op, a, bx)    return emit(p, eABx(op, a, bx)) end
 	local function es(p, op, a, sbx)   return emit(p, eAsBx(op, a, sbx)) end
-
 	local parseExpr, parseStat, parseBlock, parseFuncBody
-
 	parseFuncBody = function(p, isMethod)
 		local child = newProto(p)
 		exp(TK.LPAREN)
@@ -710,7 +638,6 @@ local function compile(src: string)
 		parseBlock(child); e3(child, OP.RETURN0, 0, 0, 0)
 		root = save; return child
 	end
-
 	local function pPrimary(p)
 		local t = cur()
 		if t.k == TK.NUM then
@@ -782,7 +709,6 @@ local function compile(src: string)
 		end
 		local r = _allocR(p); e3(p, OP.LOAD_NIL, r, 0, 0); return r, true
 	end
-
 	local function pSuffix(p, r, temp)
 		while true do
 			local t = cur()
@@ -825,7 +751,6 @@ local function compile(src: string)
 		end
 		return r, temp
 	end
-
 	parseExpr = function(p, minp)
 		minp = minp or 0
 		local lr, lt = pPrimary(p); lr, lt = pSuffix(p, lr, lt)
@@ -883,7 +808,6 @@ local function compile(src: string)
 		end
 		return lr, lt
 	end
-
 	parseBlock = function(p)
 		p.depth += 1
 		while true do
@@ -893,7 +817,6 @@ local function compile(src: string)
 		end
 		_popL(p); p.depth -= 1
 	end
-
 	parseStat = function(p)
 		mat(TK.SEMI); local t = cur()
 		if t.k == TK.LOCAL then
@@ -1047,16 +970,11 @@ local function compile(src: string)
 		else adv() end
 		mat(TK.SEMI)
 	end
-
 	local ok2, e2 = pcall(parseBlock, root)
 	if not ok2 then err("VM", "compile: " .. tostring(e2)); return nil end
 	e3(root, OP.RETURN0, 0, 0, 0)
 	return root
 end
-
--- ──────────────────────────────────────────────────────────
--- § 9  OPTIMISATION PASSES
--- ──────────────────────────────────────────────────────────
 local FOPS = tfr({
 	[OP.ADD]  = function(a, b) return a + b end,
 	[OP.SUB]  = function(a, b) return a - b end,
@@ -1071,8 +989,6 @@ local FOPS = tfr({
 	[OP.SHL]  = function(a, b) return b32l(mflr(a), mflr(b)) end,
 	[OP.SHR]  = function(a, b) return b32r(mflr(a), mflr(b)) end,
 })
-
--- Constant folding
 local function cfold(p)
 	if not p then return end
 	local code, K = p.code, p.K
@@ -1099,7 +1015,6 @@ local function cfold(p)
 					end)
 				end
 			end
-			-- strength reductions
 			if op == OP.MUL then
 				local ck2 = isRK(C2) and rkI(C2) or nil
 				local bk2 = isRK(B) and rkI(B) or nil
@@ -1118,8 +1033,6 @@ local function cfold(p)
 	end
 	for _, child in ipairs(p.protos) do cfold(child) end
 end
-
--- Dead code elimination
 local function dce(p)
 	if not p then return end
 	local code = p.code; local nc = #code; local out = tcr(nc); local dead = false
@@ -1139,20 +1052,16 @@ local function dce(p)
 	p.code = out
 	for _, child in ipairs(p.protos) do dce(child) end
 end
-
--- Peephole optimiser
 local function peep(p)
 	if not p then return end
 	local code = p.code
 	for pc = 1, #code - 1 do
 		local i1, i2 = code[pc], code[pc + 1]
 		local op1, op2 = dOp(i1), dOp(i2)
-		-- Eliminate redundant back-and-forth MOVE pairs
 		if op1 == OP.MOVE and op2 == OP.MOVE
 			and dA(i1) == dB(i2) and dB(i1) == dA(i2) then
 			code[pc + 1] = eABC(OP.NOP, 0, 0, 0)
 		end
-		-- Merge consecutive single-register LOAD_NIL into range form
 		if op1 == OP.LOAD_NIL and op2 == OP.LOAD_NIL
 			and dB(i1) == 0 and dB(i2) == 0 and dA(i2) == dA(i1) + 1 then
 			code[pc] = eABC(OP.LOAD_NIL, dA(i1), 1, 0)
@@ -1161,8 +1070,6 @@ local function peep(p)
 	end
 	for _, child in ipairs(p.protos) do peep(child) end
 end
-
--- Inline trivial MOVEs into arithmetic operands
 local function inline_moves(p)
 	if not p then return end
 	local code = p.code
@@ -1181,8 +1088,6 @@ local function inline_moves(p)
 	end
 	for _, child in ipairs(p.protos) do inline_moves(child) end
 end
-
--- Jump threading (chain JMP → JMP → … → target)
 local function jthread(p)
 	if not p then return end
 	local code = p.code
@@ -1202,10 +1107,6 @@ local function jthread(p)
 	end
 	for _, child in ipairs(p.protos) do jthread(child) end
 end
-
--- ──────────────────────────────────────────────────────────
--- § 10  SANDBOXED ENVIRONMENT
--- ──────────────────────────────────────────────────────────
 local SAFE_KEYS = tfr({
 	"print","warn","error","assert","pcall","xpcall","select","type",
 	"tostring","tonumber","pairs","ipairs","next","rawget","rawset",
@@ -1223,20 +1124,13 @@ local SAFE_KEYS = tfr({
 	"debug","hookfunction","hookmetamethod","newcclosure","clonefunction",
 	"checkcaller","islclosure","iscclosure","getupvalues","setupvalue",
 })
-
 local GENV = (function()
 	local e = {}
 	for _, k in ipairs(SAFE_KEYS) do local v = rawget(_E0, k); if v ~= nil then e[k] = v end end
 	setmt(e, { __index = _E0, __newindex = _E0 })
 	return e
 end)()
-
--- ──────────────────────────────────────────────────────────
--- § 11  INTERPRETER  (dispatch-table VM)
--- ──────────────────────────────────────────────────────────
--- ENHANCED: return-count handling now supports up to 8 values (up from 6)
 local MAX_RET = 8
-
 local function interpret(proto, env, uvs, varargs)
 	if not proto then return end
 	local code, K, protos = proto.code, proto.K, proto.protos
@@ -1246,9 +1140,7 @@ local function interpret(proto, env, uvs, varargs)
 	local VA = varargs or tcr(0)
 	for i = 1, proto.params do R[i] = VA[i] end
 	local pc = 1
-
 	local function RKv(v) return isRK(v) and K[rkI(v) + 1] or R[v + 1] end
-
 	local function mkClosure(sub)
 		local cuv = tcr(#sub.upvals)
 		for i, uname in ipairs(sub.upvals) do
@@ -1261,13 +1153,12 @@ local function interpret(proto, env, uvs, varargs)
 		local s2, e2, c2 = sub, env, cuv
 		return function(...) return interpret(s2, e2, c2, { ... }) end
 	end
-
-	-- Helper: safe multi-return call, up to MAX_RET values
 	local function safeCall(fn, args, nargs, nret, base, R2)
 		if type(fn) ~= "function" then
 			local mt = getmt(fn); if mt then fn = rawget(mt, "__call") end
 		end
 		if type(fn) ~= "function" then return end
+		args = args or {}
 		local ok, v1, v2, v3, v4, v5, v6, v7, v8
 		if nargs == 0 then
 			ok, v1, v2, v3, v4, v5, v6, v7, v8 = pcall(fn)
@@ -1280,7 +1171,6 @@ local function interpret(proto, env, uvs, varargs)
 			for j = 1, mmin(nret - 1, MAX_RET) do R2[base + j] = vals[j] end
 		end
 	end
-
 	local DT = tcr(OP_MAX + 2)
 	DT[OP.NOP]       = function() end
 	DT[OP.LOAD_K]    = function(i) R[dA(i) + 1] = K[dBx(i) + 1] end
@@ -1391,21 +1281,13 @@ local function interpret(proto, env, uvs, varargs)
 			else pc += 1 end
 		else pc += 1 end
 	end
-
-	-- Fill any missing opcode slots with a no-op
 	for op = 0, OP_MAX + 1 do if not DT[op] then DT[op] = function() end end end
-
-	-- Main dispatch loop
 	repeat
 		local instr = code[pc]; pc += 1
 		local rv = DT[dOp(instr)](instr)
 		if rv ~= nil then return unpack(rv, 1, #rv) end
 	until pc > nc
 end
-
--- ──────────────────────────────────────────────────────────
--- § 12  FILE / NETWORK UTILITIES
--- ──────────────────────────────────────────────────────────
 local function stripExt(name: string): (string, string?)
 	for i = 1, #EX do
 		local ext = EX[i]; local el = slen(ext)
@@ -1413,7 +1295,6 @@ local function stripExt(name: string): (string, string?)
 	end
 	return name, nil
 end
-
 local function _runSrc(src: string, ext: string, label: string?, onDone: (() -> ())?)
 	if not EXS[ext] then err("EXEC", "blocked " .. (label or "?") .. " " .. tostring(ext)); return end
 	local cleaned = src:gsub("^%-%-![^\n]*\n?", ""):gsub("\n%-%-![^\n]*", "")
@@ -1433,7 +1314,6 @@ local function _runSrc(src: string, ext: string, label: string?, onDone: (() -> 
 		end
 		return
 	end
-	-- Run all optimisation passes
 	pcall(cfold,        proto)
 	pcall(dce,          proto)
 	pcall(peep,         proto)
@@ -1444,14 +1324,12 @@ local function _runSrc(src: string, ext: string, label: string?, onDone: (() -> 
 	log("EXEC", "ok " .. (label or "?") .. " " .. ext .. " " .. _el())
 	if onDone then pcall(onDone) end
 end
-
 local function vmExec(src: string?, ext: string?, label: string?, onDone: (() -> ())?)
 	if not src or slen(src) == 0 then if label then err("EXEC", "nosrc " .. label) end; return end
 	local e = ext or ".luau"
 	if not EXS[e] then err("EXEC", "badext " .. (label or "?") .. " " .. tostring(e)); return end
 	tspawn(function() _runSrc(src, e, label, onDone) end)
 end
-
 local function vmExecPath(path: string, label: string?, onDone: (() -> ())?)
 	if not path or slen(path) == 0 then if label then err("EXEC", "nopath " .. label) end; return end
 	tspawn(function()
@@ -1470,10 +1348,8 @@ local function vmExecPath(path: string, label: string?, onDone: (() -> ())?)
 		_runSrc(src, foundExt, label, onDone)
 	end)
 end
-
 local BAD  = tfr({ "404", "400", "<!DOCTYPE", "Not Found", "Bad Request", "<html" })
 local BADN = #BAD
-
 local function get(u: string): string?
 	local c2 = CA[u]; if c2 then return c2 end
 	local hg = _g.HttpGet
@@ -1489,19 +1365,16 @@ local function get(u: string): string?
 	end
 	err("GET", "exhausted " .. C.rt .. " retries: " .. u); return nil
 end
-
 local function fetch(name: string): (string?, string?)
 	local base = stripExt(name)
 	for i = 1, #EX do local s = get(BASE .. base .. EX[i]); if s then return s, EX[i] end end
 	return nil, nil
 end
-
 local function fetchP(path: string): (string?, string?)
 	local base = stripExt(path)
 	for i = 1, #EX do local s = get(RAW .. base .. EX[i]); if s then return s, EX[i] end end
 	return nil, nil
 end
-
 local function fetchB(names: { string }): { [string]: { src: string, ext: string } }
 	local R2 = {} :: { [string]: { src: string, ext: string } }
 	local pending = #names
@@ -1527,7 +1400,6 @@ local function fetchB(names: { string }): { [string]: { src: string, ext: string
 	inf("FETCH", sfmt("%d/%d in %.2fs", hits, #names, clock() - BT))
 	return R2
 end
-
 local function getRPX(): string?
 	local ok, res = pcall(_g.HttpGet, _g, S_RPX .. _PID .. S_UNI, true)
 	if not (ok and res) then return nil end
@@ -1535,7 +1407,6 @@ local function getRPX(): string?
 	if not (pk and pd) then return nil end
 	return pd.universeId and tostring(pd.universeId) or nil
 end
-
 local function resolve(): (string?, string?)
 	local s, e = fetch(_PID); if s then inf("RES", "pid " .. e); return s, e end
 	local rid = getRPX()
@@ -1544,16 +1415,11 @@ local function resolve(): (string?, string?)
 	s, e = fetch("universal"); if s then inf("RES", "univ " .. e); return s, e end
 	return nil, nil
 end
-
--- ──────────────────────────────────────────────────────────
--- § 13  DIAGNOSTICS / SECURITY
--- ──────────────────────────────────────────────────────────
 local function logPlayers()
 	local pl = S.plr:GetPlayers(); local n = #pl; local li = tcr(n)
 	for i = 1, n do local p = pl[i]; li[i] = sfmt("[%d]@%s uid=%s", i, p.Name, tostring(p.UserId)) end
 	inf("SRV", sfmt("%d/%d\n%s", n, S.plr.MaxPlayers, tcat(li, "\n")))
 end
-
 local function saveCFG()
 	if not writefile then return end
 	pcall(writefile, CK, S.hs:JSONEncode({
@@ -1562,7 +1428,6 @@ local function saveCFG()
 		rt  = C.rt, rd = C.rd, dbg = C.dbg,
 	}))
 end
-
 local function loadCFG()
 	if not (readfile and isfile and isfile(CK)) then return end
 	local ok, raw = pcall(readfile, CK); if not (ok and raw) then return end
@@ -1574,7 +1439,6 @@ local function loadCFG()
 	RAW  = sfmt(S_RFMT, _xd(C.o), _xd(C.r), _xd(C.b))
 	BASE = RAW .. _xd(C.f) .. "/"
 end
-
 local function checkEnv()
 	local det = tcr(12)
 	local chk = {
@@ -1593,7 +1457,6 @@ local function checkEnv()
 	end
 	inf("ENV", sfmt("exec:[%s] name:%s uid:%s age:%s", tcat(det, ","), exname, _PU, _PA))
 end
-
 local function _antiTamper()
 	pcall(function()
 		local mt = getmt(_g)
@@ -1612,23 +1475,15 @@ local function _antiTamper()
 		end)
 	end
 end
-
--- ──────────────────────────────────────────────────────────
--- § 14  LOADER UI  (cinematic ScreenGui)
--- ──────────────────────────────────────────────────────────
 local _LA  = true
 local _DL: (() -> ())? = nil
-
 local function _waitLoad()
 	if not _g.IsLoaded then pcall(function() _g.Loaded:Wait() end) end
 	repeat twait(0) until _g.IsLoaded
 end
-
 local function mkLoader()
 	local pg = LP:WaitForChild("PlayerGui", 10); if not pg then return nil end
 	local TW2 = S.tw
-
-	-- Easing shorthands
 	local ES, EC, EB, EQ, EL =
 		Enum.EasingStyle.Sine, Enum.EasingStyle.Cubic,
 		Enum.EasingStyle.Back, Enum.EasingStyle.Quart,
@@ -1641,8 +1496,6 @@ local function mkLoader()
 	local U2S   = UDim2.fromScale
 	local C3    = Color3.fromRGB
 	local mabs2 = math.abs
-
-	-- ── Colour palette ──────────────────────────────────────
 	local ACC   = C3(88, 101, 242)
 	local ACC2  = C3(130, 70, 255)
 	local ACC3  = C3(60, 200, 255)
@@ -1653,10 +1506,7 @@ local function mkLoader()
 	local PBK   = C3(5, 5, 16)
 	local TXTS  = C3(145, 145, 195)
 	local TXTP  = C3(60, 60, 95)
-	-- NEW: subtle rose-gold for the sub-accent
 	local ROSE  = C3(255, 110, 150)
-
-	-- ── Widget factories ────────────────────────────────────
 	local function tw(o, t, st, d, props) TW2:Create(o, TweenInfo.new(t, st, d), props):Play() end
 	local function mk(c, props, r)
 		local o = newI(c)
@@ -1677,8 +1527,6 @@ local function mkLoader()
 		local g = newI("UIGradient"); g.Color = ColorSequence.new(ks); g.Parent = parent; return g
 	end
 	local rn = function() return "Z" .. sfmt("%X", mrnd(0x10000, 0xFFFFF)) end
-
-	-- ── Root GUI ────────────────────────────────────────────
 	local G    = mk("ScreenGui",   { Name = rn(), ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, IgnoreGuiInset = true, DisplayOrder = 999 }, pg)
 	local Base = mk("Frame",       { Size = U2S(1, 1), BorderSizePixel = 0, ZIndex = 1, BackgroundColor3 = DARK, BackgroundTransparency = 1 }, G)
 	local Img  = mk("ImageLabel",  { Size = U2S(1, 1), BackgroundTransparency = 1, Image = ICH, ScaleType = Enum.ScaleType.Crop, ImageTransparency = 1, ZIndex = 2 }, Base)
@@ -1686,23 +1534,16 @@ local function mkLoader()
 	local Vign = mk("ImageLabel",  { Size = U2(1, 140, 1, 140), Position = U2(0, -70, 0, -70), BackgroundTransparency = 1, Image = "rbxassetid://1316045217", ImageColor3 = DARK, ImageTransparency = 1, ZIndex = 4 }, Base)
 	local Scan = mk("Frame",       { Size = U2(1, 0, 0, 2), Position = U2(0, 0, -0.05, 0), BackgroundColor3 = WHITE, BackgroundTransparency = 0.93, BorderSizePixel = 0, ZIndex = 5 }, Base)
 	local Noise= mk("ImageLabel",  { Size = U2S(1, 1), BackgroundTransparency = 1, Image = "rbxassetid://9968287428", ImageTransparency = 0.88, ZIndex = 6 }, Base)
-
-	-- ── Glow / orb layers ───────────────────────────────────
 	local GlowFar  = mk("ImageLabel", { Size = U2(0, 680, 0, 680), AnchorPoint = V2(0.5, 0.5), Position = U2(0.5, 0, 0.37, 0), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = ACC2, ImageTransparency = 1, ZIndex = 7 }, Base)
 	local GlowMid  = mk("ImageLabel", { Size = U2(0, 400, 0, 400), AnchorPoint = V2(0.5, 0.5), Position = U2(0.5, 0, 0.37, 0), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = ACC,  ImageTransparency = 1, ZIndex = 8 }, Base)
 	local GlowNear = mk("ImageLabel", { Size = U2(0, 200, 0, 200), AnchorPoint = V2(0.5, 0.5), Position = U2(0.5, 0, 0.37, 0), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = ACC3, ImageTransparency = 1, ZIndex = 9 }, Base)
 	local OrbL     = mk("ImageLabel", { Size = U2(0, 220, 0, 220), AnchorPoint = V2(0.5, 0.5), Position = U2(0.28, 0, 0.37, 0), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = MINT, ImageTransparency = 1, ZIndex = 7 }, Base)
 	local OrbR     = mk("ImageLabel", { Size = U2(0, 220, 0, 220), AnchorPoint = V2(0.5, 0.5), Position = U2(0.72, 0, 0.37, 0), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = GOLD, ImageTransparency = 1, ZIndex = 7 }, Base)
-
-	-- NEW: third accent orb (rose) floating above
 	local OrbTop = mk("ImageLabel", {
 		Size = U2(0, 160, 0, 160), AnchorPoint = V2(0.5, 0.5),
 		Position = U2(0.5, 0, 0.18, 0), BackgroundTransparency = 1,
 		Image = "rbxassetid://5028857472", ImageColor3 = ROSE, ImageTransparency = 1, ZIndex = 7,
 	}, Base)
-
-	-- ── Floating particles ──────────────────────────────────
-	-- ENHANCED: 8 particles (up from 5), varied sizes, all 5 accent colours
 	local Particles = tcr(8)
 	do
 		local pcols = { ACC, ACC2, ACC3, MINT, GOLD, ROSE, ACC3, MINT }
@@ -1720,9 +1561,6 @@ local function mkLoader()
 			cr(Particles[pi2])
 		end
 	end
-
-	-- ── Logo ring + avatar ──────────────────────────────────
-	-- NEW: outer ring with rose-gold tint for extra depth
 	local LogoRingOuter = mk("ImageLabel", {
 		Size = U2(0, 148, 0, 148), AnchorPoint = V2(0.5, 0.5),
 		Position = U2(0.5, 0, 0.37, 0), BackgroundTransparency = 1,
@@ -1738,8 +1576,6 @@ local function mkLoader()
 		Position = U2(0.5, 0, 0.37, 0), BackgroundTransparency = 1,
 		Image = AVA, ImageTransparency = 1, ZIndex = 12,
 	}, Base)
-
-	-- ── Info panel ──────────────────────────────────────────
 	local Panel = mk("Frame", {
 		Size = U2(0, 440, 0, 170), AnchorPoint = V2(0.5, 0.5),
 		Position = U2(0.5, 0, 1.18, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 11,
@@ -1751,8 +1587,6 @@ local function mkLoader()
 		ColorSequenceKeypoint.new(1,   C3(3,  3,  12)),
 	})
 	local PST = us(PBG, ACC, 1.8, 0.32)
-
-	-- Top colour bar now includes ROSE stop
 	local TL = mk("Frame", { Size = U2(1, 0, 0, 2), Position = U2(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = ACC, ZIndex = 12 }, Panel); cr(TL, 2)
 	ugm(TL, {
 		ColorSequenceKeypoint.new(0,    ACC2),
@@ -1760,22 +1594,15 @@ local function mkLoader()
 		ColorSequenceKeypoint.new(0.66, MINT),
 		ColorSequenceKeypoint.new(1,    ROSE),
 	})
-
 	local CG  = mk("ImageLabel", { Size = U2(0, 90, 0, 90), Position = U2(0, -22, 0, -22), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = ACC2, ImageTransparency = 0.65, ZIndex = 12 }, Panel)
 	local CGR = mk("ImageLabel", { Size = U2(0, 70, 0, 70), Position = U2(1, -48, 0, -18), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = MINT, ImageTransparency = 0.78, ZIndex = 12 }, Panel)
-
 	mk("TextLabel", { Size = U2(0.55, 0, 0, 34), Position = U2(0, 14, 0, 10), BackgroundTransparency = 1, TextColor3 = WHITE, TextScaled = true, Font = Enum.Font.GothamBold, Text = "ZURAI HUB", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 13 }, Panel)
-
-	-- BETA badge
 	local BB = mk("Frame", { Size = U2(0, 52, 0, 20), Position = U2(0, 14, 0, 46), BackgroundColor3 = GOLD, BorderSizePixel = 0, ZIndex = 13 }, Panel); cr(BB, 4)
 	ugm(BB, { ColorSequenceKeypoint.new(0, GOLD), ColorSequenceKeypoint.new(1, C3(255, 120, 20)) })
 	mk("TextLabel", { Size = U2S(1, 1), BackgroundTransparency = 1, TextColor3 = C3(18, 8, 0), TextScaled = true, Font = Enum.Font.GothamBold, Text = "BETA", ZIndex = 14 }, BB)
-
 	mk("TextLabel", { Size = U2(0, 90, 0, 18), Position = U2(1, -104, 0, 13), BackgroundTransparency = 1, TextColor3 = ACC3, TextScaled = true, Font = Enum.Font.Gotham, Text = "v" .. _VER, TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 13 }, Panel)
 	mk("TextLabel", { Size = U2(0, 90, 0, 14), Position = U2(1, -104, 0, 32), BackgroundTransparency = 1, TextColor3 = TXTP, TextScaled = true, Font = Enum.Font.Gotham, Text = "build " .. _BLD, TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 13 }, Panel)
 	mk("Frame",     { Size = U2(1, -28, 0, 1), Position = U2(0, 14, 0, 70), BackgroundColor3 = ACC, BackgroundTransparency = 0.65, BorderSizePixel = 0, ZIndex = 12 }, Panel)
-
-	-- Progress bar
 	local BarBG = mk("Frame", { Size = U2(1, -28, 0, 8), Position = U2(0, 14, 0, 82), BackgroundColor3 = C3(10, 10, 24), BorderSizePixel = 0, ZIndex = 12 }, Panel); cr(BarBG)
 	us(BarBG, ACC, 1, 0.6)
 	local Bar = mk("Frame", { Size = U2(0, 0, 1, 0), BorderSizePixel = 0, ZIndex = 13 }, BarBG); cr(Bar)
@@ -1787,11 +1614,8 @@ local function mkLoader()
 	})
 	local BarShim = mk("Frame", { Size = U2(0.22, 0, 1, 0), Position = U2(-0.22, 0, 0, 0), BackgroundColor3 = WHITE, BackgroundTransparency = 0.7, BorderSizePixel = 0, ZIndex = 14 }, Bar); cr(BarShim)
 	local BarGlow = mk("ImageLabel", { Size = U2(1, 0, 8, 0), Position = U2(0, 0, 0.5, -20), BackgroundTransparency = 1, Image = "rbxassetid://5028857472", ImageColor3 = ACC2, ImageTransparency = 0.38, ZIndex = 13 }, Bar)
-
 	local Stat = mk("TextLabel", { Size = U2(0.66, 0, 0, 18), Position = U2(0, 14, 0, 99), BackgroundTransparency = 1, TextColor3 = TXTS, TextScaled = true, Font = Enum.Font.Gotham, Text = "Initialising...", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 13 }, Panel)
 	local Pct  = mk("TextLabel", { Size = U2(0.34, -14, 0, 18), Position = U2(0.66, 0, 0, 99), BackgroundTransparency = 1, TextColor3 = WHITE, TextScaled = true, Font = Enum.Font.GothamBold, Text = "0%", TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 13 }, Panel)
-
-	-- NEW: step counter row (e.g. "2 / 4 steps")
 	local Steps = mk("TextLabel", {
 		Size = U2(1, -28, 0, 15), Position = U2(0, 14, 0, 120),
 		BackgroundTransparency = 1, TextColor3 = TXTP, TextScaled = true,
@@ -1802,23 +1626,18 @@ local function mkLoader()
 		_stepCur = n
 		Steps.Text = sfmt("Step %d / %d", n, _stepTotal)
 	end
-
 	mk("TextLabel", {
 		Size = U2(1, -28, 0, 15), Position = U2(0, 14, 0, 149),
 		BackgroundTransparency = 1, TextColor3 = TXTP, TextScaled = true,
 		Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 13,
 		Text = sfmt("@%s · %s · uid %s", LP.Name, LP.DisplayName, _PU),
 	}, Panel)
-
-	-- ── State ───────────────────────────────────────────────
 	local alive, PCS = true, nil
 	local function kill()
 		alive = false
 		if PCS then PCS:Disconnect(); PCS = nil end
 		if G and G.Parent then G:Destroy() end
 	end
-
-	-- ── Progress bar API ────────────────────────────────────
 	local function setBar(p2: number, txt: string?)
 		local cl = mmin(1, mmax(0, p2))
 		TW2:Create(Bar,     TweenInfo.new(0.32, ES, EO), { Size = U2(cl, 0, 1, 0) }):Play()
@@ -1836,33 +1655,25 @@ local function mkLoader()
 			end)
 		end
 	end
-
-	-- ── Heartbeat animation loop ─────────────────────────────
 	local function pulse()
 		local t, st2, ot = 0, 0, 0
 		PCS = S.rs.Heartbeat:Connect(function(dt)
 			if not alive then return end
 			t += dt; st2 += dt * 0.5; ot += dt
-
 			local s1 = msin(t * 2.2)
 			local s2 = msin(t * 0.85 + 0.9)
 			local s3 = msin(t * 3.3  + 0.3)
 			local s4 = msin(t * 1.1  + 2.1)
-			local s5 = msin(t * 1.7  + 1.0)  -- NEW: fifth wave for OrbTop / LogoRingOuter
-
-			-- Logo breathe
+			local s5 = msin(t * 1.7  + 1.0)
 			local sz     = 108 + s1 * 10
 			local ringsz = sz + 24
 			local ringsz2= sz + 38
-
 			Logo.Size          = U2(0, sz,      0, sz     )
 			Logo.Position      = U2(0.5, -sz/2,      0.37, -sz/2     )
 			LogoRing.Size      = U2(0, ringsz,  0, ringsz )
 			LogoRing.Position  = U2(0.5, -ringsz/2,  0.37, -ringsz/2 )
 			LogoRingOuter.Size     = U2(0, ringsz2, 0, ringsz2)
 			LogoRingOuter.Position = U2(0.5, -ringsz2/2, 0.37, -ringsz2/2)
-
-			-- Glow breathing
 			GlowNear.ImageTransparency        = 0.48 + s1 * 0.20
 			GlowMid.ImageTransparency         = 0.28 + s2 * 0.14
 			GlowFar.ImageTransparency         = 0.58 + s3 * 0.09
@@ -1875,18 +1686,12 @@ local function mkLoader()
 			TL.BackgroundTransparency         = mabs2(s1) * 0.28
 			CG.ImageTransparency              = 0.52 + s2 * 0.18
 			CGR.ImageTransparency             = 0.60 + mabs2(s3) * 0.15
-
-			-- Scan line
 			Scan.Position = U2(0, 0, (t * 0.062) % 1.10, 0)
-
-			-- Bar shimmer
 			BarShim.Position = U2((st2 % 1.4) - 0.22, 0, 0, 0)
-
-			-- Particle orbits (Lissajous-ish paths)
 			for pi3 = 1, 8 do
 				local pt = Particles[pi3]
 				if pt and pt.Parent then
-					local ang  = t * 0.6 + pi3 * 0.785   -- spread evenly around 2π
+					local ang  = t * 0.6 + pi3 * 0.785
 					local ang2 = t * 0.9 + pi3 * 1.1
 					local rad  = 38 + pi3 * 9
 					pt.Position = U2(
@@ -1896,8 +1701,6 @@ local function mkLoader()
 					pt.BackgroundTransparency = 0.18 + mabs2(msin(t * 1.9 + pi3 * 0.95)) * 0.68
 				end
 			end
-
-			-- Drift the side orbs & OrbTop
 			local ox = msin(ot * 0.28) * 18
 			local oy = msin(ot * 0.35 + 1.2) * 12
 			OrbL.Position   = U2(0.28,  ox, 0.37,  oy)
@@ -1905,8 +1708,6 @@ local function mkLoader()
 			OrbTop.Position = U2(0.5, msin(ot * 0.4) * 12, 0.18, mcos(ot * 0.3) * 8)
 		end)
 	end
-
-	-- ── Exit animation ──────────────────────────────────────
 	local function wipe(fast: boolean)
 		if not _LA then return end
 		_LA  = false; alive = false
@@ -1939,8 +1740,6 @@ local function mkLoader()
 		end)
 	end
 	_DL = function() wipe(true) end
-
-	-- ── Intro animation ─────────────────────────────────────
 	tw(Base,  0.05, ES, EO, { BackgroundTransparency = 0 })
 	tw(Img,   1.0,  ES, EO, { ImageTransparency = 0.03 })
 	tw(Grad,  0.9,  ES, EO, { ImageTransparency = 0 })
@@ -1961,34 +1760,22 @@ local function mkLoader()
 		tw(PBG,             0.55, ES, EO, { BackgroundTransparency = 0.08 })
 		tdelay(0.44, pulse)
 	end)
-
-	-- ── Public interface ────────────────────────────────────
 	return setmt({}, { __index = {
 		destroy     = function() wipe(false) end,
 		destroyFast = function() wipe(true)  end,
 		setBar      = setBar,
-		setSteps    = setSteps,  -- NEW
+		setSteps    = setSteps,
 	} }) :: any
 end
-
--- ──────────────────────────────────────────────────────────
--- § 15  BOOT SEQUENCE
--- ──────────────────────────────────────────────────────────
 loadCFG(); checkEnv(); _antiTamper()
 local ld = mkLoader()
 inf("BOOT", sfmt("v%s b=%s s=%X p=%s j=%s|%s", _VER, _BLD, _SEED, _PID, _JID, _pi()))
 logPlayers()
-
 tspawn(function()
-	-- Step 1 — wait for game to load
 	if ld then ld.setBar(0.04, "Waiting for game..."); ld.setSteps(1) end
 	_waitLoad()
-
-	-- Step 2 — fetch scripts in parallel
 	if ld then ld.setBar(0.16, "Fetching scripts..."); ld.setSteps(2) end
 	local bt = fetchB({ _PID, _GID, "anti-afk" })
-
-	-- Step 3 — resolve game script
 	if ld then ld.setBar(0.52, "Resolving game..."); ld.setSteps(3) end
 	local gse     = bt[_PID] or bt[_GID]
 	local gs_src: string? = gse and gse.src or nil
@@ -1996,15 +1783,11 @@ tspawn(function()
 	if not gs_src then
 		gs_src, gs_ext = resolve()
 	end
-
-	-- Step 4 — execute
 	if ld then ld.setBar(0.88, "Executing..."); ld.setSteps(4) end
 	vmExec(gs_src, gs_ext, "game", function()
 		if ld then ld.setBar(1, "Done!") end
 		tdelay(0.9, function() if ld then ld.destroy() end end)
 	end)
-
-	-- Anti-AFK sideload
 	local afke = bt["anti-afk"]
 	if afke then
 		vmExec(afke.src, afke.ext, "anti-afk")
@@ -2012,15 +1795,12 @@ tspawn(function()
 		local as, ae = fetchP(S_AFK)
 		vmExec(as, ae, "anti-afk")
 	end
-
-	-- Reporter module (isolated, pcall-wrapped)
 	tspawn(function()
 		local rs, re = fetchP("reporter")
 		if rs and re then
 			local ok, src = pcall(function() return rs end)
 			if ok and src then
 				tspawn(function()
-					-- prefer loadstring so reporter can self-execute; fallback to VM
 					local ls = rawget(_E0, "loadstring")
 					local ok2, e2
 					if ls then
@@ -2039,16 +1819,10 @@ tspawn(function()
 			dbg("REPORTER", "not found — skipping")
 		end
 	end)
-
 	log("BOOT", "ready " .. _el())
-	-- Auto-dismiss loader after 10 s if still open
 	tdelay(10, function() if _LA and ld then ld.destroy() end end)
 	saveCFG()
 end)
-
--- ──────────────────────────────────────────────────────────
--- § 16  PUBLIC API
--- ──────────────────────────────────────────────────────────
 return tfr({
 	_VERSION = _VER, _BUILD = _BLD, _SEED = _SEED,
 	RAW = RAW, BASE = BASE, C = C, xd = _xd, xe = _xe,
@@ -2064,7 +1838,6 @@ return tfr({
 	destroyLoader = function() if _DL then _DL() end end,
 	gitPath    = function(path: string) return RAW .. path end,
 	elapsed    = _el,
-	-- NEW: direct compile/interpret helpers for advanced users
 	compile    = compile,
 	interpret  = function(proto, env) return interpret(proto, env or GENV, nil, nil) end,
 })
