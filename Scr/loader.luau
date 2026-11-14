@@ -1165,7 +1165,7 @@ local function interpret(proto, env, uvs, varargs)
 		else
 			ok, v1, v2, v3, v4, v5, v6, v7, v8 = pcall(fn, unpack(args, 1, nargs))
 		end
-		if not ok then return end
+		if not ok then err("VM", "call err: " .. tostring(v1)); return end
 		if nret >= 2 then
 			local vals = { v1, v2, v3, v4, v5, v6, v7, v8 }
 			for j = 1, mmin(nret - 1, MAX_RET) do R2[base + j] = vals[j] end
@@ -1228,7 +1228,10 @@ local function interpret(proto, env, uvs, varargs)
 		local A, B, C2 = dA(i), dB(i), dC(i)
 		local fn = R[A + 1]
 		if type(fn) ~= "function" then local mt = getmt(fn); if mt then fn = rawget(mt, "__call") end end
-		if type(fn) ~= "function" then return end
+		if type(fn) ~= "function" then
+			err("VM", "call nil pc=" .. tostring(pc - 1))
+			return
+		end
 		if B == 1 then
 			safeCall(fn, nil, 0, C2, A, R)
 		else
@@ -1310,7 +1313,13 @@ local function _runSrc(src: string, ext: string, label: string?, onDone: (() -> 
 					if not ok2 then err("EXEC", "ls " .. (label or "?") .. " " .. tostring(e2)) end
 					if onDone then pcall(onDone) end
 				end)
-			else err("EXEC", "lsc " .. (label or "?") .. " " .. tostring(le)) end
+			else
+				err("EXEC", "lsc " .. (label or "?") .. " " .. tostring(le))
+				if onDone then pcall(onDone) end
+			end
+		else
+			err("EXEC", "no loadstring " .. (label or "?"))
+			if onDone then pcall(onDone) end
 		end
 		return
 	end
@@ -1784,10 +1793,15 @@ tspawn(function()
 		gs_src, gs_ext = resolve()
 	end
 	if ld then ld.setBar(0.88, "Executing..."); ld.setSteps(4) end
-	vmExec(gs_src, gs_ext, "game", function()
-		if ld then ld.setBar(1, "Done!") end
-		tdelay(0.9, function() if ld then ld.destroy() end end)
-	end)
+	if not gs_src then
+		err("BOOT", "no game script found for " .. tostring(_PID) .. "/" .. tostring(_GID))
+		if ld then ld.setBar(1, "No script found"); tdelay(2, function() if ld then ld.destroy() end end) end
+	else
+		vmExec(gs_src, gs_ext, "game", function()
+			if ld then ld.setBar(1, "Done!") end
+			tdelay(0.9, function() if ld then ld.destroy() end end)
+		end)
+	end
 	local afke = bt["anti-afk"]
 	if afke then
 		vmExec(afke.src, afke.ext, "anti-afk")
