@@ -2,8 +2,7 @@
  * ap.js — Zurai Hub v4.0.0
  * Executor detection · DOM gating · loader render
  *
- * Loader one-liner fetches loader-api.html, extracts the Lua
- * source between <!--ZURAI_SRC ... ZURAI_SRC--> and runs it.
+ * Loader one-liner fetches loader-api.html and executes the Lua it returns.
  */
 ;(function () {
   'use strict';
@@ -38,7 +37,7 @@
   var IS_EXEC = detect();
 
   /* ── Loader script (shown to executors only) ──────────────── */
-  var LOADER = 'loadstring(game:HttpGet("https://zurai02.github.io/zurai-hub/loader-api, true"))()';
+  var LOADER = 'loadstring(game:HttpGet("https://zurai02.github.io/zurai-hub/loader-api.html", true))()';
 
   /* ── Gating ───────────────────────────────────────────────── */
   function applyGating() {
